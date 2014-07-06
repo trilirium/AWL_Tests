@@ -1,0 +1,89 @@
+<Inc.awl> #14 / [1] {
+
+  x_trace:() => 0;
+  inc_list => ();
+  <inc_a.awl> <- <Inc.awl> #13 / [2] {
+
+    x_trace:() => 0;
+    inc_list => ();
+    set:(A_num, 2759) => 2759;
+    set:(A_val, mul:(53.22, 3.71)) => 197.4462;
+    set:(A_xl, "AGTERK", 56, "__+__") => ("AGTERK", 56, "__+__");
+    ! A_func:(p) [1] = add:(mul:(.A_num, p), 1) => A_func:;
+    ! A_func2:(x y) [2] = sub:(mul:(x, .A_val), div:(y, sqr:.A_val)) => A_func2:;
+    l_push:(inc_list, "Inc_a") => "Inc_a";
+Inc_A included
+    f_put:((), "Inc_A included\n") => 1;
+
+  } <inc_a.awl> <- <Inc.awl> #32 / [10]
+  <inc_b.awl> <- <Inc.awl> #13 / [2] {
+
+    x_trace:() => 0;
+    set:(B_open, "[{") => "[{";
+    set:(B_close, "}]") => "}]";
+    set:(B_sep, ", ") => ", ";
+    ! B_func:(sss) [1] = s_cat:(s_cat:(.B_open, sss), .B_close) => B_func:;
+    ! B_func2:(aa bb cc) [3] = s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(.B_open, aa), .B_sep), bb), .B_sep), cc), .B_close) => B_func2:;
+    set:(B_xl, mul:(73, 5), "TYYDF", sub:(add:(15, mul:(67, 2)), 9)) => (365, "TYYDF", 140);
+    l_push:(inc_list, "Inc_b") => ("Inc_b", "Inc_a");
+Inc_B included
+    f_put:((), "Inc_B included\n") => 1;
+
+  } <inc_b.awl> <- <Inc.awl> #31 / [10]
+  <inc_c.awl> <- <Inc.awl> #12 / [2] {
+
+    x_trace:() => 0;
+Inc_C1 included
+Inc_C2 included
+Inc_C3 included
+    set:(c_S, 0) => 0;
+    l_loop:(v, (c1_p, c2_p), comb:add:(c_S, v)) => 185;
+    set:(c_V, 1.) => 1.;
+    l_loop:(v, (c1_v, c2_v), comb:mul:(c_V, add:(v, 3.5))) => 126.79571;
+    set:(c_T, "") => "";
+    l_loop:(v, (c1_s, c2_s), comb:s_cat:(c_T, s_cat:(s_cat:("{", v), "}"))) => "{asdfg}{qwerty}";
+    set:(C_xl, 223.7, "aaa-bb-cc", 652.1) => (223.7, "aaa-bb-cc", 652.1);
+    l_push:(inc_list, "Inc_c") => ("Inc_c", "Inc_c3", "Inc_c2", "Inc_c1", "Inc_b", "Inc_a");
+Inc_C included
+    f_put:((), "Inc_C included\n") => 1;
+
+  } <inc_c.awl> <- <Inc.awl> #33 / [11]
+  B_func:A_func:7 => "[{19314}]";
+  A_func2:(11.1, 23.7) => 2189.9662;
+  B_func2:(mul:(2, 2), mul:(3, 3), mul:(4, 4)) => "[{4, 9, 16}]";
+  (c_S, c_V, c_T) => (185, 126.79571, "{asdfg}{qwerty}");
+  l_cat:(l_cat:(A_xl, B_xl), C_xl) => ("AGTERK", 56, "__+__", 365, "TYYDF", 140, 223.7, "aaa-bb-cc", 652.1);
+  inc_list => ("Inc_c", "Inc_c3", "Inc_c2", "Inc_c1", "Inc_b", "Inc_a");
+
+    inc_list = ("Inc_c", "Inc_c3", "Inc_c2", "Inc_c1", "Inc_b", "Inc_a");
+    A_num = 2759;
+    A_val = 197.4462;
+    A_xl = ("AGTERK", 56, "__+__");
+    B_open = "[{";
+    B_close = "}]";
+    B_sep = ", ";
+    B_xl = (365, "TYYDF", 140);
+    c1_p = 66;
+    c1_v = 9.5333333;
+    c1_s = "asdfg";
+    c2_p = 119;
+    c2_v = 6.2285714;
+    c2_s = "qwerty";
+    c3_label1 = "-- 11 22 33 --";
+    c3_label2 = "aa bb cc dd ee";
+    c_S = 185;
+    v = "qwerty";
+    c_V = 126.79571;
+    c_T = "{asdfg}{qwerty}";
+    C_xl = (223.7, "aaa-bb-cc", 652.1);
+
+  x_vars_ord:() => 21;
+
+    ! A_func:(p) [1] = add:(mul:(.A_num, p), 1);
+    ! A_func2:(x y) [2] = sub:(mul:(x, .A_val), div:(y, sqr:.A_val));
+    ! B_func:(sss) [1] = s_cat:(s_cat:(.B_open, sss), .B_close);
+    ! B_func2:(aa bb cc) [3] = s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(.B_open, aa), .B_sep), bb), .B_sep), cc), .B_close);
+
+  x_funcs_ord:() => 4;
+
+} <Inc.awl> #36 / [10]

@@ -1,0 +1,22 @@
+<Integ.awl> #14 / [1] {
+
+  x_trace:() => 0;
+  let:(integ, {
+    set:(s, 0.);
+    set:(p, div:(sub:(b, a), n));
+    set:(x, add:(a, div:(s, 2)));
+    while:(dec_p:n, {
+      comb:add:(s, mul:(p, reval:func));
+      comb:add:(x, p) });
+    s }) => integ;
+  let:(func, 5) => func;
+  set:((n, a, b), 20, neg:2., 2.) => (20, -2., 2.);
+  reval:integ => 20.;
+  let:(func, x) => func;
+  set:((n, a, b), 1000, neg:2., 3.) => (1000, -2., 3.);
+  reval:integ => 2.4875;
+  let:(func, exp:x) => func;
+  set:((n, a, b), 500, 0., 1.) => (500, 0., 1.);
+  reval:integ => 1.7165641;
+
+} <Integ.awl> #41 / [11]

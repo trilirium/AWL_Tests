@@ -1,0 +1,32 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Inc_C.awl'
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+x_trace ();
+
+include "inc_c1.awl";
+include "inc_c2.awl";
+include "inc_c3.awl";
+
+c_S = 0;
+l_loop (v, [c1_p c2_p], c_S =+: v);
+
+c_V = 1.0;
+l_loop (v, [c1_v c2_v], c_V =*: v + 3.5);
+
+c_T = '';
+l_loop (v, [c1_s c2_s], c_T =+$: ('{' +$ v +$ '}'));
+
+C_xl = [223.7 'aaa-bb-cc' 652.1];
+
+inc_list [<-] 'Inc_c';
+
+<: "Inc_C included\n";
+

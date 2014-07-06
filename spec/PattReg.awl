@@ -1,0 +1,95 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'PattReg.awl':
+	|	Pattern match with backtracking (store/recall).
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: rx_match, rx_cat, rx_rep, rx_store, rx_recall, s_join
+`
+
+
+x_trace ();
+
+strings = [
+	'abc'
+	'=hgf='
+	'ijk'
+	'op%|%qr'
+	'$vw$'
+	'z-y-x'
+	];
+
+! error_at (L) = <: ("Error with: ", s_join (':', L), "!\a\n");
+
+rxp_2s = rx_cat (
+  rx_cat ('[',
+	rx_cat (rx_store 1:: rx_rep (0.., 1, rx_any ()), '] ')),
+
+  rx_cat (' {',
+	rx_cat (rx_recall 1, '}'))
+  );
+
+` 2-loop test ... `
+l_loop (U, strings,
+    l_loop (V, strings,
+	if (rx_match (rxp_2s, s_join ('', [ '[' U ']  {' V '}' ])) >= 0)::
+		(if (U <>$ V):: error_at (U, V))
+	::
+		(if (U ==$ V):: error_at (U, V))
+	)
+);
+
+rxp_3s = rx_cat (
+  rx_cat (
+  rx_cat ('{',
+	rx_cat (rx_store 2:: rx_rep (0.., 1, rx_any ()), '}')),
+
+  rx_cat ('*(', rx_cat (rx_recall 2, ')*'))
+  ),
+
+  rx_cat ('<', rx_cat (rx_recall 2, '>.'))
+  );
+
+` 3-loop test ... `
+l_loop (U, strings,
+    l_loop (V, strings,
+	    l_loop (W, strings,
+		if (rx_match (rxp_3s, s_join ('', [ '{' U '}*(' V ')*<' W '>.'])) >= 0)::
+			(if (U <>$ V || V <>$ W):: error_at (U, V, W))
+		::
+			(if (U ==$ V && V ==$ W):: error_at (U, V, W))
+		)
+	)
+);
+
+rxp_2dr = rx_cat (
+  rx_cat (
+  rx_cat ('[',
+	rx_cat (rx_store 1:: rx_rep (0.., 1, rx_any ()), ']')),
+
+  rx_cat ('{',
+	rx_cat (rx_store 2:: rx_rep (0.., 1, rx_any ()), '}'))
+  ),
+
+  rx_cat (
+  rx_cat (':<', rx_cat (rx_recall 2, '>')),
+
+  rx_cat ('@', rx_cat (rx_recall 1, '. '))
+  )
+  );
+
+` 2-loop test ... `
+l_loop (U, strings,
+    l_loop (V, strings,
+	if (rx_match (rxp_2dr, s_join ('', [ '[' U ']{' V '}:<' V '>@' U '. ' ])) < 0)::
+		error_at (U, V)
+	)
+);
+

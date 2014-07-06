@@ -1,0 +1,261 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'MathCalc.awl':
+	|	Calculate basic mathematical functions.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+`
+	Sine calculation:
+	sin(x) = x - x^3/3! + x^5/5! - x^7/7! + x^9/9! - x^11/11! + ... + (-1)^n x^(2n + 1)/(2n + 1)!
+`
+
+! test_sin (x IterCount) : [i value current] = {
+value = 0.0;
+current = x;
+x =*: x;	` x = x^2 `
+
+for_inc (i, 1..IterCount+1, {
+	value =+: current;
+	current =*: -x / ((2*i + 1) * (2*i));
+	});
+
+value	` result is... `
+};		` -- test_sin `
+
+`
+	Cosine calculation:
+	cos(x) = 1 - x^2/2! + x^4/4! - x^6/6! + x^8/8! - x^10/10! + ... + (-1)^n x^(2n)/(2n)!
+`
+
+! test_cos (x IterCount) : [i value current] = {
+value = 0.0;
+current = 1.0;
+x =*: x;	` x = x^2 `
+
+for_inc (i, 1..IterCount+1, {
+	value =+: current;
+	current =*: -x / ((2*i - 1) * (2*i));
+	});
+
+value	` result is... `
+};		` -- test_cos `
+
+`
+	Hyperbolic sine calculation:
+	sh(x) = x + x^3/3! + x^5/5! + x^7/7! + x^9/9! + ... + x^(2n + 1)/(2n + 1)!
+`
+
+! test_sh (x IterCount) : [i value current] = {
+value = 0.0;
+current = x;
+x =*: x;	` x = x^2 `
+
+for_inc (i, 1..IterCount+1, {
+	value =+: current;
+	current =*: x / ((2*i + 1) * (2*i));
+	});
+
+value	` result is... `
+};		` -- test_sh `
+
+`
+	Hyperbolic cosine calculation:
+	ch(x) = 1 + x^2/2! + x^4/4! + x^6/6! + x^8/8! + ... + x^(2n)/(2n)!
+`
+
+! test_ch (x IterCount) : [i value current] = {
+value = 0.0;
+current = 1.0;
+x =*: x;	` x = x^2 `
+
+for_inc (i, 1..IterCount+1, {
+	value =+: current;
+	current =*: x / ((2*i - 1) * (2*i));
+	});
+
+value	` result is... `
+};		` -- test_ch `
+
+`
+	Exponent calculation:
+	exp(x) = 1 + x + x^2/2! + x^3/3! + x^4/4! + x^5/5! + ... + x^n/n!
+`
+
+! test_exp (x IterCount) : [i value current] = {
+value = 0.0;
+current = 1.0;
+
+for_inc (i, 1..IterCount+1, {
+	value =+: current;
+	current =*: x / i;
+	});
+
+value	` result is... `
+};		` -- test_exp `
+
+`
+	Logarythm calculation:
+	log (x) = sum ( n=0, N, (x-1)^(2n+1) / ((2n+1) (x+1)^(2n+1)) )
+`
+
+! test_log (x IterCount) : [value current a b div i] = {
+if (x <= 0)::
+	(nan ()) ::
+
+if (x == 1) ::
+	0 ::
+
+{
+value = 0.0;
+current = (b = x+1) / (a = x-1);
+div = (a*a) / (b*b);
+
+for_inc (i, IterCount, {
+	current =*: div;
+	value =+: current / (2*i + 1);
+	});
+
+2 * value	` result is... `
+}
+};		` -- test_log `
+
+`
+	ArcSine calculation:
+	asin (x) = x + sum ( n=1, N, (1*3*5* ... * (2n-1) x^(2n+1)) / (2*4*6* ... * (2n)(2n+1)) )
+`
+
+! test_asin (x IterCount) : [value current i] = {
+if (abs (x) > 1)::
+	(nan ())::
+{
+value = current = x;
+x =*: x;
+
+for_inc (i, 1..IterCount+1, {
+	current =*: x * (2*i-1)*(2*i-1) / ((2*i+1)*(2*i));
+	value =+: current;
+	});
+
+value	` result is... `
+}
+};		` -- test_asin `
+
+`
+	ArcCosine calculation:
+	acos (x) = Pi/2 - x - sum ( n=1, N, (1*3*5* ... * (2n-1) x^(2n+1)) / (2*4*6* ... * (2n)(2n+1)) )
+`
+
+! test_acos (x IterCount) : [value current i] = {
+if (abs (x) > 1)::
+	(nan ())::
+{
+value = current = x;
+x =*: x;
+
+for_inc (i, 1..IterCount+1, {
+	current =*: x * (2*i-1)*(2*i-1) / ((2*i+1)*(2*i));
+	value =+: current;
+	});
+
+pi (1/2) - value	` result is... `
+}
+};		` -- test_acos `
+
+
+`
+	Testing 'Func' vs. 'FuncTest' (Min..Max ++ Step)
+`
+
+! TestFunc (Name Func FuncTest Iters Min Max Step) : [Value Sum Count Res ResTest] = {
+<: ("Testing: ", Name, " [", Iters, "] (", Min, " .. ", Max, " @ ", Step, ")\n");
+
+Count = 0;
+Sum = 0.0;
+
+if (Step > 0.0):: {
+if (Min > Max):: swap(Min, Max);
+
+Value = Min;
+while (Value <= Max):: {
+	[Res ResTest] = (Func ! (Value), FuncTest ! (Value, Iters));
+	<: ('  ', Name, "(", Value, ") = ", Res, "\t(D=", Res - ResTest, ")\n");
+	Count ++;
+	Value =+: Step;
+	Sum =+: abs(Res - ResTest);
+	};
+} ::
+
+if (Step < 0.0):: {
+if (Min < Max):: swap(Max, Min);
+
+Value = Max;
+while (Value >= Min):: {
+	[Res ResTest] = (Func ! (Value), FuncTest ! (Value, Iters));
+	<: ('  ', Name, "(", Value, ") = ", Res, "\t(D=", Res - ResTest, ")\n");
+	Count ++;
+	Value =+: Step;
+	Sum =+: abs(Res - ResTest);
+	};
+};
+
+<: ("Results: Count=", Count, "; Average diff=", Sum / Count, "\n\n");
+};	` -- TestFunc `
+
+! TestFuncC (Name Func FuncTest Iters Min Max Count) : [Value Sum Step Res ResTest I] = {
+<: ("Testing: ", Name, " [", Iters, "] (", Min, " .. ", Max, " # ", Count, ")\n");
+
+Sum = 0.0;
+
+if (Count > 0):: {
+if (Min > Max):: swap(Min, Max);
+Step = (Max - Min) / Count;
+
+for_inc (I, Count+1, {
+	Value = Min + (I * Step);
+	[Res ResTest] = (Func ! (Value), FuncTest ! (Value, Iters));
+	<: ('  ', Name, "(", Value, ") = ", Res, "\t(D=", Res - ResTest, ")\n");
+	Sum =+: abs(Res - ResTest);
+	});
+} ::
+
+if (Count < 0):: {
+if (Min > Max):: swap(Max, Min);
+Step = (Min - Max) / Count;
+
+for_inc (I, Count+1, {
+	Value = Max - (I * Step);
+	[Res ResTest] = (Func ! (Value), FuncTest ! (Value, Iters));
+	<: ('  ', Name, "(", Value, ") = ", Res, "\t(D=", Res - ResTest, ")\n");
+	Count ++;
+	Value =+: Step;
+	Sum =+: abs(Res - ResTest);
+	});
+};
+
+<: ("Results: Count=", Count, "; Average diff=", Sum / Count, "\n\n");
+};	` -- TestFuncC `
+
+`
+	Testing...
+`
+
+TestFuncC ('Sin', !sin, !test_sin, 16, -3.0, 3.0, 60);
+TestFuncC ('Cos', !cos, !test_cos, 16, -3.0, 3.0, 60);
+
+TestFuncC ('Exp', !exp, !test_exp, 24, -2.4, 2.4, 32);
+TestFuncC ('Log', !log, !test_log, 48, 0.1, 3, 29);
+
+TestFuncC ('Sh', !sinh, !test_sh, 30, -3.0, 3.0, 30);
+TestFuncC ('Ch', !cosh, !test_ch, 30, -3.0, 3.0, 30);
+
+TestFuncC ('ASin', !asin, !test_asin, 50, -0.9, 0.9, 36);
+TestFuncC ('ACos', !acos, !test_acos, 50, -0.9, 0.9, 36);
+

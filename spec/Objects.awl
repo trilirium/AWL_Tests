@@ -1,0 +1,125 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Objects.awl':
+	|	Objects hierarchy.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: self, super_of
+`
+
+x_trace ();
+
+`
+	Abstract geometry shape definition
+`
+!! Shape
+	# {
+		` output info `
+		put
+
+		` perimeter calculation: -> perimeter `
+		perimeter
+
+		` area calculation: -> area `
+		area
+
+		` extent calculation:
+		  -> (width, height) `
+		extent
+		};		` -- Shape `
+
+` Rectangle (with width W / height H) `
+!! [Shape] Rectangle (W H) {
+	! #put = <: ('Rectangle {', W, ' * ', H, '}'),
+
+	! #perimeter = 2*(W + H),
+
+	! #area = W*H,
+
+	! #extent = [W H]
+	};		` -- Rectangle `
+
+` Square (with side S) `
+!! [Shape] Square (S) {
+	! #put = <: ('Square [', S, ']'),
+
+	! #perimeter = 4*S,
+
+	! #area = S*S,
+
+	! #extent = [S S]
+	};		` -- Square `
+
+` Circle (with radius R) `
+!! [Shape] Circle (R) {
+	! #put = <: ('Circle [', R, ']'),
+
+	! #perimeter = 2*pi(R),
+
+	! #area = pi(R*R),
+	
+	! #extent = (2*R, 2*R)
+	};
+
+` Triangle (with sides A, B, C) `
+!! [Shape] Triangle (A B C) {
+	! #put = <: ('Triangle {', A, ',', B, ',', C, '}'),
+
+	! #perimeter = A + B + C,
+
+	! #area : [p] = {
+		p = (A + B + C) / 2;
+		sqr (p*(p - A)*(p - B)*(p - C))
+		},
+
+	! #extent = (A, area() / (2*A))
+	};
+
+`
+	Test figures...
+`
+
+! dump_figures (list) : [fig wdt hgt] = {
+	<: ("\nTotal objects: ", #list, "\n");
+	Shape!!l_loop (fig, list, fig.{
+		put (); <: ": ";
+		<: ("perimeter = ", perimeter (), "; ");
+		<: ("area = ", area (), "; ");
+		[wdt hgt] = extent ();
+		<: ("extent = [", wdt, '*', hgt, "]");
+		<: "\n";
+		});
+	<: "\n";
+	};
+
+Figures = (
+	Square ():: 5,
+	Rectangle ():: [6 9],
+	Circle ():: 10,
+	Triangle ():: [5 12 13],
+	Square ():: 9,
+	Rectangle ():: [11 7],
+	Circle ():: 15
+	);
+
+dump_figures (Figures);
+
+` --- `
+
+super_of (!Shape);
+super_of (!Square);
+super_of (!Circle);
+super_of (!Rectangle);
+super_of (!Triangle);
+
+    (self (!Shape),
+	self (!Square), self (!Circle),
+	self (!Rectangle), self (!Triangle)
+);

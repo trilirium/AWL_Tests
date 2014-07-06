@@ -1,0 +1,134 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Pattern.awl':
+	|	General patterns test.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+`
+	CHECKED: rx_char, rx_string, rx_any, rx_alt, rx_cat, rx_rep
+`
+
+x_trace ();
+
+(rx_char (dc_b 'a'), rx_char (dc_b 'b'), rx_char (dc_b 'c'));
+
+(rx_string "aabbcc", rx_string "zZyYxX", rx_string "05 16 27 38 49 50");
+
+rx_alt ("hello", "goodbye");
+rx_alt ('yes', rx_alt ('no', 'maybe'));
+
+rx_cat (rx_alt ('aa', 'bb'), rx_alt ('cc', 'dd'));
+
+rx_rep (8..16, 1, rx_alt ('xX', 'yY'));
+
+`
+	Matching
+`
+
+x_trace (0);
+
+` Find matching context in string... `
+
+! match_scanner (pattern string) : [pos len total lastpos count] = {
+x_trace (2, pattern);
+<: "\n";
+
+count = 0;
+total = #$ string;
+
+<: (string, '\n');
+lastpos = pos = 0;
+
+while (pos <> total):: (
+    ((len = rx_match (pattern, string$[pos..])) >= 0) ? {
+	<: (' ' *$ (pos - lastpos), '-' *$ len);
+	pos = lastpos = pos + len;
+	++ count;
+	} :
+	pos ++
+	);
+
+<: (' ' *$ (total - lastpos), ': (', count, ')\n');
+};	` match_scanner `
+
+
+match_scanner (rx_alt ('ab', rx_alt ('cde', 'fg')),
+	" abcdefg, ab++cde**fg ");
+
+match_scanner (rx_alt (rx_alt ('yes', 'no'), 'maybe'),
+	"  yyyyesnenomybemuybemaybenooo  ");
+
+match_scanner (rx_cat ('aa', 'bbb'), "  aaaabbbbb  aaaaabbbb ");
+
+match_scanner (rx_cat (rx_alt ('aa', 'b'), rx_alt ('c', 'dd')),
+	"aabbb aaaacccc bbbbccc aaaddddd bbbbddd ");
+
+match_scanner (rx_cat (rx_alt ('aa', 'b'), rx_alt ('c', 'dd')),
+	"aabbb aaaacccc bbbbccc aaaddddd bbbbddd ");
+
+match_scanner (
+	rx_alt (rx_cat (rx_alt ('mm', 'nnn'), 'sss'),
+	rx_cat ('tt', rx_alt ('u', 'vvv'))),
+	"  tttuuu mmmmnnn tnnntmmm nnnnssss ttttvvvvv mmmmssss "
+	);
+
+abc_def = rx_cat (rx_cat (rx_alt('a', 'd'), rx_alt('b', 'e')), rx_alt('c', 'f'));
+
+match_scanner (
+	abc_def,
+	"abc abd abe abf acd ace acf ade adf aef"
+	);
+
+match_scanner (
+	abc_def,
+	"bcd bce bcf cde cdf def"
+	);
+
+
+
+for_inc (min, 1..8,
+    match_scanner (rx_rep (min..min, 0, '<_>'),
+	' ** ' +$ '<_>' *$ (min + 1))
+    );
+
+! mk_test (c_left c_mid c_right range) : [s n] = {
+s = "";
+for_inc (n, range,
+    s =+$: c_left +$ (c_mid*$n) +$ c_right);
+s
+};
+
+! mk_test_r (c_left c_mid c_right range) : [s n] = {
+s = "";
+for_dec (n, range,
+    s =+$: c_left +$ (c_mid*$n) +$ c_right);
+s
+};
+
+RepStr1 = mk_test ('(', '*', ')', 1..10);
+
+for_inc (n, 1..7,
+    match_scanner (rx_cat ('(', rx_cat (rx_rep (n..n+3, 0, '*'), ')')),
+	RepStr1));
+
+RepStr2 = mk_test_r ('[', '-', ']', 1..8);
+
+for_inc (n, 1..5,
+    match_scanner (rx_cat ('[', rx_cat (rx_rep (n..8-n, 0, '-'), ']')),
+	RepStr2));
+
+for_inc (n, 1..18,
+    match_scanner (rx_cat ('(', rx_cat (rx_rep (n..n, 0, rx_any ()), ')')),
+	RepStr1));
+
+for_inc (n, 1..15,
+    match_scanner (rx_cat ('[', rx_cat (rx_rep (n..n, 0, rx_any ()), ']')),
+	RepStr2));
+

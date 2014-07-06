@@ -1,0 +1,291 @@
+<Test18.awl> #13 / [1] {
+
+  x_trace:() => 0;
+  {
+    ! ffA:(x y) [2] = mul:(.ffB:x, .ffC:y);
+    ! ffB:(x y) [2] = mul:(.ffC:x, .ffA:y);
+    ! ffC:(x y) [2] = mul:(.ffA:x, .ffB:y);
+  } => (ffA:, ffB:, ffC:);
+  ! show_object:(O) [1] = {
+    x_trace:(2, O);
+    f_put:((), "\n");
+    } => show_object:;
+  ! root.root_content:() [0] = s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:("(", "A="), root.A), " "), "B="), root.B), ")") => root.root_content:;
+  !! root:(A B) {2}
+    # [ echo1:root#0 echo2:root#1 echo3:root#2 ]
+    # {
+      echo1:root#0 => ! (x y z) [3] = f_put:((), "\t", x, " <", root.A, "> ", y, " <", root.B, "> ", z, ".\n");
+      echo2:root#1 => ! (a b c) [3] = f_put:((), "\t", a, " [", root.A, "] ", b, " [", root.B, "] ", c, ".\n");
+      echo3:root#2 => ! (sss) [1] = f_put:((), "\t", "{", root.A, sss, root.B, "}", ".\n");
+      }
+ => root:;
+  set:(R1, root:("alpha", "beta")) => root:{"alpha", "beta"};
+  set:(R2, root:("gamma", "delta")) => root:{"gamma", "delta"};
+
+root:{"alpha", "beta"}
+	Xx <alpha> Yy <beta> Zz.
+	Aa [alpha] Bb [beta] Cc.
+	{alpha --- beta}.
+
+root:{"gamma", "delta"}
+	Xx <gamma> Yy <delta> Zz.
+	Aa [gamma] Bb [delta] Cc.
+	{gamma --- delta}.
+  {
+    (root.echo1:, root.echo2:, root.echo3:);
+    l_loop:(V, (R1, R2), with:(V, {
+      f_put:((), "\n");
+      show_object:self:root:;
+      root.echo1:("Xx", "Yy", "Zz");
+      root.echo2:("Aa", "Bb", "Cc");
+      root.echo3:" --- " }));
+    } => ();
+  ! CC1.CC1_content:() [0] = s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:("[", CC1.s), ","), CC1.t), ","), CC1.u), "]") => CC1.CC1_content:;
+  !! root:->CC1:(s t u) {5}
+    # [ CC1_echoX:CC1#3 CC1_echoY:CC1#4 ]
+    # {
+      root.echo1:root#0 => ! (x y z) [3] = f_put:((), "\t", x, ":", CC1.s, " ", y, ":", CC1.t, " ", z, ":", CC1.u, "\n");
+      CC1_echoX:CC1#3 => ! (m n) [2] = f_put:((), "\t", "CC1::echoX ", root.A, "*", m, ", ", root.B, "*", n, " -> ", CC1.CC1_content:(), "\n");
+      CC1_echoY:CC1#4 => ! () [0] = f_put:((), "\n");
+      }
+ => CC1:;
+  set:(CC1a, CC1:(("zeta", "iota"), "SsS", "TtT", "UuU")) => root:{"zeta", "iota"}->CC1:{"SsS", "TtT", "UuU"};
+  set:(CC1b, CC1:(("AA-aaa", "BB-bbb"), "s-S", "t-T", "u-U")) => root:{"AA-aaa", "BB-bbb"}->CC1:{"s-S", "t-T", "u-U"};
+
+root:{"zeta", "iota"}->CC1:{"SsS", "TtT", "UuU"}
+	-x:SsS -y:TtT -z:UuU
+	CC1::echoX zeta*(m), iota*(n) -> [SsS,TtT,UuU]
+
+root:{"AA-aaa", "BB-bbb"}->CC1:{"s-S", "t-T", "u-U"}
+	-x:s-S -y:t-T -z:u-U
+	CC1::echoX AA-aaa*(m), BB-bbb*(n) -> [s-S,t-T,u-U]
+  {
+    ((root.echo1:, root.echo2:, root.echo3:), CC1.CC1_echoX:, CC1.CC1_echoY:);
+    l_loop:(V, (CC1a, CC1b), with:(V, {
+      f_put:((), "\n");
+      show_object:self:CC1:;
+      root.echo1:("-x", "-y", "-z");
+      CC1.CC1_echoX:("(m)", "(n)");
+      }));
+    } => ();
+  ! CC11.CC11_content:() [0] = s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:("{", CC11.K), "/"), CC1.CC1_content:()), "/"), CC11.L), "}") => CC11.CC11_content:;
+  !! CC1:->CC11:(K L) {7}
+    # {
+      CC1.CC1_echoY:CC1#4 => ! (count) [1] = f_put:((), "\t", s_rep:(CC11.K, count), " ", s_rep:(CC11.L, sub:(10, count)), "\n");
+      }
+ => CC11:;
+  set:(CC11aa, CC11:((("#22", "#44"), "@@", "%%", "**"), 3, 5)) => root:{"#22", "#44"}->CC1:{"@@", "%%", "**"}->CC11:{3, 5};
+  ! CC2.CC2_content:() [0] = s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:("{", "p = "), CC2.p), ", "), "q = "), CC2.q), "}") => CC2.CC2_content:;
+  !! root:->CC2:(p q) {4}
+    # [ CC2_echoA:CC2#3 CC2_echoB:CC2#4 CC2_echoC:CC2#5 CC2_echoD:CC2#6 ]
+    # {
+      root.echo2:root#1 => ! (a b c) [3] = f_put:((), "\t", CC2.CC2_content:(), ": ", a, " [", root.A, "] ", b, " [", root.B, "] ", c, "\n");
+      CC2_echoA:CC2#3 => ! (Aa) [1] = f_put:((), "\t", "CC2::echoA ", CC2.p, Aa, CC2.q, " => ", CC2.CC2_content:(), "\n");
+      CC2_echoB:CC2#4 => ! () [0] = f_put:((), "\n");
+      CC2_echoC:CC2#5 => ! (Cc) [1] = f_put:((), "\t", "CC2::echoC ", Cc, CC2.p, ":", CC2.q, " => ", CC2.CC2_content:(), "\n");
+      CC2_echoD:CC2#6 => ! () [0] = f_put:((), "\n");
+      }
+ => CC2:;
+  set:(CC2_1, CC2:(("Ii Jj", "Kk Ll"), 20, 40)) => root:{"Ii Jj", "Kk Ll"}->CC2:{20, 40};
+  set:(CC2_2, CC2:(("<<>>", "{{}}"), 15, 75)) => root:{"<<>>", "{{}}"}->CC2:{15, 75};
+  set:(CC2_3, CC2:(("(----)", "[====]"), 65, 35)) => root:{"(----)", "[====]"}->CC2:{65, 35};
+
+root:{"Ii Jj", "Kk Ll"}->CC2:{20, 40}
+	{p = 20, q = 40}: a+ [Ii Jj] b+ [Kk Ll] c+
+	CC2::echoA 20**40 => {p = 20, q = 40}
+	CC2::echoC $$20:40 => {p = 20, q = 40}
+
+root:{"<<>>", "{{}}"}->CC2:{15, 75}
+	{p = 15, q = 75}: a+ [<<>>] b+ [{{}}] c+
+	CC2::echoA 15**75 => {p = 15, q = 75}
+	CC2::echoC $$15:75 => {p = 15, q = 75}
+
+root:{"(----)", "[====]"}->CC2:{65, 35}
+	{p = 65, q = 35}: a+ [(----)] b+ [[====]] c+
+	CC2::echoA 65**35 => {p = 65, q = 35}
+	CC2::echoC $$65:35 => {p = 65, q = 35}
+  {
+    ((root.echo1:, root.echo2:, root.echo3:), CC2.CC2_echoA:, CC2.CC2_echoB:, CC2.CC2_echoC:, CC2.CC2_echoD:);
+    l_loop:(V, (CC2_1, CC2_2, CC2_3), with:(V, {
+      f_put:((), "\n");
+      show_object:self:CC2:;
+      root.echo2:("a+", "b+", "c+");
+      CC2.CC2_echoA:"**";
+      CC2.CC2_echoC:"$$";
+      }));
+    } => ();
+  !! CC2:->CC21:(I J) {6}
+    # {
+      root.echo3:root#2 => ! (string) [1] = f_put:((), "\t", "<", root.A, string, CC21.I, ":::", root.B, string, CC21.J, ">", ".\n");
+      CC2.CC2_echoB:CC2#4 => ! (bB) [1] = f_put:((), "\t", "CC21::echoB ", CC2.p, "&", CC21.I, ",", CC2.q, "&", CC21.J, " => ", CC2.CC2_content:(), "\n");
+      CC2.CC2_echoD:CC2#6 => ! (dD) [1] = f_put:((), "\t", "CC21::echoD ", dD, CC2.p, "()", CC2.q, " => ", CC2.CC2_content:(), "\n");
+      }
+ => CC21:;
+  set:(CC21bb, CC21:((("<i>", "<j>"), 33, 66), "->A", "->B")) => root:{"<i>", "<j>"}->CC2:{33, 66}->CC21:{"->A", "->B"};
+
+--- Object listing for 'root' :
+root:{"alpha", "beta"}
+	 echo1 (['1x' '1y' '1z']): 	1x <alpha> 1y <beta> 1z.
+	 echo2 (['2a' '2b' '2c']): 	2a [alpha] 2b [beta] 2c.
+	 echo3 ('-'): 	{alpha-beta}.
+root:{"gamma", "delta"}
+	 echo1 (['1x' '1y' '1z']): 	1x <gamma> 1y <delta> 1z.
+	 echo2 (['2a' '2b' '2c']): 	2a [gamma] 2b [delta] 2c.
+	 echo3 ('-'): 	{gamma-delta}.
+root:{"zeta", "iota"}->CC1:{"SsS", "TtT", "UuU"}
+	 echo1 (['1x' '1y' '1z']): 	1x:SsS 1y:TtT 1z:UuU
+	 echo2 (['2a' '2b' '2c']): 	2a [zeta] 2b [iota] 2c.
+	 echo3 ('-'): 	{zeta-iota}.
+root:{"AA-aaa", "BB-bbb"}->CC1:{"s-S", "t-T", "u-U"}
+	 echo1 (['1x' '1y' '1z']): 	1x:s-S 1y:t-T 1z:u-U
+	 echo2 (['2a' '2b' '2c']): 	2a [AA-aaa] 2b [BB-bbb] 2c.
+	 echo3 ('-'): 	{AA-aaa-BB-bbb}.
+root:{"#22", "#44"}->CC1:{"@@", "%%", "**"}->CC11:{3, 5}
+	 echo1 (['1x' '1y' '1z']): 	1x:@@ 1y:%% 1z:**
+	 echo2 (['2a' '2b' '2c']): 	2a [#22] 2b [#44] 2c.
+	 echo3 ('-'): 	{#22-#44}.
+root:{"Ii Jj", "Kk Ll"}->CC2:{20, 40}
+	 echo1 (['1x' '1y' '1z']): 	1x <Ii Jj> 1y <Kk Ll> 1z.
+	 echo2 (['2a' '2b' '2c']): 	{p = 20, q = 40}: 2a [Ii Jj] 2b [Kk Ll] 2c
+	 echo3 ('-'): 	{Ii Jj-Kk Ll}.
+root:{"<<>>", "{{}}"}->CC2:{15, 75}
+	 echo1 (['1x' '1y' '1z']): 	1x <<<>>> 1y <{{}}> 1z.
+	 echo2 (['2a' '2b' '2c']): 	{p = 15, q = 75}: 2a [<<>>] 2b [{{}}] 2c
+	 echo3 ('-'): 	{<<>>-{{}}}.
+root:{"(----)", "[====]"}->CC2:{65, 35}
+	 echo1 (['1x' '1y' '1z']): 	1x <(----)> 1y <[====]> 1z.
+	 echo2 (['2a' '2b' '2c']): 	{p = 65, q = 35}: 2a [(----)] 2b [[====]] 2c
+	 echo3 ('-'): 	{(----)-[====]}.
+root:{"<i>", "<j>"}->CC2:{33, 66}->CC21:{"->A", "->B"}
+	 echo1 (['1x' '1y' '1z']): 	1x <<i>> 1y <<j>> 1z.
+	 echo2 (['2a' '2b' '2c']): 	{p = 33, q = 66}: 2a [<i>] 2b [<j>] 2c
+	 echo3 ('-'): 	<<i>-->A:::<j>-->B>.
+  {
+    f_put:((), "\n--- Object listing for 'root' :\n");
+    l_loop:(V, (R1, R2, CC1a, CC1b, CC11aa, CC2_1, CC2_2, CC2_3, CC21bb), with:(V, {
+      show_object:self:root:;
+      f_put:((), "\t echo1 (['1x' '1y' '1z']): ");
+      root.echo1:("1x", "1y", "1z");
+      f_put:((), "\t echo2 (['2a' '2b' '2c']): ");
+      root.echo2:("2a", "2b", "2c");
+      f_put:((), "\t echo3 ('-'): ");
+      root.echo3:"-";
+      })) } => ();
+
+--- Object listing for 'CC1' :
+root:{"zeta", "iota"}->CC1:{"SsS", "TtT", "UuU"}
+	 CC1::echoX (['1--M' '1--N']): 	CC1::echoX zeta*1--M, iota*1--N -> [SsS,TtT,UuU]
+	 CC1::echoY (7): 
+root:{"AA-aaa", "BB-bbb"}->CC1:{"s-S", "t-T", "u-U"}
+	 CC1::echoX (['1--M' '1--N']): 	CC1::echoX AA-aaa*1--M, BB-bbb*1--N -> [s-S,t-T,u-U]
+	 CC1::echoY (7): 
+root:{"#22", "#44"}->CC1:{"@@", "%%", "**"}->CC11:{3, 5}
+	 CC1::echoX (['1--M' '1--N']): 	CC1::echoX #22*1--M, #44*1--N -> [@@,%%,**]
+	 CC1::echoY (7): 	3333333 555
+  {
+    f_put:((), "\n--- Object listing for 'CC1' :\n");
+    l_loop:(V, (CC1a, CC1b, CC11aa), with:(V, {
+      show_object:self:CC1:;
+      f_put:((), "\t CC1::echoX (['1--M' '1--N']): ");
+      CC1.CC1_echoX:("1--M", "1--N");
+      f_put:((), "\t CC1::echoY (7): ");
+      CC1.CC1_echoY:7;
+      })) } => ();
+
+--- Object listing for 'CC2' :
+root:{"Ii Jj", "Kk Ll"}->CC2:{20, 40}
+	 CC2::echoA ('.A-A.'): 	CC2::echoA 20.A-A.40 => {p = 20, q = 40}
+	 CC2::echoB ('.B-B.'): 
+	 CC2::echoC ('.C-C.'): 	CC2::echoC .C-C.20:40 => {p = 20, q = 40}
+	 CC2::echoD ('.D-D.'): 
+root:{"<<>>", "{{}}"}->CC2:{15, 75}
+	 CC2::echoA ('.A-A.'): 	CC2::echoA 15.A-A.75 => {p = 15, q = 75}
+	 CC2::echoB ('.B-B.'): 
+	 CC2::echoC ('.C-C.'): 	CC2::echoC .C-C.15:75 => {p = 15, q = 75}
+	 CC2::echoD ('.D-D.'): 
+root:{"(----)", "[====]"}->CC2:{65, 35}
+	 CC2::echoA ('.A-A.'): 	CC2::echoA 65.A-A.35 => {p = 65, q = 35}
+	 CC2::echoB ('.B-B.'): 
+	 CC2::echoC ('.C-C.'): 	CC2::echoC .C-C.65:35 => {p = 65, q = 35}
+	 CC2::echoD ('.D-D.'): 
+root:{"<i>", "<j>"}->CC2:{33, 66}->CC21:{"->A", "->B"}
+	 CC2::echoA ('.A-A.'): 	CC2::echoA 33.A-A.66 => {p = 33, q = 66}
+	 CC2::echoB ('.B-B.'): 	CC21::echoB 33&->A,66&->B => {p = 33, q = 66}
+	 CC2::echoC ('.C-C.'): 	CC2::echoC .C-C.33:66 => {p = 33, q = 66}
+	 CC2::echoD ('.D-D.'): 	CC21::echoD .D-D.33()66 => {p = 33, q = 66}
+  {
+    f_put:((), "\n--- Object listing for 'CC2' :\n");
+    l_loop:(V, (CC2_1, CC2_2, CC2_3, CC21bb), with:(V, {
+      show_object:self:CC2:;
+      f_put:((), "\t CC2::echoA ('.A-A.'): ");
+      CC2.CC2_echoA:".A-A.";
+      f_put:((), "\t CC2::echoB ('.B-B.'): ");
+      CC2.CC2_echoB:".B-B.";
+      f_put:((), "\t CC2::echoC ('.C-C.'): ");
+      CC2.CC2_echoC:".C-C.";
+      f_put:((), "\t CC2::echoD ('.D-D.'): ");
+      CC2.CC2_echoD:".D-D.";
+      })) } => ();
+
+    R1 = root:{"alpha", "beta"};
+    R2 = root:{"gamma", "delta"};
+    V = root:{"<i>", "<j>"}->CC2:{33, 66}->CC21:{"->A", "->B"};
+    CC1a = root:{"zeta", "iota"}->CC1:{"SsS", "TtT", "UuU"};
+    CC1b = root:{"AA-aaa", "BB-bbb"}->CC1:{"s-S", "t-T", "u-U"};
+    CC11aa = root:{"#22", "#44"}->CC1:{"@@", "%%", "**"}->CC11:{3, 5};
+    CC2_1 = root:{"Ii Jj", "Kk Ll"}->CC2:{20, 40};
+    CC2_2 = root:{"<<>>", "{{}}"}->CC2:{15, 75};
+    CC2_3 = root:{"(----)", "[====]"}->CC2:{65, 35};
+    CC21bb = root:{"<i>", "<j>"}->CC2:{33, 66}->CC21:{"->A", "->B"};
+
+  x_vars_ord:() => 10;
+
+    ! ffA:(x y) [2] = mul:(.ffB:x, .ffC:y);
+    ! ffB:(x y) [2] = mul:(.ffC:x, .ffA:y);
+    ! ffC:(x y) [2] = mul:(.ffA:x, .ffB:y);
+    ! show_object:(O) [1] = {
+      x_trace:(2, O);
+      f_put:((), "\n");
+      };
+    !! root:(A B) {2}
+      # [ echo1:root#0 echo2:root#1 echo3:root#2 ]
+      # {
+	echo1:root#0 => ! (x y z) [3] = f_put:((), "\t", x, " <", root.A, "> ", y, " <", root.B, "> ", z, ".\n");
+	echo2:root#1 => ! (a b c) [3] = f_put:((), "\t", a, " [", root.A, "] ", b, " [", root.B, "] ", c, ".\n");
+	echo3:root#2 => ! (sss) [1] = f_put:((), "\t", "{", root.A, sss, root.B, "}", ".\n");
+	}
+;
+    !! root:->CC1:(s t u) {5}
+      # [ CC1_echoX:CC1#3 CC1_echoY:CC1#4 ]
+      # {
+	root.echo1:root#0 => ! (x y z) [3] = f_put:((), "\t", x, ":", CC1.s, " ", y, ":", CC1.t, " ", z, ":", CC1.u, "\n");
+	CC1_echoX:CC1#3 => ! (m n) [2] = f_put:((), "\t", "CC1::echoX ", root.A, "*", m, ", ", root.B, "*", n, " -> ", CC1.CC1_content:(), "\n");
+	CC1_echoY:CC1#4 => ! () [0] = f_put:((), "\n");
+	}
+;
+    !! CC1:->CC11:(K L) {7}
+      # {
+	CC1.CC1_echoY:CC1#4 => ! (count) [1] = f_put:((), "\t", s_rep:(CC11.K, count), " ", s_rep:(CC11.L, sub:(10, count)), "\n");
+	}
+;
+    !! root:->CC2:(p q) {4}
+      # [ CC2_echoA:CC2#3 CC2_echoB:CC2#4 CC2_echoC:CC2#5 CC2_echoD:CC2#6 ]
+      # {
+	root.echo2:root#1 => ! (a b c) [3] = f_put:((), "\t", CC2.CC2_content:(), ": ", a, " [", root.A, "] ", b, " [", root.B, "] ", c, "\n");
+	CC2_echoA:CC2#3 => ! (Aa) [1] = f_put:((), "\t", "CC2::echoA ", CC2.p, Aa, CC2.q, " => ", CC2.CC2_content:(), "\n");
+	CC2_echoB:CC2#4 => ! () [0] = f_put:((), "\n");
+	CC2_echoC:CC2#5 => ! (Cc) [1] = f_put:((), "\t", "CC2::echoC ", Cc, CC2.p, ":", CC2.q, " => ", CC2.CC2_content:(), "\n");
+	CC2_echoD:CC2#6 => ! () [0] = f_put:((), "\n");
+	}
+;
+    !! CC2:->CC21:(I J) {6}
+      # {
+	root.echo3:root#2 => ! (string) [1] = f_put:((), "\t", "<", root.A, string, CC21.I, ":::", root.B, string, CC21.J, ">", ".\n");
+	CC2.CC2_echoB:CC2#4 => ! (bB) [1] = f_put:((), "\t", "CC21::echoB ", CC2.p, "&", CC21.I, ",", CC2.q, "&", CC21.J, " => ", CC2.CC2_content:(), "\n");
+	CC2.CC2_echoD:CC2#6 => ! (dD) [1] = f_put:((), "\t", "CC21::echoD ", dD, CC2.p, "()", CC2.q, " => ", CC2.CC2_content:(), "\n");
+	}
+;
+
+  x_funcs_ord:() => 9;
+
+} <Test18.awl> #202 / [29]

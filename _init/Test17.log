@@ -1,0 +1,131 @@
+<Test17.awl> #13 / [1] {
+
+  x_trace:() => 0;
+  ! func1:(x y z) [3] = {
+    ! func2:(a b c) [3] = deval:add:(add:(mul:(func1.x, a), mul:(func1.y, b)), mul:(func1.z, c));
+    func2:(x, y, z) } => func1:;
+  set:(p, func1:(10, 20, 30)) => add:(add:(mul:(func1.x, func2.a), mul:(func1.y, func2.b)), mul:(func1.z, func2.c));
+  p => add:(add:(mul:(func1.x, func2.a), mul:(func1.y, func2.b)), mul:(func1.z, func2.c));
+  set:(q, func1:(add:(22, 7), sub:(16, 3), add:(55, 5))) => add:(add:(mul:(func1.x, func2.a), mul:(func1.y, func2.b)), mul:(func1.z, func2.c));
+  q => add:(add:(mul:(func1.x, func2.a), mul:(func1.y, func2.b)), mul:(func1.z, func2.c));
+  ! ff:(a b c) [3] = {
+    ! ffX:(x y z) [3] = add:(add:(mul:(x, ff.a), mul:(y, ff.b)), mul:(z, ff.c));
+    ! ffY:(x y z) [3] = sub:(add:(mul:(y, ff.c), mul:(z, ff.a)), mul:(y, ff.b));
+    ! ffZ:(x y z) [3] = add:(sub:(mul:(z, ff.b), mul:(x, ff.c)), mul:(x, ff.a));
+    mul:(mul:(ffX:(a, b, c), ffY:(b, c, a)), ffZ:(c, a, b)) } => ff:;
+  ff:(5, 6, 7) => 77440;
+  ff:(add:(mul:(15, 3), 2), add:(mul:(22, 7), 1), sub:(mul:(66, 4), 9)) => 822584103;
+  ! SS:(u v w) [3] = {
+    .SS:(u, mul:(v, 2), mul:(w, 3));
+    .SS:(mul:(neg:u, 3), mul:(neg:v, 2), neg:u);
+    .SS:(add:(u, 2), sub:(v, 3), add:(w, 7));
+    } => SS:;
+  {
+    ! func_a:(x y z) [3] = add:(add:(x, y), z);
+    ! func_b:(a b c) [3] = mul:(mul:(add:(a, 1), add:(b, 3)), sub:(c, 2));
+    ! func_c:(s1 c1 s2 c2) [4] = s_cat:(s_rep:(s1, c1), s_rep:(s2, c2));
+  } => (func_a:, func_b:, func_c:);
+  func_a:(100, 150, 200) => 450;
+  func_b:(neg:12, 15, 23) => -4158;
+  func_c:("[]", 2, "{}", 4) => "[][]{}{}{}{}";
+  {
+    ! is_odd:(n) [1] = if:(le:(abs:n, 1), ne:(n, 0), .is_even:if:(gt:(n, 0), sub:(n, 1), add:(n, 1)));
+    ! is_even:(n) [1] = if:(le:(abs:n, 1), eq:(n, 0), .is_odd:if:(gt:(n, 0), sub:(n, 1), add:(n, 1)));
+  } => (is_odd:, is_even:);
+
+-10: is_even == 1, is_odd == 0.
+-9: is_even == 0, is_odd == 1.
+-8: is_even == 1, is_odd == 0.
+-7: is_even == 0, is_odd == 1.
+-6: is_even == 1, is_odd == 0.
+-5: is_even == 0, is_odd == 1.
+-4: is_even == 1, is_odd == 0.
+-3: is_even == 0, is_odd == 1.
+-2: is_even == 1, is_odd == 0.
+-1: is_even == 0, is_odd == 1.
+0: is_even == 1, is_odd == 0.
+1: is_even == 0, is_odd == 1.
+2: is_even == 1, is_odd == 0.
+3: is_even == 0, is_odd == 1.
+4: is_even == 1, is_odd == 0.
+5: is_even == 0, is_odd == 1.
+6: is_even == 1, is_odd == 0.
+7: is_even == 0, is_odd == 1.
+8: is_even == 1, is_odd == 0.
+9: is_even == 0, is_odd == 1.
+
+  {
+    f_put:((), "\n");
+    for_inc:(i, (neg:10, 10), f_put:((), i, ": is_even == ", is_even:i, ", is_odd == ", is_odd:i, ".\n"));
+    f_put:((), "\n");
+    } => ();
+  set:(LL_conds, deval:(lt:(aa, 12), f_put:((), aa, " < 12\n")), deval:(gt:(bb, 53), f_put:((), bb, " > 53\n")), deval:(lt:(add:(aa, bb), 45), f_put:((), aa, " + ", bb, " < 45\n")), ) => ((lt:(aa, 12), f_put:((), aa, " < 12\n")), (gt:(bb, 53), f_put:((), bb, " > 53\n")), (lt:(add:(aa, bb), 45), f_put:((), aa, " + ", bb, " < 45\n")), );
+  set:((aa, bb), 15, 60) => (15, 60);
+
+---
+60 > 53
+---
+  {
+    f_put:((), "\n---\n");
+    l_loop:(LL, LL_conds, if:LL);
+    f_put:((), "---\n");
+    } => ();
+
+---
+~ :
+15 < 12
+15 + 60 < 45
+---
+  {
+    f_put:((), "\n---\n~ :\n");
+    l_loop:(LL, LL_conds, unless:LL);
+    f_put:((), "---\n");
+    } => ();
+  set:(LL_loops, deval:(lt:(ii, 20), f_put:((), "\t", comb:add:(ii, 4), "\n")), deval:(gt:(jj, 32), f_put:((), "\t", comb:sub:(jj, 3), "\n")), ) => ((lt:(ii, 20), f_put:((), "\t", comb:add:(ii, 4), "\n")), (gt:(jj, 32), f_put:((), "\t", comb:sub:(jj, 3), "\n")), );
+  set:((ii, jj), 5, 50) => (5, 50);
+
+---
+	9
+	13
+	17
+	21
++++ 
+	47
+	44
+	41
+	38
+	35
+	32
++++ 
+---
+  {
+    f_put:((), "\n---\n");
+    l_loop:(LL, LL_loops, {
+      while:LL;
+      f_put:((), "+++ \n");
+      });
+    f_put:((), "---\n");
+    } => ();
+
+    ! func1:(x y z) [3] = {
+      ! func2:(a b c) [3] = deval:add:(add:(mul:(func1.x, a), mul:(func1.y, b)), mul:(func1.z, c));
+      func2:(x, y, z) };
+    ! ff:(a b c) [3] = {
+      ! ffX:(x y z) [3] = add:(add:(mul:(x, ff.a), mul:(y, ff.b)), mul:(z, ff.c));
+      ! ffY:(x y z) [3] = sub:(add:(mul:(y, ff.c), mul:(z, ff.a)), mul:(y, ff.b));
+      ! ffZ:(x y z) [3] = add:(sub:(mul:(z, ff.b), mul:(x, ff.c)), mul:(x, ff.a));
+      mul:(mul:(ffX:(a, b, c), ffY:(b, c, a)), ffZ:(c, a, b)) };
+    ! SS:(u v w) [3] = {
+      .SS:(u, mul:(v, 2), mul:(w, 3));
+      .SS:(mul:(neg:u, 3), mul:(neg:v, 2), neg:u);
+      .SS:(add:(u, 2), sub:(v, 3), add:(w, 7));
+      };
+    ! func_a:(x y z) [3] = add:(add:(x, y), z);
+    ! func_b:(a b c) [3] = mul:(mul:(add:(a, 1), add:(b, 3)), sub:(c, 2));
+    ! func_c:(s1 c1 s2 c2) [4] = s_cat:(s_rep:(s1, c1), s_rep:(s2, c2));
+    ! is_odd:(n) [1] = if:(le:(abs:n, 1), ne:(n, 0), .is_even:if:(gt:(n, 0), sub:(n, 1), add:(n, 1)));
+    ! is_even:(n) [1] = if:(le:(abs:n, 1), eq:(n, 0), .is_odd:if:(gt:(n, 0), sub:(n, 1), add:(n, 1)));
+
+  x_funcs_ord:() => 8;
+
+} <Test17.awl> #125 / [24]

@@ -1,0 +1,79 @@
+<Objects.awl> #17 / [1] {
+
+  x_trace:() => 0;
+  !! Shape:() {0}
+    # [ put:Shape#0 perimeter:Shape#1 area:Shape#2 extent:Shape#3 ]
+    # {
+      put:Shape#0;
+      perimeter:Shape#1;
+      area:Shape#2;
+      extent:Shape#3;
+      }
+ => Shape:;
+  !! Shape:->Rectangle:(W H) {2}
+    # {
+      Shape.put:Shape#0 => ! () [0] = f_put:((), "Rectangle {", Rectangle.W, " * ", Rectangle.H, "}");
+      Shape.perimeter:Shape#1 => ! () [0] = mul:(2, add:(Rectangle.W, Rectangle.H));
+      Shape.area:Shape#2 => ! () [0] = mul:(Rectangle.W, Rectangle.H);
+      Shape.extent:Shape#3 => ! () [0] = (Rectangle.W, Rectangle.H);
+      }
+ => Rectangle:;
+  !! Shape:->Square:(S) {1}
+    # {
+      Shape.put:Shape#0 => ! () [0] = f_put:((), "Square [", Square.S, "]");
+      Shape.perimeter:Shape#1 => ! () [0] = mul:(4, Square.S);
+      Shape.area:Shape#2 => ! () [0] = mul:(Square.S, Square.S);
+      Shape.extent:Shape#3 => ! () [0] = (Square.S, Square.S);
+      }
+ => Square:;
+  !! Shape:->Circle:(R) {1}
+    # {
+      Shape.put:Shape#0 => ! () [0] = f_put:((), "Circle [", Circle.R, "]");
+      Shape.perimeter:Shape#1 => ! () [0] = mul:(2, pi:Circle.R);
+      Shape.area:Shape#2 => ! () [0] = pi:mul:(Circle.R, Circle.R);
+      Shape.extent:Shape#3 => ! () [0] = (mul:(2, Circle.R), mul:(2, Circle.R));
+      }
+ => Circle:;
+  !! Shape:->Triangle:(A B C) {3}
+    # {
+      Shape.put:Shape#0 => ! () [0] = f_put:((), "Triangle {", Triangle.A, ",", Triangle.B, ",", Triangle.C, "}");
+      Shape.perimeter:Shape#1 => ! () [0] = add:(add:(Triangle.A, Triangle.B), Triangle.C);
+      Shape.area:Shape#2 => ! () [1] = {
+	set:(p, div:(add:(add:(Triangle.A, Triangle.B), Triangle.C), 2));
+	sqr:mul:(mul:(mul:(p, sub:(p, Triangle.A)), sub:(p, Triangle.B)), sub:(p, Triangle.C)) };
+      Shape.extent:Shape#3 => ! () [0] = (Triangle.A, div:(Shape.area:(), mul:(2, Triangle.A)));
+      }
+ => Triangle:;
+  ! dump_figures:(list) [4] = {
+    f_put:((), "\nTotal objects: ", l_len:list, "\n");
+    l_loop:(fig, list, with:(fig, {
+      Shape.put:();
+      f_put:((), ": ");
+      f_put:((), "perimeter = ", Shape.perimeter:(), "; ");
+      f_put:((), "area = ", Shape.area:(), "; ");
+      set:((wdt, hgt), Shape.extent:());
+      f_put:((), "extent = [", wdt, "*", hgt, "]");
+      f_put:((), "\n");
+      }));
+    f_put:((), "\n");
+    } => dump_figures:;
+  set:(Figures, Square:((), 5), Rectangle:((), 6, 9), Circle:((), 10), Triangle:((), 5, 12, 13), Square:((), 9), Rectangle:((), 11, 7), Circle:((), 15)) => (Shape:{}->Square:{5}, Shape:{}->Rectangle:{6, 9}, Shape:{}->Circle:{10}, Shape:{}->Triangle:{5, 12, 13}, Shape:{}->Square:{9}, Shape:{}->Rectangle:{11, 7}, Shape:{}->Circle:{15});
+
+Total objects: 7
+Square [5]: perimeter = 20; area = 25; extent = [5*5]
+Rectangle {6 * 9}: perimeter = 30; area = 54; extent = [6*9]
+Circle [10]: perimeter = 62.831853; area = 314.15927; extent = [20*20]
+Triangle {5,12,13}: perimeter = 30; area = 30.; extent = [5*3.]
+Square [9]: perimeter = 36; area = 81; extent = [9*9]
+Rectangle {11 * 7}: perimeter = 36; area = 77; extent = [11*7]
+Circle [15]: perimeter = 94.24778; area = 706.85835; extent = [30*30]
+
+  dump_figures:Figures => ();
+  super_of:Shape: => ();
+  super_of:Square: => Shape:;
+  super_of:Circle: => Shape:;
+  super_of:Rectangle: => Shape:;
+  super_of:Triangle: => Shape:;
+  (self:Shape:, self:Square:, self:Circle:, self:Rectangle:, self:Triangle:) => ((), (), (), (), );
+
+} <Objects.awl> #126 / [15]

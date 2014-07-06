@@ -1,0 +1,133 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test_2.awl': #2
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+` Lists/lazy assignments `
+
+x_trace();
+
+expr1 := A*B + C*D;
+expr2 := A*C - B*D;
+expr3 := (A+D) % (B+C);
+
+sum_all := ^expr1 + ^expr2 + ^expr3;
+
+sumABCD := [=] + [A B C D];
+
+exprs := [ expr1 expr2 expr3 ];
+
+[A B C D] = [6 4 5 2];
+
+^sumABCD;
+
+^expr1;
+^expr2;
+^expr3;
+
+^exprs;
+
+^sum_all;
+
+saved1 = [A B C D];
+
+A = 56/22 + 2;
+B = 31/49 - 7;
+C = 13/84 + 8;
+D = 65/91 - 9;
+
+[A B C D];
+
+^sumABCD;
+
+^expr1;
+^expr2;
+^expr3;
+
+^sum_all;
+
+[A B C D] = saved1;
+
+^expr1;
+^expr2;
+^expr3;
+
+^sum_all;
+^sumABCD;
+
+A =+: 12.6;
+B =-: 13.9;
+C =+: 31.3;
+D =-: 41.7;
+
+[A B C D];
+
+^expr1;
+^expr2;
+^expr3;
+
+^sum_all;
+
+p = (^expr1, ^expr2, ^expr3);
+p;
+
+A =*: 2.2;
+C =*: 3.3;
+
+D =/: 12.3;
+B =/: 22.1;
+
+[A B C D];
+
+^expr1;
+^expr2;
+^expr3;
+
+^sum_all;
+^sumABCD;
+
+[X Y Z] = [11.11 33.33 55.55];
+x_all := [X Y Z];
+
+[rX rY rZ] = (@X, @Y, @Z);
+
+r_all := (^rX, ^rY, ^rZ);
+
+^r_all;
+
+(^rX) :=: (^rY);
+
+^r_all;
+[X Y Z];
+
+(^rY) :=: (^rZ);
+(^rX) :=: (^rZ);
+(^rZ) :=: (^rY);
+
+
+^r_all;
+[X Y Z];
+
+rX :=: rY;
+^r_all;
+
+rZ :=: rY;
+rZ :=: rX;
+rY :=: rZ;
+^r_all;
+
+x_vars_ord ();
+
+` Operations with lists `
+
+(12.2, 33.3, 14.8, 16.2);
+((9, 11), (6, 15), (33, 22), 0);
+(('aa', 11, 'AA'), ('bb', 22, 'BB'), );
+

@@ -1,0 +1,101 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'RatioTest.awl':
+	|	Rational numbers test.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "ratio.awl";
+
+<: "\nImported 'ratio.awl'...\n\n";
+
+<: "Class 'ratio' (members):\n";
+x_vars_ord (0, ! ratio);
+<: "\n";
+
+<: "Class 'ratio' (functors):\n";
+x_funcs_ord (0, ! ratio);
+<: "\n";
+
+` Check float numbers for near-equality `
+
+tolerance = 0.5e-14;
+
+! near_eq (v1 v2) = abs(v1 - v2) <= tolerance;
+
+` Testing rational numbers `
+
+for_inc (i, -20..20, {
+	for_inc (j, -20..20, {
+		<: ('\t', i, ' / ', j, ' = ');
+		ratio!!ratio (i, j).put ();
+		<: '\n';
+		});
+	<: '\n';
+	});
+
+` report error on failed condition `
+! expect (cond msg) = unless (cond):: (<: ("\a\nError: ", msg, "!\n"));
+
+` Addition/subtraction: `
+
+<: "\nAddition/subtraction test:\n\n";
+
+for_inc (i, -5..7,
+	for_inc (j, -4..8, ratio!! {
+		c1 = ratio(i*3, j*2-1);
+		c2 = ratio(-i*4-3, j*5+1);
+		
+		` testing addition... `
+		res = add (c1, c2);
+		c1.put (); <: " + "; c2.put ();
+		<: " = "; res.put (); <: "\n";
+
+		expect (near_eq(c1.eval() + c2.eval(), res.eval()),
+			"add check");
+
+		` testing subtraction... `
+		res = sub (c1, c2);
+		c1.put (); <: " - "; c2.put ();
+		<: " = "; res.put (); <: "\n";
+
+		expect (near_eq(c1.eval() - c2.eval(), res.eval()),
+			"sub check");
+
+		})
+	);
+
+
+` Multiplication/division: `
+
+<: "\nMultiplication/division test:\n\n";
+
+for_inc (i, -4..8,
+	for_inc (j, -2..5, ratio!! {
+		c1 = ratio(i*2-1, -j*3-2);
+		c2 = ratio(-i*5+7, j*4-9);
+		
+		` testing multiplication... `
+		res = mul (c1, c2);
+		c1.put (); <: " * "; c2.put ();
+		<: " = "; res.put (); <: "\n";
+
+		expect (near_eq(c1.eval() * c2.eval(), res.eval()),
+			"mul check");
+
+		` testing division... `
+		res = div (c1, c2);
+		c1.put (); <: " / "; c2.put ();
+		<: " = "; res.put (); <: "\n";
+
+		expect (near_eq(c1.eval() / c2.eval(), res.eval()),
+			"div check");
+
+		})
+	);
+

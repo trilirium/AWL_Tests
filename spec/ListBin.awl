@@ -1,0 +1,78 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'ListBin.awl':
+	|	Testing list-based binary trees.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: is_list, l_head, l_tail, l_cat, l_range
+`
+
+x_trace ();
+
+` Make 0..2^n binary list `
+! make_bintree (n offset=0) =
+    n -- ? (make_bintree(n, offset), make_bintree(n, offset + 1<<n)) :
+    offset;
+
+make_bintree (6);
+
+for_inc (i, 7, {
+	<: (i, ': ');
+	x_trace (2, make_bintree (i));
+	<: "\n";
+	});
+
+` Flatten tree `
+! flatten_tree (T) =
+    is_list(T) ? flatten_tree (l_head(T)) [+] flatten_tree (l_tail(T)) :
+    T;
+
+` Check for flattened sequences: `
+for_inc (i, 9,
+    <: ("Check bintree #", i, ": ",
+    	flatten_tree(make_bintree(i)) [==] l_range(1<<i) ? "OK" : "failed",
+	"\n")
+    );
+
+` Find node in tree (at relative depth L) `
+! find_bintree (v T L) =
+    L -- ? {
+	[v T] = (v < 1<<L) ?
+	    (v, l_head(T)) :
+	    (v - 1<<L, l_tail(T));
+	find_bintree (v, T, L)
+	}:
+    T;
+
+! test_bintree_all (N) : [Tree I] = {
+<: ("Testing tree (N=", N, ") ");
+
+Tree = make_bintree (N);
+
+for_inc (I, 1<<N,
+    if (find_bintree (I, Tree, N) <> I)::
+	(<: ["Test bintree error @" I "\n"]));
+
+<: "...done\n";
+};
+
+test_bintree_all (10);
+
+` Calculate sum of all tree nodes `
+! sum_tree (T) =
+    is_list(T) ? sum_tree (l_head(T)) + sum_tree (l_tail(T)) :
+    T;
+
+for_inc (i, 10, {
+    expected = (1 << i - 1) << (i - 1);
+    <: (i, ": ", (sum_tree (make_bintree (i)) == expected ? "Ok" : "Fail"), '\n');
+    });
+
+

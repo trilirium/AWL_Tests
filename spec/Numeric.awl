@@ -1,0 +1,160 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Numeric.awl':
+	|	Check numeric functions consistency.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: sqr, rad, exp, log, sin, cos, sinh, cosh, asin, acos
+`
+
+` Calculate total # of iterations for float range `
+! total_float_range (Step Min Max) =
+	Min < Max ? int(
+		(Step > 0) ?
+			(Max - Min) / Step:
+		(Step < 0) ?
+			(Max - Min) / -Step:
+		0):
+
+		0;
+
+` Iterator for range of float numbers `
+! for_float_range (@Index Step Min Max @Body) : [i] =
+	if (Min < Max):: {
+		(Step > 0) ?
+			for_inc (i, int ((Max - Min) / Step),
+				{ (^Index) = Min + i*Step; ^Body }) :
+		(Step < 0) ?
+			for_inc (i, int ((Max - Min) / -Step),
+				{ (^Index) = Max + i*Step; ^Body }) :
+		};
+
+` Unary average (for Op_Unary) for range (Step_A, Range_A) `
+! average_Unary (Op_Unary Step Range) : [i total] = {
+	total = 0;
+
+	for_float_range (i, Step, Range[0], Range[1],
+		total =+: Op_Unary ! i
+		);
+
+	total / total_float_range(Step, Range)
+	};
+
+` Binary average (for Op_Binary) for range (Step_A, Range_A) [*] (Step_B, Range_B) `
+! average_Binary (Op_Binary Step_A Range_A Step_B Range_B) : [iA iB total] = {
+	total = 0;
+
+	for_float_range (iA, Step_A, Range_A[0], Range_A[1],
+		for_float_range (iB, Step_B, Range_B[0], Range_B[1],
+			total =+: Op_Binary ! [iA iB]
+			)
+		);
+
+	total / (total_float_range(Step_A, Range_A) * total_float_range(Step_B, Range_B))
+	};
+
+`
+	Numeric calculations
+`
+
+`( Output "Step" & "Range" )`
+! put_step_range (Step Range) =
+	(<: ('{', Range[0], '..', Range[1], ' @', Step, '}'));
+
+
+! PerformUnaryCheck (Title OpUnary Step Range) : [res] = {
+res = average_Unary (OpUnary, Step, Range);
+<: ["UnOp check '" Title "': "];
+put_step_range (Step, Range);
+<: (" = ", res, "\n");
+};
+
+
+! PerformBinaryCheck (Title OpBinary Step1 Range1 Step2 Range2) : [res] = {
+res = average_Binary (OpBinary, Step1, Range1, Step2, Range2);
+<: ["BinOp check '" Title "': "];
+	put_step_range (Step1, Range1);
+	<: ' * ';
+	put_step_range (Step2, Range2);
+<: (" = ", res, "\n");
+};
+
+
+! chk_sqr_mul (x y) =
+	sqr(x*y) - (sqr(x) * sqr(y));
+
+! chk_sqr_div (x y) =
+	sqr(x/y) - (sqr(x) / sqr(y));
+
+PerformBinaryCheck ("Sqr/Mul", !chk_sqr_mul, 0.36, 4..8, 0.29, 5..9);
+PerformBinaryCheck ("Sqr/Div", !chk_sqr_div, 0.32, 5..9, 0.25, 3..8);
+
+! chk_rad_sincos (x) =
+	rad (sin(x), cos(x)) - 1.0;
+
+PerformUnaryCheck ("Rad/SinCos", !chk_rad_sincos, 0.37, -2.15..4.71);
+
+! chk_sum_asincos (x) =
+	asin(x) + acos(x) - pi(1/2);
+
+! chk_sin_add (x y) =
+	sin(x + y) - (sin(x)*cos(y) + sin(y)*cos(x));
+
+! chk_sin_sub (x y) =
+	sin(x - y) - (sin(x)*cos(y) - sin(y)*cos(x));
+
+PerformBinaryCheck ("Sin/Add", !chk_sin_add, 0.4, -8..12, 0.65, -7..4);
+PerformBinaryCheck ("Sin/Sub", !chk_sin_sub, 0.2, -12..8, 0.45, -5..2);
+
+! chk_cos_add (x y) =
+	cos(x + y) - (cos(x)*cos(y) - sin(x)*sin(y));
+
+! chk_cos_sub (x y) =
+	cos(x - y) - (cos(x)*cos(y) + sin(x)*sin(y));
+
+PerformBinaryCheck ("Cos/Add", !chk_cos_add, 0.3, -5..15, 0.78, -3..4);
+PerformBinaryCheck ("Cos/Sub", !chk_cos_sub, 0.7, -8..12, 0.65, -8..6);
+
+! chk_exp_add (a b) =
+	exp (a + b) - exp(a)*exp(b);
+
+! chk_exp_sub (a b) =
+	exp (a - b) - exp(a)/exp(b);
+
+PerformBinaryCheck ("Exp/Add", !chk_exp_add, 0.4, -8..12, 0.32, -3..4);
+PerformBinaryCheck ("Exp/Sub", !chk_exp_sub, 0.6, -5..7, 0.46, -4..9);
+
+! chk_log_mul (a b) = 
+	log (a*b) - (log(a) + log(b));
+
+! chk_log_div (a b) = 
+	log (a/b) - (log(a) - log(b));
+
+PerformBinaryCheck ("Log/Mul", !chk_log_mul, 0.7, 0.2..4.5, 0.3, 0.3..3.7);
+PerformBinaryCheck ("Log/Div", !chk_log_div, 0.2, 0.1..6.5, 0.8, 0.2..4.6);
+
+! chk_sinh_add (x y) =
+	sinh(x + y) - (sinh(x)*cosh(y) + sinh(y)*cosh(x));
+
+! chk_sinh_sub (x y) =
+	sinh(x - y) - (sinh(x)*cosh(y) - sinh(y)*cosh(x));
+
+PerformBinaryCheck ("SinH/Add", !chk_sinh_add, 0.27, -3..6, 0.89, -7..6);
+PerformBinaryCheck ("SinH/Sub", !chk_sinh_sub, 0.53, -6..4, 0.27, -9..8);
+
+! chk_cosh_add (x y) =
+	cosh(x + y) - (cosh(x)*cosh(y) + sinh(x)*sinh(y));
+
+! chk_cosh_sub (x y) =
+	cosh(x - y) - (cosh(x)*cosh(y) - sinh(x)*sinh(y));
+
+PerformBinaryCheck ("CosH/Add", !chk_cosh_add, 0.31, -3.5..5.3, 0.2, -8.2..6.5);
+PerformBinaryCheck ("CosH/Sub", !chk_cosh_sub, 0.47, -6.9..4.8, 0.6, -9.1..8.3);
+

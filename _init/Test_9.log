@@ -1,0 +1,268 @@
+<Test_9.awl> #14 / [1] {
+
+  x_trace:() => 0;
+  ! concat_all:(L) [3] = {
+    set:(i, 0);
+    set:(s, "");
+    while:(lt:(i, l_len:L), comb:s_cat:(s, s_cat:(l_item:(inc_p:i, L), " ")));
+    s } => concat_all:;
+  concat_all:("aa", "bb", "cc", "dd") => "aa bb cc dd ";
+  concat_all:(1, 2, 3, 4, 5) => "1 2 3 4 5 ";
+  concat_all:(sqr:2, sqr:3, sqr:5) => "1.4142136 1.7320508 2.236068 ";
+  ! mklist:(N) [3] = {
+    set:(i, 0);
+    set:(L, i);
+    while:(lt:(inc:i, N), set:(L, i, L));
+    L } => mklist:;
+  mklist:10 => (9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+  ! mklistX:(N X) [4] = {
+    set:(i, 0);
+    set:(L, );
+    while:(lt:(inc:i, N), set:(L, X, L));
+    L } => mklistX:;
+  l_cat:(l_cat:(mklistX:(9, 4), mklistX:(6, 6)), mklistX:(4, 13)) => (4, 4, 4, 4, 4, 4, 4, 4, 6, 6, 6, 6, 6, 13, 13, 13, );
+  set:((Ga, Gb, Gc), 19, 28, 37) => (19, 28, 37);
+  ! xabc:(_a _b _c) [3] = add:(add:(mul:(_a, .Ga), mul:(_b, .Gb)), mul:(_c, .Gc)) => xabc:;
+  xabc:(11, 12, 13) => 1026;
+  xabc:(3, 2, 1) => 150;
+  comb:sub:(Ga, 5) => 14;
+  comb:add:(Gb, 7) => 35;
+  comb:sub:(Gc, 3) => 34;
+  xabc:(3, 2, 1) => 146;
+  xabc:(1, 2, 3) => 186;
+  ! sqb:(@a) [1] = {
+    f_put:((), "[");
+    reval:a;
+    f_put:((), "]") } => sqb:;
+  ! rdb:(@a) [1] = {
+    f_put:((), "(");
+    reval:a;
+    f_put:((), ")") } => rdb:;
+  ! ssrb:(@a) [1] = .sqb:.sqb:.rdb:reval:a => ssrb:;
+  ! rrsb:(@a) [1] = .rdb:.rdb:.sqb:reval:a => rrsb:;
+
+[[33]]
+  {
+    f_put:((), "\n");
+    sqb:sqb:f_put:((), 33);
+    f_put:((), "\n");
+    } => ();
+
+([(xxx)])
+  {
+    f_put:((), "\n");
+    rdb:sqb:rdb:f_put:((), "xxx");
+    f_put:((), "\n");
+    } => ();
+
+[([yy-yy])]
+  {
+    f_put:((), "\n");
+    sqb:rdb:sqb:f_put:((), "yy-yy");
+    f_put:((), "\n");
+    } => ();
+
+[[(+ + +)]]
+  {
+    f_put:((), "\n");
+    ssrb:f_put:((), "+ + +");
+    f_put:((), "\n");
+    } => ();
+
+(([* * *]))
+  {
+    f_put:((), "\n");
+    rrsb:f_put:((), "* * *");
+    f_put:((), "\n");
+    } => ();
+  let:(aa, if:(ii, sin:, cos:)) => aa;
+  add:({
+    set:(ii, 0);
+    mul:(apply:(reval:aa, 1), apply:(reval:aa, 1)) }, {
+    set:(ii, 1);
+    mul:(apply:(reval:aa, 1), apply:(reval:aa, 1)) }) => 1.;
+  set:(fvec, add:, sub:, mul:, div:) => (add:, sub:, mul:, div:);
+  let:(bb, l_item:(ii, fvec)) => bb;
+30
+-10
+200
+0.5
+  for_inc:(ii, (0, 4), f_put:((), apply:(reval:bb, 10, 20), "\n")) => 2;
+-1.2
+-30
+-11
+-1
+  for_dec:(ii, (0, 4), f_put:((), apply:(reval:bb, neg:6, 5), "\n")) => 2;
+  set:((MM, NN), 1000, 1500) => (1000, 1500);
+  ! ll_fn:(a b) [4] = {
+    set:(MM, add:(a, b));
+    set:(NN, sub:(a, b));
+    (add:(MM, NN), sub:(MM, NN)) } => ll_fn:;
+  ll_fn:(10, 20) => (20, 40);
+  ll_fn:(900, 700) => (1800, 1400);
+  ll_fn:(12.3, 61.4) => (24.6, 122.8);
+1000 1500
+  f_put:((), MM, " ", NN, "\n") => 4;
+  set:(func_vec, ! (x y) [2] = add:(mul:(x, 2), mul:(y, 3)), ! (x y) [2] = sub:(mul:(y, 7), mul:(x, 3)), ! (x y) [2] = sub:(idiv:(x, 2), irem:(y, 3))) => (! (x y) [2] = add:(mul:(x, 2), mul:(y, 3)), ! (x y) [2] = sub:(mul:(y, 7), mul:(x, 3)), ! (x y) [2] = sub:(idiv:(x, 2), irem:(y, 3)));
+80
+110
+3
+  l_loop:(p, func_vec, f_put:((), apply:(p, 10, 20), "\n")) => 2;
+-4
+120
+1
+  l_loop:(p, (! (a b c) [3] = add:(sub:(mul:(a, 2), mul:(b, 3)), c), ! (x y z) [3] = mul:(mul:(add:(x, 2), sub:(y, 3)), z), ! (Z Y X) [3] = cmp:(mul:(X, add:(Y, Z)), mul:(Z, sub:(Y, X)))), f_put:((), apply:(p, 3, 6, 8), "\n")) => 2;
+  set:(test_vec1, 11.1, 22.3, 44.5, 77.8, 99.) => (11.1, 22.3, 44.5, 77.8, 99.);
+  set:(test_vec2, "alpha", "beta", "gamma", "delta", "epsilon") => ("alpha", "beta", "gamma", "delta", "epsilon");
+  set:(ffr1, ! (x) [1] = add:(mul:(x, 10), 5)) => ! (x) [1] = add:(mul:(x, 10), 5);
+  set:(ffr2, ! (s) [1] = s_cat:(s_cat:("{", s), "}")) => ! (s) [1] = s_cat:(s_cat:("{", s), "}");
+  set:(ffr3, ! (x) [1] = apply:(.ffr2, apply:(.ffr1, x))) => ! (x) [1] = apply:(.ffr2, apply:(.ffr1, x));
+  l_map:(ffr1, test_vec1) => (116., 228., 450., 783., 995.);
+  l_map:(ffr2, test_vec2) => ("{alpha}", "{beta}", "{gamma}", "{delta}", "{epsilon}");
+  l_map:(ffr2, test_vec1) => ("{11.1}", "{22.3}", "{44.5}", "{77.8}", "{99.}");
+  l_map:(ffr1, test_vec2) => (5, 5, 5, 5, 5);
+  l_map:(ffr3, test_vec1) => ("{116.}", "{228.}", "{450.}", "{783.}", "{995.}");
+  ! c_for:(@init @cond @iter @body) [4] = {
+    reval:init;
+    while:(reval:cond, {
+      reval:body;
+      reval:iter }) } => c_for:;
+
+i = 1
+i = 2
+i = 3
+i = 4
+i = 5
+i = 6
+i = 7
+i = 8
+i = 9
+i = 10
+
+  {
+    f_put:((), "\n");
+    c_for:(set:(i, 1), le:(i, 10), inc:i, f_put:((), "i = ", i, "\n"));
+    f_put:((), "\n");
+    } => ();
+
+1 * 1 = 1
+1 * 2 = 2
+1 * 3 = 3
+1 * 4 = 4
+2 * 1 = 2
+2 * 2 = 4
+2 * 3 = 6
+2 * 4 = 8
+3 * 1 = 3
+3 * 2 = 6
+3 * 3 = 9
+3 * 4 = 12
+4 * 1 = 4
+4 * 2 = 8
+4 * 3 = 12
+4 * 4 = 16
+
+  {
+    f_put:((), "\n");
+    c_for:(set:(i, 1), le:(i, 4), inc:i, c_for:(set:(j, 1), le:(j, 4), inc:j, f_put:((), i, " * ", j, " = ", mul:(i, j), "\n")));
+    f_put:((), "\n");
+    } => ();
+  ! v_out:(s1 = "<1>" s2 = "<2>" s3 = "<3>") [3] = f_put:((), s1, " : ", s2, " : ", s3, "\n") => v_out:;
+
+<1> : <2> : <3>
+hello : <2> : <3>
+yes : no : <3>
+aa : bb : cc
+<1> : xx : yy
+<1> : <2> : 1000
+  {
+    f_put:((), "\n");
+    v_out:();
+    v_out:"hello";
+    v_out:("yes", "no");
+    v_out:("aa", "bb", "cc");
+    v_out:((), "xx", "yy");
+    v_out:((), (), 1000);
+    } => ();
+  ! fgh:(a = 10 b = 20 c = 30) [3] = sub:(add:(mul:(a, 3), b), mul:(c, 2)) => fgh:;
+  fgh:() => -10;
+  fgh:15 => 5;
+  fgh:(15, 40) => 25;
+  fgh:(100, 80, 60) => 260;
+  ! f:(X Y Z) [3] = f_put:((), "f: ", "X = ", X, " Y = ", Y, " Z = ", Z, "\n") => f:;
+f: X = 10 Y = 20 Z = 30
+  f:(10, 20, 30) => 8;
+f: X = q-q Y = v-v Z = y-y
+  f:("q-q", "v-v", "y-y") => 8;
+  set:(ss, "xxx", "y", "zzz") => ("xxx", "y", "zzz");
+  set:(tt, "aa", "bbb", "c") => ("aa", "bbb", "c");
+f: X = xxx Y = y Z = zzz
+  f:ss => 8;
+f: X = aa Y = bbb Z = c
+  f:tt => 8;
+
+    Ga = 14;
+    Gb = 35;
+    Gc = 34;
+    aa = if:(ii, sin:, cos:);
+    ii = 0;
+    fvec = (add:, sub:, mul:, div:);
+    bb = l_item:(ii, fvec);
+    MM = 1000;
+    NN = 1500;
+    func_vec = (! (x y) [2] = add:(mul:(x, 2), mul:(y, 3)), ! (x y) [2] = sub:(mul:(y, 7), mul:(x, 3)), ! (x y) [2] = sub:(idiv:(x, 2), irem:(y, 3)));
+    p = ! (Z Y X) [3] = cmp:(mul:(X, add:(Y, Z)), mul:(Z, sub:(Y, X)));
+    test_vec1 = (11.1, 22.3, 44.5, 77.8, 99.);
+    test_vec2 = ("alpha", "beta", "gamma", "delta", "epsilon");
+    ffr1 = ! (x) [1] = add:(mul:(x, 10), 5);
+    ffr2 = ! (s) [1] = s_cat:(s_cat:("{", s), "}");
+    ffr3 = ! (x) [1] = apply:(.ffr2, apply:(.ffr1, x));
+    i = 5;
+    j = 5;
+    ss = ("xxx", "y", "zzz");
+    tt = ("aa", "bbb", "c");
+
+  x_vars_ord:() => 20;
+
+    ! concat_all:(L) [3] = {
+      set:(i, 0);
+      set:(s, "");
+      while:(lt:(i, l_len:L), comb:s_cat:(s, s_cat:(l_item:(inc_p:i, L), " ")));
+      s };
+    ! mklist:(N) [3] = {
+      set:(i, 0);
+      set:(L, i);
+      while:(lt:(inc:i, N), set:(L, i, L));
+      L };
+    ! mklistX:(N X) [4] = {
+      set:(i, 0);
+      set:(L, );
+      while:(lt:(inc:i, N), set:(L, X, L));
+      L };
+    ! xabc:(_a _b _c) [3] = add:(add:(mul:(_a, .Ga), mul:(_b, .Gb)), mul:(_c, .Gc));
+    ! sqb:(@a) [1] = {
+      f_put:((), "[");
+      reval:a;
+      f_put:((), "]") };
+    ! rdb:(@a) [1] = {
+      f_put:((), "(");
+      reval:a;
+      f_put:((), ")") };
+    ! ssrb:(@a) [1] = .sqb:.sqb:.rdb:reval:a;
+    ! rrsb:(@a) [1] = .rdb:.rdb:.sqb:reval:a;
+    ! ll_fn:(a b) [4] = {
+      set:(MM, add:(a, b));
+      set:(NN, sub:(a, b));
+      (add:(MM, NN), sub:(MM, NN)) };
+    ! c_for:(@init @cond @iter @body) [4] = {
+      reval:init;
+      while:(reval:cond, {
+	reval:body;
+	reval:iter }) };
+    ! v_out:(s1 = "<1>" s2 = "<2>" s3 = "<3>") [3] = f_put:((), s1, " : ", s2, " : ", s3, "\n");
+    ! fgh:(a = 10 b = 20 c = 30) [3] = sub:(add:(mul:(a, 3), b), mul:(c, 2));
+    ! f:(X Y Z) [3] = f_put:((), "f: ", "X = ", X, " Y = ", Y, " Z = ", Z, "\n");
+
+  x_funcs_ord:() => 13;
+
+} <Test_9.awl> #209 / [71]

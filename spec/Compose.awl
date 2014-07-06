@@ -1,0 +1,81 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Compose.awl':
+	|	Testing functional compositors.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: f_compose
+`
+
+
+` Functional compositions `
+
+F1 = f_compose (!(x) = (2*x + 3), !(y) = (6 - 7*y));
+x_trace ((), F1); <: '\n';
+
+<: "\nTest F1:\n";
+
+for_inc (i, 6,
+    <: [i ': ' (F1 ! i) '\n']);
+
+<: "\n";
+
+
+F2 = f_compose (!(a) = ((a + 78.5) / 9.2),
+	f_compose (!(b) = ((b - 12.2) / 7.3), !(c) = ((c + 7.9) / 5.11))
+	);
+
+x_trace ((), F2); <: '\n';
+
+<: "\nTest F2:\n";
+
+for_inc (j, 10,
+    <: [j ': ' (F2 ! (j*2.17)) '\n']);
+
+<: "\n";
+
+
+F3 = f_compose (!(s) = ('[' +$ s +$ ']'), !(t) = (t *$ 3));
+
+x_trace ((), F3); <: '\n';
+
+<: "\nTest F3:\n";
+
+l_loop (S, ['qwert' 'asdf' 'zxcv' 'uiop' 'ghjkl' 'bnm'],
+    <: [S ': ' (F3 ! S) '\n']);
+
+<: "\n";
+
+
+F4 = f_compose (f_compose (!(u) = (u *$ 2), !(v) = ('{' +$ v +$ '}')),
+	!(w) = (w *$ 3));
+
+x_trace ((), F4); <: '\n';
+
+<: "\nTest F4:\n";
+
+l_loop (T, ['Aaa' 'Bbbb' 'Cc' 'Ddd' 'EeFf'],
+    <: [T ': ' (F4 ! T) '\n']);
+
+<: "\n";
+
+
+F5 = f_compose (f_compose (!(s) = ('[-' +$ s +$ '-]'), !(t) = (t *$ 4)),
+	!(w) = ('(' +$ w +$ ')'));
+
+x_trace ((), F5); <: '\n';
+
+<: "\nTest F5:\n";
+
+l_loop_r (T, ['alpha' 'beta' 'gamma' 'delta' 'epsilon'],
+    <: [T ': ' (F5 ! T) '\n']);
+
+<: "\n";
+

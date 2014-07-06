@@ -1,0 +1,91 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test_1.awl': #1
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	Arithmetic calculations
+`
+
+x_trace();
+
+2*2 + 3*3 + 5*5 + 7*7;
+
+33 % 3 + 22 % 2 + 55 % 5;
+
+a = 22.3*5 - 11.7*9 + 15.2/7.8;
+b = (22.7/5 + 13.6) * (33.1 - 12.4/2) / 4;
+c = 1234 - 56/14 + 21/17 - 45/13 + 22/73 - 61/39;
+d = 123.142*(17.23 - 515.62)/33.9 + 22.903/(45.56 + 12.98)*18.7;
+
+(a, b, c, d);
+
+a*b + c*d;
+a/c + b/d;
+b/d*c + a/(c+d) - d/a*b + c/(b+a);
+(a*2 + c/3) / (b/8 - d*5);
+(a/6.2 - b*5.9) * (d*7.1 + c/2.3);
+
+sqr (a+b) * sqr (c-d) - sqr (a*c + b*c - a*d - b*d);
+
+log ((+ a ?< + d) + (+ b ?> + c));
+
+exp (a ?< b);
+exp (a ?> b);
+
+`
+	Lazy assignments/evaluations
+`
+
+sincos_r := sin(r)*sin(r) + cos(r)*cos(r);
+sincos_r;
+
+explog_r := exp(log(r));
+explog_r;
+
+r = a;
+^sincos_r;
+^explog_r;
+
+r = b;
+^sincos_r;
+^explog_r;
+
+ceil (b) - floor (b);
+
+(e, f) = (-10.1, 20.2);
+
+a =+: c + d;
+b =*: e / f;
+
+(a, b);
+
+(p, q) = (floor(a), ceil(b));
+
+p = ?<: ceil(d) & floor(c);
+
+q = ?>: ceil(c) ~ floor(d);
+
+a*p + b*q;
+
+(int(a), int(b), int(c), int(d));
+
+(a*c/e + b*d/f, a ?< b ?> f, c ?> d ?< e);
+
+[p q];
+
+` Reductions... `
+
+[=] + [a b c d e f];
+
+[=] * [a b e f];
+
+(a*2 + b - c/3, e*4.5 + f/7.8);
+
+x_vars_ord();

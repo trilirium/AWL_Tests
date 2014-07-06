@@ -1,0 +1,57 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'PattCheck.awl':
+	|	Pattern repetitions check.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: rx_match, rx_cat, rx_rep
+`
+
+failed_no = 0;
+
+` Expect 'test' to be true `
+! expecting (test msg) = unless (test):: { ++ failed_no; <: ("\aFailed: ", msg, "\n"); };
+
+! check_rep (count left middle right) : [str s_len i j] = {
+	<: ("CheckRep: #", count, ": ", left, ' << ', middle, ' >> ', right, "\n");
+
+	for_inc (i, count, {
+		str = left +$ (i ? (middle *$ i) : "") +$ right;
+		s_len = #$left + (#$middle * i) + #$right;
+
+		expecting (#$str == s_len, "length #" +$ i);
+
+		expecting (
+			rx_match (rx_cat (left, rx_cat (rx_rep ((), 0, middle), right)), str) == s_len,
+			"match #" +$ i +$ " [..]");
+
+		for_inc (j, count, {
+			expecting (
+				rx_match (rx_cat (left, rx_cat (rx_rep (..j, 0, middle), right)), str) == (i <= j ? s_len : -1),
+				"match #" +$ i +$ " [.." +$ j +$ "]");
+			expecting (
+				rx_match (rx_cat (left, rx_cat (rx_rep (j.., 0, middle), right)), str) == (i >= j ? s_len : -1),
+				"match #" +$ i +$ " [" +$ j +$ "..]");
+			expecting (
+				rx_match (rx_cat (left, rx_cat (rx_rep (j..j, 0, middle), right)), str) == (i == j ? s_len : -1),
+				"match #" +$ i +$ " [" +$ j +$ "]");
+			});
+		});
+	};		` -- check_rep `
+
+` checking... `
+
+check_rep (10, '(', '=', ')');
+check_rep (8, "<- ", "()", " ->");
+check_rep (12, ':[', '**', ']:');
+check_rep (15, '$<', '---', '>$');
+
+<: ("Total failures: ", failed_no, "\n");
+

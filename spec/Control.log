@@ -1,0 +1,188 @@
+x_trace:3 => 0;
+! expect_val:(val test) [2] = if:(ne:(val, test), f_put:((), "\aUnexpected: ", val, "<>", test, "\n")) => expect_val:;
+! test_loops1:(Range) [4] = {
+  for_inc:(i, Range, {
+    set:((j, k), Range);
+    while:(lt:(j, i), inc:j);
+    while:(gt:(k, i), dec:k);
+    .expect_val:(j, i);
+    .expect_val:(k, i);
+    });
+  } => test_loops1:;
+test_loops1:(10, 30) => ();
+! test_range_even:(Range) [2] = {
+  f_put:((), "even (", l_item:(1, Range), "->", l_item:(0, Range), "): [ ");
+  for_dec:(i, Range, {
+    if:(irem:(i, 2), inc:i);
+    f_put:((), i, " ");
+    });
+  f_put:((), "]\n");
+  } => test_range_even:;
+! test_range_odd:(Range) [2] = {
+  f_put:((), "odd (", l_item:(1, Range), "->", l_item:(0, Range), "): [ ");
+  for_dec:(i, Range, {
+    unless:(irem:(i, 2), inc:i);
+    f_put:((), i, " ");
+    });
+  f_put:((), "]\n");
+  } => test_range_odd:;
+even (35->5): [ 34 34 32 32 30 30 28 28 26 26 24 24 22 22 20 20 18 18 16 16 14 14 12 12 10 10 8 8 6 6 ]
+test_range_even:(5, 35) => ();
+odd (35->5): [ 35 33 33 31 31 29 29 27 27 25 25 23 23 21 21 19 19 17 17 15 15 13 13 11 11 9 9 7 7 5 ]
+test_range_odd:(5, 35) => ();
+! digit_to_name:(n) [1] = switch:(n, (0, "zero"), (1, "one"), (2, "two"), (3, "three"), (4, "four"), (5, "five"), (6, "six"), (7, "seven"), (8, "eight"), (9, "nine"), ) => digit_to_name:;
+! name_to_digit:(s) [1] = switch:(s, ("zero", 0), ("one", 1), ("two", 2), ("three", 3), ("four", 4), ("five", 5), ("six", 6), ("seven", 7), ("eight", 8), ("nine", 9), ) => name_to_digit:;
+! Test_Switch:() [2] = {
+  for_inc:(i, 10, f_put:((), "\t", i, " -> ", .digit_to_name:i, "\n"));
+  l_loop:(n, ("nine", "eight", "seven", "six", "five", "four", "three", "two", "one"), f_put:((), "\t", n, " <- ", .name_to_digit:n, "\n"));
+  } => Test_Switch:;
+	0 -> zero
+	1 -> one
+	2 -> two
+	3 -> three
+	4 -> four
+	5 -> five
+	6 -> six
+	7 -> seven
+	8 -> eight
+	9 -> nine
+	nine <- 9
+	eight <- 8
+	seven <- 7
+	six <- 6
+	five <- 5
+	four <- 4
+	three <- 3
+	two <- 2
+	one <- 1
+Test_Switch:() => ();
+! Test_Squares:(N) [4] = {
+  for_inc:(n, N, {
+    set:(S, mul:(n, n));
+    set:(i, 0);
+    while:(lt:(mul:(i, i), S), inc:i);
+    f_put:((), "\t", i, ":", S, "\n");
+    });
+  } => Test_Squares:;
+	0:0
+	1:1
+	2:4
+	3:9
+	4:16
+	5:25
+	6:36
+	7:49
+	8:64
+	9:81
+	10:100
+	11:121
+	12:144
+	13:169
+	14:196
+Test_Squares:15 => ();
+! Test_Range_Precond_Inc:(N) [3] = {
+  f_put:((), "\nPrecond range (N = ", N, ")\n");
+  for_inc:(i, N, {
+    f_put:((), "[");
+    set:(j, 0);
+    while:(ne:(j, i), f_put:((), " ", inc_p:j));
+    f_put:((), "<", i, ">");
+    until:(eq:(inc:j, N), f_put:((), j, " "));
+    f_put:((), "]\n");
+    });
+  f_put:((), "\n");
+  } => Test_Range_Precond_Inc:;
+! Test_Range_Precond_Dec:(N) [3] = {
+  f_put:((), "\nPostcond range (N = ", N, ")\n");
+  for_dec:(i, N, {
+    f_put:((), "[");
+    set:(j, N);
+    until:(eq:(dec:j, i), f_put:((), " ", j));
+    f_put:((), "<", i, ">");
+    while:(j, f_put:((), dec:j, " "));
+    f_put:((), "]\n");
+    });
+  f_put:((), "\n");
+  } => Test_Range_Precond_Dec:;
+
+Precond range (N = 10)
+[<0>1 2 3 4 5 6 7 8 9 ]
+[ 0<1>2 3 4 5 6 7 8 9 ]
+[ 0 1<2>3 4 5 6 7 8 9 ]
+[ 0 1 2<3>4 5 6 7 8 9 ]
+[ 0 1 2 3<4>5 6 7 8 9 ]
+[ 0 1 2 3 4<5>6 7 8 9 ]
+[ 0 1 2 3 4 5<6>7 8 9 ]
+[ 0 1 2 3 4 5 6<7>8 9 ]
+[ 0 1 2 3 4 5 6 7<8>9 ]
+[ 0 1 2 3 4 5 6 7 8<9>]
+
+Test_Range_Precond_Inc:10 => ();
+
+Postcond range (N = 10)
+[<9>8 7 6 5 4 3 2 1 0 ]
+[ 9<8>7 6 5 4 3 2 1 0 ]
+[ 9 8<7>6 5 4 3 2 1 0 ]
+[ 9 8 7<6>5 4 3 2 1 0 ]
+[ 9 8 7 6<5>4 3 2 1 0 ]
+[ 9 8 7 6 5<4>3 2 1 0 ]
+[ 9 8 7 6 5 4<3>2 1 0 ]
+[ 9 8 7 6 5 4 3<2>1 0 ]
+[ 9 8 7 6 5 4 3 2<1>0 ]
+[ 9 8 7 6 5 4 3 2 1<0>]
+
+Test_Range_Precond_Dec:10 => ();
+! Test_Range_Postcond_Inc:(N) [3] = {
+  f_put:((), "\nPostcond range (N = ", N, ")\n");
+  for_inc:(i, N, {
+    f_put:((), "[");
+    set:(j, i);
+    while:(ne:(j, N), f_put:((), " ", inc_p:j));
+    f_put:((), "|");
+    set:(j, 0);
+    until:(eq:(j, i), f_put:((), inc_p:j, " "));
+    f_put:((), "]\n");
+    });
+  f_put:((), "\n");
+  } => Test_Range_Postcond_Inc:;
+! Test_Range_Postcond_Dec:(N) [3] = {
+  f_put:((), "\nPostcond range (N = ", N, ")\n");
+  for_dec:(i, N, {
+    f_put:((), "[");
+    set:(j, i);
+    while:(ne:(j, N), f_put:((), " ", inc_p:j));
+    f_put:((), "|");
+    set:(j, 0);
+    until:(eq:(j, i), f_put:((), inc_p:j, " "));
+    f_put:((), "]\n");
+    });
+  f_put:((), "\n");
+  } => Test_Range_Postcond_Dec:;
+
+Postcond range (N = 10)
+[ 0 1 2 3 4 5 6 7 8 9|]
+[ 1 2 3 4 5 6 7 8 9|0 ]
+[ 2 3 4 5 6 7 8 9|0 1 ]
+[ 3 4 5 6 7 8 9|0 1 2 ]
+[ 4 5 6 7 8 9|0 1 2 3 ]
+[ 5 6 7 8 9|0 1 2 3 4 ]
+[ 6 7 8 9|0 1 2 3 4 5 ]
+[ 7 8 9|0 1 2 3 4 5 6 ]
+[ 8 9|0 1 2 3 4 5 6 7 ]
+[ 9|0 1 2 3 4 5 6 7 8 ]
+
+Test_Range_Postcond_Inc:10 => ();
+
+Postcond range (N = 10)
+[ 9|0 1 2 3 4 5 6 7 8 ]
+[ 8 9|0 1 2 3 4 5 6 7 ]
+[ 7 8 9|0 1 2 3 4 5 6 ]
+[ 6 7 8 9|0 1 2 3 4 5 ]
+[ 5 6 7 8 9|0 1 2 3 4 ]
+[ 4 5 6 7 8 9|0 1 2 3 ]
+[ 3 4 5 6 7 8 9|0 1 2 ]
+[ 2 3 4 5 6 7 8 9|0 1 ]
+[ 1 2 3 4 5 6 7 8 9|0 ]
+[ 0 1 2 3 4 5 6 7 8 9|]
+
+Test_Range_Postcond_Dec:10 => ();

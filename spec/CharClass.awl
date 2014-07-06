@@ -1,0 +1,47 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'CharClass.awl':
+	|	Check character classes.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: cc_digit, cc_odigit, cc_xdigit
+	CHECKED: cc_lower, cc_upper, cc_alpha, cc_blank, cc_print
+`
+
+CharClasses = [
+	("Lower",	!cc_lower)
+	("Upper",	!cc_upper)
+	("Alpha",	!cc_alpha)
+	("Digit",	!cc_digit)
+	("ODigit",	!cc_odigit)
+	("XDigit",	!cc_xdigit)
+	("Blank",	!cc_blank)
+	("Print",	!cc_print)
+	:];
+
+alen = l_map (!(cl) = (#$cl[0]), CharClasses);
+for_inc (i, reduce (max (alen)), {
+	<: "\t";
+	l_loop (item, CharClasses,
+		<: (item[0]$[i..i+1], ' '));
+	<: "\n";
+	});
+
+for_inc (char, \x100, {
+	<: (char,
+		(inside (char, \x20..\x7f) ?
+			(" '", s_chars(0, char), "'") : ' '),
+		":\t");
+	l_loop (p, CharClasses,
+		<: ((p[1] ! (char) ? '+' : '-'), ' ')
+		);
+	<: "\n";
+	});
+

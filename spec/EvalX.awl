@@ -1,0 +1,44 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'EvalX.awl':
+	|	Cross-context evaluations tests.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: eval_x, eval_v
+`
+
+! run_test (@Expr) = {
+	<: "* ";
+	x_trace (2, Expr);
+	<: " => ";
+	x_trace (2, ^Expr);
+	<: ".\n";
+	};
+
+` eval_x in scalar context `
+! check_bopAB (bopA bopB a b c d) =
+	bopB ! (eval_x(bopA ! (a,b)), eval_x(bopA ! (c,d)));
+
+run_test (check_bopAB (!add, !mul, [12 34 56 78]));
+run_test (check_bopAB (!mul, !sub, [87 65 43 21]));
+run_test (check_bopAB (!sub, !mul, [11.33 22.66 55.77 99.44]));
+
+run_test (check_bopAB (!s_cat, !s_cat, ['xxX' 'yyY' 'aaA' 'bbB']));
+run_test (check_bopAB (!s_rep, !s_cat, ['[Aa]' 3 '[Ee]' 5]));
+run_test (check_bopAB (!s_rep, !s_cat, ['(*)' 4 '{+}' 3]));
+
+
+` eval_v in list context `
+! check_bopXY (bopX bopY w x y z) =
+	bopY ! (eval_v(bopX ! (w,x)), eval_v(bopX ! (y,z)));
+
+run_test (check_bopXY (!l_cat, !l_cat,
+	[[1 2 3 4] ['a' 'b' 'c'] [11.0 22.0 33.0] ['1x' '2y' '3z']]));
+

@@ -1,0 +1,36 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test11.awl': #11
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+x_trace();
+
+` Show all occurences of substring ss in string S `
+! show_all (S ss) : [start count sslen index] = {
+start = 0;
+count = 0;
+sslen = #$ss;
+
+<: ['\n' S '\n'];
+
+(index = S $[start..] >>$ ss) >= 0 ?? {
+	<: (' ' *$ index, '-' *$ sslen);
+	++ count;
+	start =+: index + sslen
+	};
+
+<: ["\nTotal: " count "\n\n"];
+};
+
+show_all ("aardvark", "a");
+show_all ("aardvark", "ar");
+show_all ("The rain in Spain falls mainly on a plain", "ain");
+show_all ("Don't trouble trouble until trouble troubles you", "trouble");
+show_all ("How now a brown cow?", "ow");

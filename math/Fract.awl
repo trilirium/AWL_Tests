@@ -1,0 +1,48 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Fract.awl':
+	|	Periodic decimal fractions (1/2 ... 1/N).
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+! decimal_fract (n) : [digits pstart rem rpos j k] =  {
+digits = ();	`[ list of decimal digits ]`
+pstart = 0;	`[ offset to begin of period (if <> 0) ]`
+rem = 1;	`[ current remainder ]`
+
+`[remainder -> digit offset...]`
+rpos = 0 [*] n;
+
+`[main loop]`
+(rem && (pstart = rpos[rem-1]) == 0) ?? {
+    rpos [rem-1] = #digits + 1;
+    rem =*: 10;
+    digits [<-] rem % n;
+    rem =%%: n;
+    };
+
+`[output result]`
+
+<: (' 1/', n, ' = ', "0.");
+
+j = #digits;
+k = pstart;
+
+?? (<: (-- k == 0 ? '(' : '', digits[-- j])) (j);
+
+pstart ? (<: (") [period ", #digits + 1 - pstart, "]")) : ;
+
+<: '\n';
+};		` -- decimal_fract `
+
+:[n];
+
+` Entry point: `
+for_inc (n, 2..101, decimal_fract(n));

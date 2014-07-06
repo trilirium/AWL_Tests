@@ -1,0 +1,35 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'ListCons.awl':
+	|	List construction/deconstruction test.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+! expect_val (where at left right) =
+	if (left [<>] right)::
+		(<: "error!");
+
+! LCons_Test1 (count func_list) : [i f e list] = {
+
+	i = 0;
+	
+	times (count)::
+	    l_loop (f, func_list, list [<-] f ! (i ++));
+
+	list = [~] list;
+
+	i = 0;
+	times (count)::
+	    l_loop (f, func_list,
+		{ list [->] e; expect_val ('l_pop', i, e, f ! (i ++)) });
+	};	` -- LCons_Test1 `
+
+
+LCons_Test1 (20, !(i) = (i*2 - 7), !(j) = (j*3 + 13));
+LCons_Test1 (30, !(i) = (i*2 - 7), !(j) = (j*5 - 43), !(k) = (k*9 + 111));
+

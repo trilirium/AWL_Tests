@@ -1,0 +1,73 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test_8.awl': #8
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+` Functor definitions `
+
+x_trace();
+
+! sum_of (a b) = a + b;
+
+! diff_of (x y) = x - y;
+
+! Vlength (X Y Z) = X*X + Y*Y + Z*Z;
+
+Vlength (10, 20, 30);
+
+sum_of (12, 23) + diff_of (16, 55);
+
+! join3 (s1 s2 s3) = s1 +$ ':' +$ s2 +$ ':' +$ s3;
+
+join3 ('hello', 'and', 'goodbye');
+
+join3 (12+2, 6*3, 17-5);
+
+p = (101,202,303);
+
+join3(p);
+
+diff_of(sum_of(5,5), sum_of(4,6));
+
+! join2 (sa sb) = '[' +$ sa +$ '<>' +$ sb +$ ']';
+
+join2 (22.5*3, 13.3*5);
+
+join3 (join2('M-m', 1.3), join2 ('Z-z', 3.6), join2('H-h', 5.9));
+
+join2 (join3 (12.2, '_AW_', 41), join3 (51.5, '_MD_', 97));
+
+! mul_3 (X Y Z) = X*Y*Z;
+
+mul_3 (2, 3, 5);
+
+sum_of (mul_3 (0.5, 4, 3), mul_3 (0.3, 2, 7));
+
+sum_of (diff_of (sum_of (2, 5), diff_of (10, 6)), 7);
+
+diff_of (diff_of (sum_of (2, 5), diff_of (10, 6)), 7);
+
+! xjoin3(s1 s2 s3) = '[' +$ s1 +$ ':' +$ s2 +$ ':' +$ s3 +$ ']';
+
+xjoin3 (['a-a' 'e-e' 'i-i']);
+
+xjoin3 (xjoin3 ([11.2 12.5 73.9]),
+	xjoin3 (['SssS' 'FffF' 'UuuU']),
+	xjoin3 (23+7, 56-4, 79+5));
+
+xjoin3 (join2 ('a-x', 'b-z'), 12+56+41, join2 (123/2, 215/2));
+
+
+
+<: '\n\n\n';
+
+x_vars_ord();
+x_funcs_ord();
+

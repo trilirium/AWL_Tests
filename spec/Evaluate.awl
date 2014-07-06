@@ -1,0 +1,45 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Evaluate.awl':
+	|	Testing basic scalar/list devaluation/revaluation.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: deval, reval
+`
+
+x_trace ();
+
+a = 'Aa'; b = 'Bb'; c = 'Cc';
+
+v; xv; xxv; xxxv;
+
+v = a;
+xv = @a;
+xxv = @@a;
+xxxv = @@@a;
+
+[v xv xxv xxxv];
+(^v, ^xv, ^xxv, ^xxxv);
+(^^v, ^^xv, ^^xxv, ^^xxxv);
+(^^^v, ^^^xv, ^^^xxv, ^^^xxxv);
+
+(
+    (xv, ^xxv, ^^xxxv),
+    (xxv, ^xxxv),
+    xxxv
+);
+
+[v xv xxv xxxv];
+^[v xv xxv xxxv];
+^^[v xv xxv xxxv];
+^^^[v xv xxv xxxv];
+
+x_vars ();
+

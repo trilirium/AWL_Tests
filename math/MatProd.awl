@@ -1,0 +1,86 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'MatProd.awl':
+	|	Matrix product.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+` Show 2D matrix A [M N] `
+! matshow (A M N) : [I J] = {
+for_inc (I, M, {
+    <: '  [ ';
+    for_inc (J, N, <: (A {[I J]}, ' '));
+    <: ']\n';
+    })
+};
+
+` Calculate matrix product: C [L N] = A [L M] (*) B [M N] `
+! matprod (L M N A B C) : [I J K val] = {
+for_inc (I, L,
+    for_inc (J, N, {
+	val = 0;
+	for_inc (K, M,
+	    val =+: A {I, K} * B {K, J});
+	C {I, J} = val;
+	})
+    );
+};
+
+
+` Testing... `
+
+A = array ([2 2]);
+B = array ([2 2]);
+C = array ([2 2]);
+
+a_load (A, [2 1 3 5]);
+a_load (B, [4 3 1 2]);
+
+<: "A = \n";
+matshow (A, [2 2]);
+<: "\n";
+
+<: "B = \n";
+matshow (B, [2 2]);
+<: "\n";
+
+<: "A (*) B = \n";
+matprod ([2 2 2 A B C]);
+matshow (C, [2 2]);
+<: "\n";
+
+<: "B (*) A = \n";
+matprod ([2 2 2 B A C]);
+matshow (C, [2 2]);
+<: "\n";
+
+A = array ([3 3]);
+B = array ([3 3]);
+C = array ([3 3]);
+
+a_load (A, [4 2 1 7 8 5 9 3 6]);
+a_load (B, [6 5 2 9 1 7 8 3 4]);
+
+<: "A = \n";
+matshow (A, [3 3]);
+<: "\n";
+
+<: "B = \n";
+matshow (B, [3 3]);
+<: "\n";
+
+<: "A (*) B = \n";
+matprod ([3 3 3 A B C]);
+matshow (C, [3 3]);
+<: "\n";
+
+<: "B (*) A = \n";
+matprod ([3 3 3 B A C]);
+matshow (C, [3 3]);
+<: "\n";
+

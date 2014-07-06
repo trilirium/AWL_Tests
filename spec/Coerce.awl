@@ -1,0 +1,112 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Coerce.awl':
+	|	Scalar coercions & lists.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[ListI ListF ListS ListP];
+
+ListI = [11 22 33 44 55 66];
+
+ListF = [10.02 20.04 30.06 40.08];
+
+ListS = ['12aB' '23cD' '34eF' '45gH' '56iJ' '67kL' '78mN'];
+
+` Apply binary 'bin_op' to 'List' `
+! apply_binary (bin_op List) : [i j left] = {
+<: "Check binary: ";
+x_trace (2, bin_op);
+<: " on ";
+x_trace (2, List);
+<: "\n";
+
+for_inc (i, #List, {
+    left = List [i];
+    <: (left, ":\n");
+    for_inc (j, i+1..#List,
+	<: ("\t", left, " (*) ", List[j], " =\t", bin_op ! (left, List[j]), "\n"));
+    });
+
+<: "done.\n\n";
+};
+
+apply_binary (!add, ListI);
+apply_binary (!add, ListF);
+apply_binary (!add, ListS);
+
+apply_binary (!s_cat, ListI);
+apply_binary (!s_cat, ListF);
+apply_binary (!s_cat, ListS);
+
+apply_binary (!idiv, [~] ListI);
+apply_binary (!idiv, [~] ListF);
+apply_binary (!idiv, [~] ListS);
+
+
+` Apply unary 'un_op' to 'List' `
+! apply_unary (un_op List) : [i j left] = {
+<: "Check unary: ";
+x_trace (2, un_op);
+<: " on ";
+x_trace (2, List);
+<: "\n";
+
+for_inc (i, #List,
+    <: (List[i], ":\t", un_op ! (List[i]), "\n")
+    );
+
+<: "done.\n\n";
+};
+
+apply_unary (!neg, ListI);
+apply_unary (!neg, ListF);
+apply_unary (!neg, ListS);
+
+apply_unary (!s_rev, ListI);
+apply_unary (!s_rev, ListF);
+apply_unary (!s_rev, ListS);
+
+apply_unary (!not, ListI);
+apply_unary (!not, ListF);
+apply_unary (!not, ListS);
+
+` Apply binary 'bin_op' to matrix 'List1' * 'List2' `
+! apply_matrix (bin_op List1 List2) : [i j left] = {
+<: "Check binary matrix: ";
+x_trace (2, bin_op);
+<: " on ";
+x_trace (2, List1);
+<: " [*] ";
+x_trace (2, List2);
+<: "\n";
+
+for_inc (i, #List1, {
+    left = List1[i];
+    <: (left, ":");
+    for_inc (j, #List2,
+	<: ("\t", bin_op ! (left, List2[j])));
+    <: "\n";
+    });
+
+<: "done.\n\n";
+};
+
+apply_matrix (!add, ListI, ListF);
+apply_matrix (!sub, ListF, ListI);
+
+ListP = [ \x01 \x02 \x04 \x08 \x10 \x20 \x40 \x80 ];
+
+apply_matrix (!and, ListP, ListP);
+apply_matrix (!or, ListP, ListP);
+apply_matrix (!xor, ListP, ListP);
+
+apply_matrix (!xor, ListI, ListF);
+apply_matrix (!xor, ListF, ListS);
+apply_matrix (!xor, ListS, ListI);
+

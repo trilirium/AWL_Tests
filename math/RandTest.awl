@@ -1,0 +1,47 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'RandTest.awl':
+	|	Random numbers uniformity test.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+! random_test (Max Count) : [hist i val v_sum v_ssum] = {
+	<: ["\nRandom numbers test\n(count=" Count " / range=0.." Max "):\n\n"];
+
+	v_sum = v_ssum = 0;
+
+	hist = a_create (Max);
+
+	a_fill (hist, 0);
+
+	times (Count):: {
+		val = rand(Max);
+		v_sum =+: val;
+		v_ssum =+: val*val;
+
+		++ hist{val};
+		};
+
+	for_inc (i, Max, <: [i ': ' (hist{i}) '\n']);
+
+	<: "\n";
+	<: ("Average: ", v_sum/Count, " (expected: ", (Max-1) / 2, ")\n");
+	<: ("Dispersion: ", (v_ssum - (v_sum*v_sum)/Count) / (Count - 1), "\n");
+
+	};	` -- random_test `
+
+
+` Enable randomization to make tests really random `
+` randomize (); `
+
+random_test (32, 750);
+random_test (25, 1000);
+random_test (60, 1800);
+

@@ -1,0 +1,49 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'FuncTab.awl':
+	|	Function tables / float output.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+precision = 14;
+
+! func_tab (func min max count) : [val step i] = {
+	step = (max - min) / count;
+
+	<: ("Function table: {");
+	x_trace (2, func);
+	<: ("} (", min, "..", max, " @", step, " #", count, ")\n");
+
+	for_inc (i, count+1, {
+		val = min + step * i;
+		<: (' ', val, ":\t", s_ffloat (func ! (val), precision), "\n");
+		});
+
+	<: "\n";
+	};
+
+func_tab (!(x) = (1.0/x), 1, 20, 190);
+
+func_tab (!sqr, 0, 100, 400);
+
+func_tab (!exp, -4, 4, 160);
+
+func_tab (!log, 0, exp(1), 25);
+
+func_tab (!log, exp(1), exp(2), 50);
+
+func_tab (!sin, pi(-1), pi(1), 16);
+
+func_tab (!cos, 0, pi(2), 16);
+
+func_tab (!asin, -1, 1, 20);
+
+func_tab (!acos, -1, 1, 20);
+
+ 

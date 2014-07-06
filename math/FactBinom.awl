@@ -1,0 +1,34 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'FactBinom.awl':
+	|	Recursive calculation of factorials/binomials.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+` (recursive) definition of factorial `
+! r_fact(N) = N ? N * r_fact(N-1) : 1;
+
+` (checking evaluation) `
+
+<: "Factorials:\n";
+
+for_inc (n, 13, <: ("\t", n, "! = ", r_fact(n), "\n"));
+<: "\n";
+
+` (recursive) definition of binomial `
+! r_comb (N M) = (0 < M && M < N) ? r_comb (N-1, M) + r_comb (N-1, M-1) : 1;
+
+` (checking evaluation) `
+
+<: "Binomials:\n";
+
+for_inc (n, 10,
+    for_inc (m, n+1,
+	<: ("\tC(", n, ",", m, ") = ", r_comb(n, m), "\n")), <: "\n");
+

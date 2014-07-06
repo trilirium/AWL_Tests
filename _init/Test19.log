@@ -1,0 +1,93 @@
+<Test19.awl> #13 / [1] {
+
+  x_trace:() => 0;
+  set:((a, b, c, d), 22, 77, 66, 55) => (22, 77, 66, 55);
+  let:((r1, r2, r3, r4), a, b, c, d) => (r1, r2, r3, r4);
+  (r1, r2, r3, r4) => (a, b, c, d);
+  let:((rr1, rr2, rr3, rr4), r4, r3, r2, r1) => (rr1, rr2, rr3, rr4);
+  (rr1, rr2, rr3, rr4) => (r4, r3, r2, r1);
+  set:((x, y, z, w), rr1, rr3, rr2, rr4) => (r4, r2, r3, r1);
+  (x, y, z, w) => (r4, r2, r3, r1);
+  set:((xx, yy, zz, ww), reval:(w, z, y, x)) => (a, c, b, d);
+  (xx, yy, zz, ww) => (a, c, b, d);
+  reval:(xx, zz, yy, ww) => (22, 77, 66, 55);
+  reval:(x, y, z, w) => (d, b, c, a);
+  reval:reval:(x, y, z, w) => (55, 77, 66, 22);
+  set:(s, 0) => 0;
+  l_loop:(p, (a, b, c, d), comb:add:(s, mul:(p, p))) => 13794;
+  set:(s, 0) => 0;
+  l_loop:(p, (ww, zz, yy, zz), comb:add:(s, mul:(reval:p, reval:p))) => 19239;
+  set:(s, 0) => 0;
+  l_loop:(p, (x, y, z, w), comb:add:(s, mul:(reval:reval:p, reval:reval:p))) => 13794;
+
+
+
+  f_put:((), "\n\n\n") => 1;
+  set:(r_x, deval:a) => a;
+  set:(rr_x, deval:deval:b) => deval:b;
+  set:(rrr_x, deval:deval:deval:c) => deval:deval:c;
+  add:(add:(add:(reval:r_x, reval:reval:rr_x), reval:reval:reval:rrr_x), d) => 220;
+  let:(r_l, reval:r_x, reval:reval:rr_x, reval:reval:reval:rrr_x) => r_l;
+  reval:r_l => (22, 77, 66);
+  set:((alpha, beta, gamma), 10.1, 20.2, 30.3) => (10.1, 20.2, 30.3);
+  let:(vp, deval:alpha, deval:beta, deval:gamma) => vp;
+  vp => (deval:alpha, deval:beta, deval:gamma);
+  swap:(alpha, gamma) => ();
+  vp => (deval:alpha, deval:beta, deval:gamma);
+  set:(v, 100) => 100;
+  let:(x_v, v) => x_v;
+  let:(xx_v, x_v) => xx_v;
+  let:(xxx_v, xx_v) => xxx_v;
+  set:(w, 200) => 200;
+  let:(x_w, w) => x_w;
+  let:(xx_w, x_w) => xx_w;
+  let:(xxx_w, xx_w) => xxx_w;
+  xxx_v => xx_v;
+  xxx_w => xx_w;
+  set:(reval:xx_w, 300) => 300;
+  dec_p:xxx_v => ();
+  inc_p:xxx_w => ();
+  set:(List1, (deval:v, deval:add:(1, w)), (deval:add:(1, v), deval:w), (deval:v, deval:sub:(1, w)), deval:sub:(1, v), deval:w) => ((v, add:(1, w)), (add:(1, v), w), (v, sub:(1, w)), sub:(1, v), w);
+
+    a = 300;
+    b = 77;
+    c = 66;
+    d = 55;
+    r1 = a;
+    r2 = b;
+    r3 = c;
+    r4 = d;
+    rr1 = r4;
+    rr2 = r3;
+    rr3 = r2;
+    rr4 = r1;
+    x = r4;
+    y = r2;
+    z = r3;
+    w = r1;
+    xx = a;
+    yy = c;
+    zz = b;
+    ww = d;
+    s = 13794;
+    p = r1;
+    r_x = a;
+    rr_x = deval:b;
+    rrr_x = deval:deval:c;
+    r_l = (reval:r_x, reval:reval:rr_x, reval:reval:reval:rrr_x);
+    alpha = 30.3;
+    beta = 20.2;
+    gamma = 10.1;
+    vp = (deval:alpha, deval:beta, deval:gamma);
+    v = 100;
+    x_v = v;
+    xx_v = x_v;
+    xxx_v = xx_v;
+    x_w = w;
+    xx_w = x_w;
+    xxx_w = xx_w;
+    List1 = ((v, add:(1, w)), (add:(1, v), w), (v, sub:(1, w)), sub:(1, v), w);
+
+  x_vars_ord:() => 38;
+
+} <Test19.awl> #109 / [46]

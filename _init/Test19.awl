@@ -1,0 +1,108 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test19.awl': #19
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+x_trace ();
+
+[a b c d] = [22 77 66 55];
+
+[r1 r2 r3 r4] := [a b c d];
+[r1 r2 r3 r4];
+
+[rr1 rr2 rr3 rr4] := [r4 r3 r2 r1];
+[rr1 rr2 rr3 rr4];
+
+[x y z w] = [rr1 rr3 rr2 rr4];
+[x y z w];
+
+[xx yy zz ww] = ^[w z y x];
+[xx yy zz ww];
+
+^[xx zz yy ww];
+
+^[x y z w];
+^^[x y z w];
+
+s = 0;
+l_loop (p, [a b c d], s =+: p*p);
+
+s = 0;
+l_loop (p, [ww zz yy zz], s =+: ^p * ^p);
+
+s = 0;
+l_loop (p, [x y z w], s =+: ^^p * ^^p);
+
+
+` TODO later
+
+[=] + l_map (!(v) = (v * v), [a b c d]);
+
+`
+
+<: "\n\n\n";
+
+r_x = @a;
+rr_x = @@b;
+rrr_x = @@@c;
+
+^r_x + ^^rr_x + ^^^rrr_x + d;
+
+r_l := (^r_x, ^^rr_x, ^^^rrr_x);
+
+^r_l;
+
+
+`
+
+	Lazy evaluation of variables
+
+`
+
+
+
+[alpha beta gamma] = [10.1 20.2 30.3];
+
+vp := (@alpha, @beta, @gamma);
+
+vp;
+alpha :=: gamma;
+vp;
+
+v = 100;
+x_v := v;
+xx_v := x_v;
+xxx_v := xx_v;
+
+w = 200;
+x_w := w;
+xx_w := x_w;
+xxx_w := xx_w;
+
+xxx_v;
+xxx_w;
+
+(^xx_w) = 300;
+
+xxx_v --;
+xxx_w ++;
+
+List1 = [
+    (@v, @(1 + w))
+    (@(1 + v), @w)
+    (@v, @(1 - w))
+    (@(1 - v), @w)
+    ];
+
+
+
+` terms construction `
+
+x_vars_ord ();

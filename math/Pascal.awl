@@ -1,0 +1,51 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Pascal.awl':
+	|	Pascal triangle: iterative calculation.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+! Pascal_triangle (N) : [row i j] = {
+
+<: ["Pascal triangle (" N ")\n"];
+
+` (divider) `
+<: ('-' *$ 70, '\n');
+
+i = -1;
+
+(i ~= N) ?? {	` (row loop: i = previous row #) `
+
+(i >= 0) ? {
+` (calculate next row) `
+j = 0;
+j++ < i ?? (row[j-1] =+: row[j]);
+} :;
+
+`( insert 1 )`
+row [<-] 1;
+
+` (output row) `
+<: (++ i, ":\t");
+
+j = 0;
+j <= i ?? (<: (row[j++], ' ') );
+
+<: '\n'
+};	` (end of row loop) `
+
+` (divider) `
+<: ('-' *$ 70, '\n');
+
+};		` -- Pascal_triangle `
+
+
+Pascal_triangle (20);
+

@@ -1,0 +1,520 @@
+
+Imported 'complex.awl'...
+
+Class 'complex' (members):
+
+  Im;
+  Re;
+
+
+Class 'complex' (functors):
+
+  ! complex.c_cosh:(X) [1] = with:(X, .complex:(mul:(cosh:complex.Re, cos:complex.Im), mul:(sinh:complex.Re, sin:complex.Im)));
+  ! complex.c_sinh:(X) [1] = with:(X, .complex:(mul:(sinh:complex.Re, cos:complex.Im), mul:(cosh:complex.Re, sin:complex.Im)));
+  ! complex.c_cos:(X) [1] = with:(X, .complex:(mul:(cos:complex.Re, cosh:complex.Im), mul:(neg:sin:complex.Re, sinh:complex.Im)));
+  ! complex.c_sin:(X) [1] = with:(X, .complex:(mul:(sin:complex.Re, cosh:complex.Im), mul:(cos:complex.Re, sinh:complex.Im)));
+  ! complex.c_log:(X) [1] = .complex:(log:complex.c_abs:X, complex.c_arg:X);
+  ! complex.c_exp:(X) [1] = with:(X, complex.c_polar:(exp:complex.Re, complex.Im));
+  ! complex.c_sqr:(X) [2] = with:(X, {
+    set:(X_abs, rad:(complex.Re, complex.Im));
+    .complex:(sqr:div:(add:(X_abs, complex.Re), 2), mul:(if:(ge:(complex.Im, 0), 1, neg:1), sqr:div:(sub:(X_abs, complex.Re), 2))) });
+  ! complex.c_polar:(abs arg) [2] = .complex:(mul:(abs, cos:arg), mul:(abs, sin:arg));
+  ! complex.c_arg:(X) [1] = with:(X, ang:(complex.Re, complex.Im));
+  ! complex.c_abs:(X) [1] = with:(X, rad:(complex.Re, complex.Im));
+  ! complex.c_div:(X Y) [7] = {
+    set:((X_Re, X_Im), with:(X, complex.Re, complex.Im));
+    set:((Y_Re, Y_Im), with:(Y, complex.Re, complex.Im));
+    set:(D, add:(mul:(Y_Re, Y_Re), mul:(Y_Im, Y_Im)));
+    .complex:(div:(add:(mul:(X_Re, Y_Re), mul:(X_Im, Y_Im)), D), div:(sub:(mul:(X_Im, Y_Re), mul:(X_Re, Y_Im)), D)) };
+  ! complex.c_mul:(X Y) [6] = {
+    set:((X_Re, X_Im), with:(X, complex.Re, complex.Im));
+    set:((Y_Re, Y_Im), with:(Y, complex.Re, complex.Im));
+    .complex:(sub:(mul:(X_Re, Y_Re), mul:(X_Im, Y_Im)), add:(mul:(X_Re, Y_Im), mul:(Y_Re, X_Im))) };
+  ! complex.c_sub:(X Y) [2] = .complex:(sub:(with:(X, complex.Re), with:(Y, complex.Re)), sub:(with:(X, complex.Im), with:(Y, complex.Im)));
+  ! complex.c_add:(X Y) [2] = .complex:(add:(with:(X, complex.Re), with:(Y, complex.Re)), add:(with:(X, complex.Im), with:(Y, complex.Im)));
+  ! complex.c_neg:(X) [1] = with:(X, .complex:(neg:complex.Re, neg:complex.Im));
+  ! complex.c_conj:(X) [1] = with:(X, .complex:(complex.Re, neg:complex.Im));
+  ! complex.c_ne:(X Y) [2] = c_or:(ne:(with:(X, complex.Re), with:(Y, complex.Re)), ne:(with:(X, complex.Im), with:(Y, complex.Im)));
+  ! complex.c_eq:(X Y) [2] = c_and:(eq:(with:(X, complex.Re), with:(Y, complex.Re)), eq:(with:(X, complex.Im), with:(Y, complex.Im)));
+  ! complex.put:() [0] = f_put:((), if:(gt:(complex.Im, 0), (complex.Re, "+", complex.Im, "i"), if:(lt:(complex.Im, 0), (complex.Re, "-", neg:complex.Im, "i"), complex.Re)));
+
+
+CA = 10-20i
+CB = 15+22i
+CC = -5+35i
+-CB = -15-22i
+~CC = -5-35i
+CA + CB = 25+2i
+CC - CB = -20+13i
+CA * CB = 590-80i
+CC / CA = -1.5+0.5i
+
+	TESTING: conjugated addition/multiplication ...
+
+CA + ~CA = 20
+CA * ~CA = 500
+
+CB + ~CB = 30
+CB * ~CB = 709
+
+CC + ~CC = -10
+CC * ~CC = 1250
+
+	TESTING: multiplication distributivity ...
+
+(CA + CB) * CC = -195+865i
+(CA*CC) + (CB*CC) = -195+865i
+(CA - CB) * CC = 1495+35i
+(CA*CC) - (CB*CC) = 1495+35i
+
+(CB + CC) * CA = 1240+370i
+(CB*CA) + (CC*CA) = 1240+370i
+(CB - CC) * CA = -60-530i
+(CB*CA) - (CC*CA) = -60-530i
+
+(CC + CA) * CB = -255+335i
+(CC*CB) + (CA*CB) = -255+335i
+(CC - CA) * CB = -1435+495i
+(CC*CB) - (CA*CB) = -1435+495i
+
+	TESTING: multiplication associativity ...
+
+(CA * CB) * CC = -150+21050i
+CA * (CB * CC) = -150+21050i
+
+(CB * CC) * CA = -150+21050i
+CB * (CC * CA) = -150+21050i
+
+(CC * CA) * CB = -150+21050i
+CC * (CA * CB) = -150+21050i
+
+	TESTING: division ...
+
+(CA/CB) * (CB/CA) = 1.-5.5511151e-17i
+
+(CB/CC) * (CC/CB) = 1.+5.5511151e-17i
+
+(CC/CA) * (CA/CC) = 1.+5.5511151e-17i
+
+(CA*CB) / CA / CB = 1.
+
+(CB*CC) / CB / CC = 1.
+
+(CC*CA) / CC / CA = 1.
+
+	TESTING: square root ...
+
+CA = 10-20i
+(sqr (CA) * sqr (CA) = 10.-20.i
+
+CB = 15+22i
+(sqr (CB) * sqr (CB) = 15.+22.i
+
+CC = -5+35i
+(sqr (CC) * sqr (CC) = -5.+35.i
+
+CA = 10-20i
+CB = 15+22i
+(sqr (CA) * sqr (CB) = 24.345421-1.6430195i
+sqr (CA * CB) = 24.345421-1.6430195i
+<difference> = 3.5527137e-15-4.8849813e-15i
+
+CB = 15+22i
+CC = -5+35i
+(sqr (CB) * sqr (CC) = 6.9429287+29.886523i
+sqr (CB * CC) = 6.9429287+29.886523i
+<difference> = -2.6645353e-15
+
+CC = -5+35i
+CA = 10-20i
+(sqr (CC) * sqr (CA) = 26.83812+8.3835975i
+sqr (CC * CA) = 26.83812+8.3835975i
+<difference> = 0.
+
+	TESTING: trigonometric sine/cosine ...
+
+ca = 2.3+1.7i
+sin (ca) = 2.1090896-1.7627211i
+cos (ca) = -1.8844388-1.9728615i
+sin^2 (ca) + cos^2 (ca) = 1.
+sin (2 * ca) = -14.90411-1.6784033i
+2 * sin (ca) * cos (ca) = -14.90411-1.6784033i
+<difference> = 0.-1.7763568e-15i
+cos (2 * ca) = -1.6821462+14.870947i
+cos^2 (ca) - sin^2 (ca) = -1.6821462+14.870947i
+<difference> = -1.110223e-15
+
+cb = 0.6-2.2i
+sin (cb) = 2.5792351-3.6786076i
+cos (cb) = 3.7700574+2.5166709i
+sin^2 (cb) + cos^2 (cb) = 1.
+sin (2 * cb) = 37.963418-14.754953i
+2 * sin (cb) * cos (cb) = 37.963418-14.754953i
+<difference> = 0.
+cos (2 * cb) = 14.759401+37.951975i
+cos^2 (cb) - sin^2 (cb) = 14.759401+37.951975i
+<difference> = 1.7763568e-15
+
+cc = -0.8+1.1i
+sin (cc) = -1.1969219+0.93055455i
+cos (cc) = 1.1624681+0.95813485i
+sin^2 (cc) + cos^2 (cc) = 1.
+sin (2 * cc) = -4.5659606-0.13014534i
+2 * sin (cc) * cos (cc) = -4.5659606-0.13014534i
+<difference> = 0.-1.6653345e-16i
+cos (2 * cc) = -0.13338074+4.4552047i
+cos^2 (cc) - sin^2 (cc) = -0.13338074+4.4552047i
+<difference> = -2.220446e-16-8.8817842e-16i
+
+cc = -0.8+1.1i
+cb = 0.6-2.2i
+sin (cc + cb) = -0.33148346-1.3090234i
+sin(cc)cos(cb) + cos(cc)sin(cb) = -0.33148346-1.3090234i
+<difference> = -5.5511151e-17+2.220446e-16i
+cos (cc + cb) = 1.6352593-0.26535219i
+cos(cc)cos(cb) - sin(cc)sin(cb) = 1.6352593-0.26535219i
+<difference> = 6.6613381e-16+5.5511151e-17i
+sin (cc - cb) = -13.377245+2.3009944i
+sin(cc)cos(cb) - cos(cc)sin(cb) = -13.377245+2.3009944i
+<difference> = -1.7763568e-15+1.3322676e-15i
+cos (cc - cb) = 2.3072634+13.340898i
+cos(cc)cos(cb) + sin(cc)sin(cb) = 2.3072634+13.340898i
+<difference> = 1.3322676e-15
+
+cb = 0.6-2.2i
+ca = 2.3+1.7i
+sin (cb + ca) = 0.26978376+0.50596174i
+sin(cb)cos(ca) + cos(cb)sin(ca) = 0.26978376+0.50596174i
+<difference> = -1.5543122e-15-1.8873791e-15i
+cos (cb + ca) = -1.0948776+0.1246717i
+cos(cb)cos(ca) - sin(cb)sin(ca) = -1.0948776+0.1246717i
+<difference> = 4.4408921e-16-1.2490009e-16i
+sin (cb - ca) = -24.505372+3.1813128i
+sin(cb)cos(ca) - cos(cb)sin(ca) = -24.505372+3.1813128i
+<difference> = -1.0658141e-14-2.6645353e-15i
+cos (cb - ca) = -3.1839208-24.485299i
+cos(cb)cos(ca) + sin(cb)sin(ca) = -3.1839208-24.485299i
+<difference> = 2.220446e-15-1.0658141e-14i
+
+ca = 2.3+1.7i
+cc = -0.8+1.1i
+sin (ca + cc) = 8.2320552+0.57947338i
+sin(ca)cos(cc) + cos(ca)sin(cc) = 8.2320552+0.57947338i
+<difference> = -1.7763568e-15+3.3306691e-16i
+cos (ca + cc) = 0.58377491-8.1713975i
+cos(ca)cos(cc) - sin(ca)sin(cc) = 0.58377491-8.1713975i
+<difference> = 3.3306691e-16+1.7763568e-15i
+sin (ca - cc) = 0.049292429-0.63610297i
+sin(ca)cos(cc) - cos(ca)sin(cc) = 0.049292429-0.63610297i
+<difference> = -1.0408341e-16-5.5511151e-16i
+cos (ca - cc) = -1.18444-0.026472478i
+cos(ca)cos(cc) + sin(ca)sin(cc) = -1.18444-0.026472478i
+<difference> = 2.220446e-16+2.0816682e-17i
+
+	TESTING: hyperbolic sine/cosine ...
+
+ca = 2.3+1.7i
+sh (ca) = -0.63610035+4.9952345i
+ch (ca) = -0.64901815+4.8958113i
+ch^2 (ca) - sh^2 (ca) = 1.
+ch (2 * ca) = -48.095487-12.709881i
+ch^2 (ca) + sh^2 (ca) = -48.095487-12.709881i
+<difference> = -2.1316282e-14-3.5527137e-15i
+sh (2 * ca) = -48.085769-12.71245i
+2 * sh (ca) * ch (ca) = -48.085769-12.71245i
+<difference> = -2.8421709e-14-1.7763568e-15i
+
+cb = 0.6-2.2i
+sh (cb) = -0.37467134-0.95844437i
+ch (cb) = -0.69764761-0.51473213i
+ch^2 (cb) - sh^2 (cb) = 1.-1.110223e-16i
+ch (2 * cb) = -0.55647397+1.4364066i
+ch^2 (cb) + sh^2 (cb) = -0.55647397+1.4364066i
+<difference> = 1.110223e-16
+sh (2 * cb) = -0.46390709+1.7230236i
+2 * sh (cb) * ch (cb) = -0.46390709+1.7230236i
+<difference> = 1.110223e-16+2.220446e-16i
+
+cc = -0.8+1.1i
+sh (cc) = -0.40284143+1.1919319i
+ch (cc) = 0.6066553-0.79148659i
+ch^2 (cc) - sh^2 (cc) = 1.+1.110223e-16i
+ch (2 * cc) = -1.5168407-1.9206381i
+ch^2 (cc) + sh^2 (cc) = -1.5168407-1.9206381i
+<difference> = 8.8817842e-16+2.220446e-16i
+sh (2 * cc) = 1.3980244+2.0838708i
+2 * sh (cc) * ch (cc) = 1.3980244+2.0838708i
+<difference> = -4.4408921e-16-4.4408921e-16i
+
+cc = -0.8+1.1i
+cb = 0.6-2.2i
+sh (cc + cb) = -0.09132523-0.909091i
+sh(cc)ch(cb) + ch(cc)sh(cb) = -0.09132523-0.909091i
+<difference> = 1.3877788e-16+1.110223e-16i
+ch (cc + cb) = 0.46269832+0.17943213i
+ch(cc)ch(cb) + sh(cc)sh(cb) = 0.46269832+0.17943213i
+<difference> = -4.4408921e-16
+sh (cc - cb) = 1.8804592-0.33929497i
+sh(cc)ch(cb) - ch(cc)sh(cb) = 1.8804592-0.33929497i
+<difference> = -2.220446e-16+5.5511151e-17i
+ch (cc - cb) = -2.1239687+0.30039536i
+ch(cc)ch(cb) - sh(cc)sh(cb) = -2.1239687+0.30039536i
+<difference> = 4.4408921e-16
+
+cb = 0.6-2.2i
+ca = 2.3+1.7i
+sh (cb + ca) = 7.9505128-4.3697645i
+sh(cb)ch(ca) + ch(cb)sh(ca) = 7.9505128-4.3697645i
+<difference> = 2.6645353e-15-1.7763568e-15i
+ch (cb + ca) = 7.9988002-4.3433849i
+ch(cb)ch(ca) + sh(cb)sh(ca) = 7.9988002-4.3433849i
+<difference> = 2.6645353e-15-1.7763568e-15i
+sh (cb - ca) = 1.9205497+1.9452197i
+sh(cb)ch(ca) - ch(cb)sh(ca) = 1.9205497+1.9452197i
+<difference> = -8.8817842e-16+2.220446e-16i
+ch (cb - ca) = -2.0531656-1.8195761i
+ch(cb)ch(ca) - sh(cb)sh(ca) = -2.0531656-1.8195761i
+<difference> = 8.8817842e-16-1.110223e-15i
+
+ca = 2.3+1.7i
+cc = -0.8+1.1i
+sh (ca + cc) = -2.0062547+0.78802935i
+sh(ca)ch(cc) + ch(ca)sh(cc) = -2.0062547+0.78802935i
+<difference> = 8.8817842e-16+4.4408921e-16i
+ch (ca + cc) = -2.2164929+0.71328339i
+ch(ca)ch(cc) + sh(ca)sh(cc) = -2.2164929+0.71328339i
+<difference> = 8.8817842e-16+4.4408921e-16i
+sh (ca - cc) = 9.1417895+6.2796714i
+sh(ca)ch(cc) - ch(ca)sh(cc) = 9.1417895+6.2796714i
+<difference> = -1.7763568e-15-8.8817842e-16i
+ch (ca - cc) = 9.1789702+6.2542347i
+ch(ca)ch(cc) - sh(ca)sh(cc) = 9.1789702+6.2542347i
+<difference> = -1.7763568e-15-8.8817842e-16i
+
+	TESTING: exponent ...
+
+ca = 2.3+1.7i
+cb = 0.6-2.2i
+exp (ca + cb) = 15.949313-8.7131494i
+exp(ca)exp(cb) = 15.949313-8.7131494i
+<difference> = 7.1054274e-15-3.5527137e-15i
+exp (ca - cb) = -3.9737152-3.7647958i
+exp(ca) / exp(cb) = -3.9737152-3.7647958i
+<difference> = 1.3322676e-15-1.3322676e-15i
+
+cb = 0.6-2.2i
+cc = -0.8+1.1i
+exp (cb + cc) = 0.37137309-0.72965887i
+exp(cb)exp(cc) = 0.37137309-0.72965887i
+<difference> = -5.5511151e-17-1.110223e-16i
+exp (cb - cc) = -4.0044279+0.63969033i
+exp(cb) / exp(cc) = -4.0044279+0.63969033i
+<difference> = 0.
+
+cc = -0.8+1.1i
+ca = 2.3+1.7i
+exp (cc + ca) = -4.2227476+1.5013127i
+exp(cc)exp(ca) = -4.2227476+1.5013127i
+<difference> = 0.+1.110223e-15i
+exp (cc - ca) = 0.037180711-0.025436693i
+exp(cc) / exp(ca) = 0.037180711-0.025436693i
+<difference> = 0.-6.9388939e-18i
+
+	TESTING: logarythm ...
+
+ca = 2.3+1.7i
+cb = 0.6-2.2i
+log (ca * cb) = 1.8751754-0.66803606i
+log(ca) + log(cb) = 1.8751754-0.66803606i
+<difference> = 2.220446e-16+1.110223e-16i
+log (ca / cb) = 0.22651676+1.9410525i
+log(ca) - log(cb) = 0.22651676+1.9410525i
+<difference> = 2.4980018e-16
+
+cb = 0.6-2.2i
+cc = -0.8+1.1i
+log (cb * cc) = 1.1319221+0.89504834i
+log(cb) + log(cc) = 1.1319221+0.89504834i
+<difference> = 0.
+log (cb / cc) = 0.51673649+2.7790484i
+log(cb) - log(cc) = 0.51673649-3.5041369i
+<difference> = 1.110223e-16+6.2831853i
+
+cc = -0.8+1.1i
+ca = 2.3+1.7i
+log (cc * ca) = 1.3584389+2.8361008i
+log(cc) + log(ca) = 1.3584389+2.8361008i
+<difference> = 0.
+log (cc / ca) = -0.74325326+1.5630844i
+log(cc) - log(ca) = -0.74325326+1.5630844i
+<difference> = -2.220446e-16
+
+	--- ALL TESTS COMPLETE ---
+
+List of variables:
+
+  CA = complex:{10, -20};
+  CB = complex:{15, 22};
+  CC = complex:{-5, 35};
+  ca = complex:{2.3, 1.7};
+  cb = complex:{0.6, -2.2};
+  cc = complex:{-0.8, 1.1};
+
+
+List of functors:
+
+  !! complex:(Re Im) {2};
+  ! eval_test:(cplx_val str_list) [2] = {
+    f_put:((), reduce:s_cat:str_list, " = ");
+    with:(cplx_val, complex.put:());
+    f_put:((), "\n") };
+  ! conj_addmul_test:(nA vA) [2] = {
+    .eval_test:(complex.c_add:(vA, complex.c_conj:vA), nA, " + ~", nA);
+    .eval_test:(complex.c_mul:(vA, complex.c_conj:vA), nA, " * ~", nA);
+    f_put:((), "\n");
+    };
+  ! mult_distr_test:(nA vA nB vB nC vC) [6] = {
+    .eval_test:(complex.c_mul:(complex.c_add:(vA, vB), vC), "(", nA, " + ", nB, ") * ", nC);
+    .eval_test:(complex.c_add:(complex.c_mul:(vA, vC), complex.c_mul:(vB, vC)), "(", nA, "*", nC, ") + (", nB, "*", nC, ")");
+    .eval_test:(complex.c_mul:(complex.c_sub:(vA, vB), vC), "(", nA, " - ", nB, ") * ", nC);
+    .eval_test:(complex.c_sub:(complex.c_mul:(vA, vC), complex.c_mul:(vB, vC)), "(", nA, "*", nC, ") - (", nB, "*", nC, ")");
+    f_put:((), "\n");
+    };
+  ! mult_assoc_test:(nA vA nB vB nC vC) [6] = {
+    .eval_test:(complex.c_mul:(complex.c_mul:(vA, vB), vC), "(", nA, " * ", nB, ") * ", nC);
+    .eval_test:(complex.c_mul:(vA, complex.c_mul:(vB, vC)), nA, " * (", nB, " * ", nC, ")");
+    f_put:((), "\n");
+    };
+  ! div_test:(nA vA nB vB) [4] = {
+    .eval_test:(complex.c_mul:(complex.c_div:(vB, vA), complex.c_div:(vA, vB)), "(", nA, "/", nB, ") * (", nB, "/", nA, ")");
+    f_put:((), "\n");
+    };
+  ! div_test1:(nA vA nB vB) [4] = {
+    .eval_test:(complex.c_div:(complex.c_div:(complex.c_mul:(vA, vB), vA), vB), "(", nA, "*", nB, ") / ", nA, " / ", nB);
+    f_put:((), "\n");
+    };
+  ! sqr_test_1:(nA vA) [3] = {
+    .eval_test:(vA, nA);
+    set:(sqr_A, complex.c_sqr:vA);
+    .eval_test:(complex.c_mul:(sqr_A, sqr_A), "(sqr (", nA, ") * sqr (", nA, ")");
+    f_put:((), "\n");
+    };
+  ! sqr_test_2:(nA vA nB vB) [8] = {
+    .eval_test:(vA, nA);
+    .eval_test:(vB, nB);
+    set:((sqr_A, sqr_B), complex.c_sqr:vA, complex.c_sqr:vB);
+    .eval_test:(set:(c_res1, complex.c_mul:(sqr_A, sqr_B)), "(sqr (", nA, ") * sqr (", nB, ")");
+    .eval_test:(set:(c_res2, complex.c_sqr:complex.c_mul:(vA, vB)), "sqr (", nA, " * ", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    f_put:((), "\n");
+    };
+  ! sincos_test:(nA vA) [7] = {
+    .eval_test:(vA, nA);
+    set:((c_sin, c_cos), complex.c_sin:vA, complex.c_cos:vA);
+    set:(c_2, .complex:(2, 0));
+    .eval_test:(c_sin, "sin (", nA, ")");
+    .eval_test:(c_cos, "cos (", nA, ")");
+    .eval_test:(complex.c_add:(complex.c_mul:(c_sin, c_sin), complex.c_mul:(c_cos, c_cos)), "sin^2 (", nA, ") + cos^2 (", nA, ")");
+    .eval_test:(set:(c_res1, complex.c_sin:complex.c_mul:(vA, c_2)), "sin (", 2, " * ", nA, ")");
+    .eval_test:(set:(c_res2, complex.c_mul:(c_2, complex.c_mul:(c_sin, c_cos))), 2, " * sin (", nA, ") * cos (", nA, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    .eval_test:(set:(c_res1, complex.c_cos:complex.c_mul:(vA, c_2)), "cos (", 2, " * ", nA, ")");
+    .eval_test:(set:(c_res2, complex.c_sub:(complex.c_mul:(c_cos, c_cos), complex.c_mul:(c_sin, c_sin))), "cos^2 (", nA, ") - sin^2 (", nA, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    f_put:((), "\n");
+    };
+  ! sincos_test2:(nA vA nB vB) [10] = {
+    .eval_test:(vA, nA);
+    .eval_test:(vB, nB);
+    set:((c_sinA, c_cosA), complex.c_sin:vA, complex.c_cos:vA);
+    set:((c_sinB, c_cosB), complex.c_sin:vB, complex.c_cos:vB);
+    set:(c_res1, complex.c_sin:complex.c_add:(vA, vB));
+    set:(c_res2, complex.c_add:(complex.c_mul:(c_sinA, c_cosB), complex.c_mul:(c_cosA, c_sinB)));
+    .eval_test:(c_res1, "sin (", nA, " + ", nB, ")");
+    .eval_test:(c_res2, "sin(", nA, ")cos(", nB, ") + cos(", nA, ")sin(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    set:(c_res1, complex.c_cos:complex.c_add:(vA, vB));
+    set:(c_res2, complex.c_sub:(complex.c_mul:(c_cosA, c_cosB), complex.c_mul:(c_sinA, c_sinB)));
+    .eval_test:(c_res1, "cos (", nA, " + ", nB, ")");
+    .eval_test:(c_res2, "cos(", nA, ")cos(", nB, ") - sin(", nA, ")sin(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    set:(c_res1, complex.c_sin:complex.c_sub:(vA, vB));
+    set:(c_res2, complex.c_sub:(complex.c_mul:(c_sinA, c_cosB), complex.c_mul:(c_cosA, c_sinB)));
+    .eval_test:(c_res1, "sin (", nA, " - ", nB, ")");
+    .eval_test:(c_res2, "sin(", nA, ")cos(", nB, ") - cos(", nA, ")sin(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    set:(c_res1, complex.c_cos:complex.c_sub:(vA, vB));
+    set:(c_res2, complex.c_add:(complex.c_mul:(c_cosA, c_cosB), complex.c_mul:(c_sinA, c_sinB)));
+    .eval_test:(c_res1, "cos (", nA, " - ", nB, ")");
+    .eval_test:(c_res2, "cos(", nA, ")cos(", nB, ") + sin(", nA, ")sin(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    f_put:((), "\n");
+    };
+  ! shch_test:(nA vA) [7] = {
+    .eval_test:(vA, nA);
+    set:((c_sinh, c_cosh), complex.c_sinh:vA, complex.c_cosh:vA);
+    set:(c_2, .complex:(2, 0));
+    .eval_test:(c_sinh, "sh (", nA, ")");
+    .eval_test:(c_cosh, "ch (", nA, ")");
+    .eval_test:(complex.c_sub:(complex.c_mul:(c_cosh, c_cosh), complex.c_mul:(c_sinh, c_sinh)), "ch^2 (", nA, ") - sh^2 (", nA, ")");
+    .eval_test:(set:(c_res1, complex.c_cosh:complex.c_mul:(vA, c_2)), "ch (", 2, " * ", nA, ")");
+    .eval_test:(set:(c_res2, complex.c_add:(complex.c_mul:(c_cosh, c_cosh), complex.c_mul:(c_sinh, c_sinh))), "ch^2 (", nA, ") + sh^2 (", nA, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    .eval_test:(set:(c_res1, complex.c_sinh:complex.c_mul:(vA, c_2)), "sh (", 2, " * ", nA, ")");
+    .eval_test:(set:(c_res2, complex.c_mul:(c_2, complex.c_mul:(c_sinh, c_cosh))), 2, " * sh (", nA, ") * ch (", nA, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    f_put:((), "\n");
+    };
+  ! shch_test2:(nA vA nB vB) [10] = {
+    .eval_test:(vA, nA);
+    .eval_test:(vB, nB);
+    set:((c_sinhA, c_coshA), complex.c_sinh:vA, complex.c_cosh:vA);
+    set:((c_sinhB, c_coshB), complex.c_sinh:vB, complex.c_cosh:vB);
+    set:(c_res1, complex.c_sinh:complex.c_add:(vA, vB));
+    set:(c_res2, complex.c_add:(complex.c_mul:(c_sinhA, c_coshB), complex.c_mul:(c_coshA, c_sinhB)));
+    .eval_test:(c_res1, "sh (", nA, " + ", nB, ")");
+    .eval_test:(c_res2, "sh(", nA, ")ch(", nB, ") + ch(", nA, ")sh(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    set:(c_res1, complex.c_cosh:complex.c_add:(vA, vB));
+    set:(c_res2, complex.c_add:(complex.c_mul:(c_coshA, c_coshB), complex.c_mul:(c_sinhA, c_sinhB)));
+    .eval_test:(c_res1, "ch (", nA, " + ", nB, ")");
+    .eval_test:(c_res2, "ch(", nA, ")ch(", nB, ") + sh(", nA, ")sh(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    set:(c_res1, complex.c_sinh:complex.c_sub:(vA, vB));
+    set:(c_res2, complex.c_sub:(complex.c_mul:(c_sinhA, c_coshB), complex.c_mul:(c_coshA, c_sinhB)));
+    .eval_test:(c_res1, "sh (", nA, " - ", nB, ")");
+    .eval_test:(c_res2, "sh(", nA, ")ch(", nB, ") - ch(", nA, ")sh(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    set:(c_res1, complex.c_cosh:complex.c_sub:(vA, vB));
+    set:(c_res2, complex.c_sub:(complex.c_mul:(c_coshA, c_coshB), complex.c_mul:(c_sinhA, c_sinhB)));
+    .eval_test:(c_res1, "ch (", nA, " - ", nB, ")");
+    .eval_test:(c_res2, "ch(", nA, ")ch(", nB, ") - sh(", nA, ")sh(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    f_put:((), "\n");
+    };
+  ! exp_test2:(nA vA nB vB) [8] = {
+    .eval_test:(vA, nA);
+    .eval_test:(vB, nB);
+    set:((c_expA, c_expB), complex.c_exp:vA, complex.c_exp:vB);
+    .eval_test:(set:(c_res1, complex.c_exp:complex.c_add:(vA, vB)), "exp (", nA, " + ", nB, ")");
+    .eval_test:(set:(c_res2, complex.c_mul:(c_expA, c_expB)), "exp(", nA, ")exp(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    .eval_test:(set:(c_res1, complex.c_exp:complex.c_sub:(vA, vB)), "exp (", nA, " - ", nB, ")");
+    .eval_test:(set:(c_res2, complex.c_div:(c_expA, c_expB)), "exp(", nA, ") / exp(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    f_put:((), "\n");
+    };
+  ! log_test2:(nA vA nB vB) [8] = {
+    .eval_test:(vA, nA);
+    .eval_test:(vB, nB);
+    set:((c_logA, c_logB), complex.c_log:vA, complex.c_log:vB);
+    .eval_test:(set:(c_res1, complex.c_log:complex.c_mul:(vA, vB)), "log (", nA, " * ", nB, ")");
+    .eval_test:(set:(c_res2, complex.c_add:(c_logA, c_logB)), "log(", nA, ") + log(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    .eval_test:(set:(c_res1, complex.c_log:complex.c_div:(vA, vB)), "log (", nA, " / ", nB, ")");
+    .eval_test:(set:(c_res2, complex.c_sub:(c_logA, c_logB)), "log(", nA, ") - log(", nB, ")");
+    .eval_test:(complex.c_sub:(c_res1, c_res2), "<difference>");
+    f_put:((), "\n");
+    };
+
+

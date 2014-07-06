@@ -1,0 +1,74 @@
+<Test20.awl> #13 / [1] {
+
+  x_trace:() => 0;
+  set:(x, set:(y, set:(z, 0))) => 0;
+  set:(test1, enterm:(exp:, enterm:(add:, deval:x, deval:y))) => exp:add:(x, y);
+  set:(test2, enterm:(add:, enterm:(mul:, deval:y, deval:z), enterm:(min:, deval:x, deval:y))) => add:(mul:(y, z), min:(x, y));
+  set:(test3, enterm:(sub:, enterm:(neg:, deval:z), enterm:(max:, deval:y, deval:x))) => sub:(neg:z, max:(y, x));
+  (x, y, z) => (0, 0, 0);
+  enterm:(min:, enterm:(max:, deval:x, deval:y), deval:z) => min:(max:(x, y), z);
+  enterm:(add:, enterm:(mul:, deval:z, deval:y), enterm:(div:, deval:y, deval:x)) => add:(mul:(z, y), div:(y, x));
+  enterm:(div:, enterm:(sub:, deval:x, deval:z), deval:y) => div:(sub:(x, z), y);
+  determ:test1 => (exp:, add:(x, y));
+  determ:test2 => (add:, mul:(y, z), min:(x, y));
+  determ:test3 => (sub:, neg:z, max:(y, x));
+  determ:l_item:(1, determ:test2) => (mul:, y, z);
+  determ:l_item:(2, determ:test2) => (min:, x, y);
+  determ:l_item:(2, determ:test3) => (max:, y, x);
+  enblock:deval:(set:(x, add:(mul:(2, y), z)), set:(y, sub:(mul:(3, z), x)), set:(z, sub:(mul:(6, x), mul:(4, y))), ) => {
+    set:(x, add:(mul:(2, y), z));
+    set:(y, sub:(mul:(3, z), x));
+    set:(z, sub:(mul:(6, x), mul:(4, y)));
+    };
+  enblock:deval:(comb:add:(y, add:(mul:(2, z), x)), comb:mul:(x, 3), comb:sub:(z, add:(mul:(3, x), mul:(6, y))), ) => {
+    comb:add:(y, add:(mul:(2, z), x));
+    comb:mul:(x, 3);
+    comb:sub:(z, add:(mul:(3, x), mul:(6, y)));
+    };
+  set:(v_1, deval:{
+    set:(x, sub:(div:(y, 12), 34));
+    set:(z, add:(div:(x, 22), 67));
+    }) => {
+    set:(x, sub:(div:(y, 12), 34));
+    set:(z, add:(div:(x, 22), 67));
+    };
+  set:(v_2, deval:{
+    set:(z, sub:(sin:x, cos:y));
+    set:(y, exp:log:x);
+    set:(x, sub:(mul:(2, z), mul:(3, y))) }) => {
+    set:(z, sub:(sin:x, cos:y));
+    set:(y, exp:log:x);
+    set:(x, sub:(mul:(2, z), mul:(3, y))) };
+  set:(v_3, deval:{
+    set:(y, sub:(log:x, mul:(3, tan:z)));
+    set:(x, add:(mul:(2, sin:y), z));
+    set:(z, sub:(mul:(2, x), y)) }) => {
+    set:(y, sub:(log:x, mul:(3, tan:z)));
+    set:(x, add:(mul:(2, sin:y), z));
+    set:(z, sub:(mul:(2, x), y)) };
+  deblock:v_1 => (set:(x, sub:(div:(y, 12), 34)), set:(z, add:(div:(x, 22), 67)), );
+  deblock:v_2 => (set:(z, sub:(sin:x, cos:y)), set:(y, exp:log:x), set:(x, sub:(mul:(2, z), mul:(3, y))));
+  deblock:v_3 => (set:(y, sub:(log:x, mul:(3, tan:z))), set:(x, add:(mul:(2, sin:y), z)), set:(z, sub:(mul:(2, x), y)));
+
+    x = 0;
+    y = 0;
+    z = 0;
+    test1 = exp:add:(x, y);
+    test2 = add:(mul:(y, z), min:(x, y));
+    test3 = sub:(neg:z, max:(y, x));
+    v_1 = {
+      set:(x, sub:(div:(y, 12), 34));
+      set:(z, add:(div:(x, 22), 67));
+      };
+    v_2 = {
+      set:(z, sub:(sin:x, cos:y));
+      set:(y, exp:log:x);
+      set:(x, sub:(mul:(2, z), mul:(3, y))) };
+    v_3 = {
+      set:(y, sub:(log:x, mul:(3, tan:z)));
+      set:(x, add:(mul:(2, sin:y), z));
+      set:(z, sub:(mul:(2, x), y)) };
+
+  x_vars_ord:() => 9;
+
+} <Test20.awl> #52 / [24]

@@ -1,0 +1,362 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Strings.awl':
+	|	Testing string operations.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: s_len, s_type, s_retype, s_cat, s_rep, s_slice
+	CHECKED: s_map, s_join, s_range, s_findfirst, s_findlast
+`
+
+
+x_trace ();
+
+` widen string to Unicode `
+! wide(s) = s_retype (1, s);
+
+` narrowen string to ASCII `
+! narrow(s) = s_retype (0, s);
+
+` make several strings `
+
+Str1 = wide "Hello!";
+Str2 = wide "Goodbye!";
+
+Str3 = wide "abcd";
+Str4 = wide "ijklmn";
+
+StrN = wide "0123456789";
+
+` check strings types... `
+
+s_type (Str1);
+s_type (Str2);
+s_type (Str3);
+s_type (Str4);
+
+` string lengths... `
+(#$Str1, #$Str2, #$Str3, #$Str4);
+#$StrN;
+
+
+` string concatenations `
+Str1 +$ Str2;
+Str4 +$ Str3;
+Str2 +$ StrN;
+
+` string repetitions `
+
+StrN *$ 2;
+Str1 *$ 3 +$ Str3 *$ 4;
+Str3 *$ 5 +$ Str2;
+(Str2 +$ Str1) *$ 3;
+(Str3 +$ Str4) *$ 4;
+
+(Str3 +$ wide ' ' +$ Str1) *$ 3;
+
+(wide '{' +$ Str2 +$ wide '}') *$ 4;
+
+wide ('ab' *$ 3 +$ ' ' +$ 'xyz' *$ 2 +$ '-') *$ 2;
+
+! xrep (s N) = (wide '<' +$ s +$ wide '>') *$ N;
+
+xrep (StrN, 3);
+xrep (Str2, 2);
+xrep (Str3, 4);
+
+`
+	Draw horizontal bars
+
+`
+
+! show_hbar (at) = {
+	at < 0 ? (<: '\n') : ;
+	<: ('[', (at ? '=' : '-') *$ 40, ']\n');
+	at > 0 ? (<: '\n') : ;
+	};
+
+`
+	String slicing
+`
+
+` show string fragment: `
+! show_fragment (s R) =
+    <: ('[', R[0], '..', R[1], '] :\t(', s$[R], ')\n');
+
+{
+show_hbar (-1);
+
+for_inc (i, 11,
+    show_fragment (StrN, 0..i));
+
+show_hbar (0);
+
+for_inc (i, 11,
+    show_fragment (StrN, i..10));
+
+show_hbar (1);
+};
+
+{
+show_hbar (-1);
+
+for_inc (i, 11,
+    show_fragment (StrN, i-10..i));
+
+show_hbar (0);
+
+for_inc (i, 11,
+    show_fragment (StrN, i..i+10));
+
+show_hbar (1);
+};
+
+` show string fragments concatenation: `
+! show_fragments (s R1 R2) =
+    <: ('[', R1[0], '..', R1[1], ']+[', R2[0], '..', R2[1], '] :\t(',
+		s$[R1] +$ wide '|' +$ s$[R2], ')\n');
+
+{
+show_hbar (-1);
+
+for_inc (i, 11,
+    show_fragments (StrN, 0..i, i..10));
+
+show_hbar (0);
+
+for_dec (i, 11,
+    show_fragments (StrN, 0..i, i..10));
+
+show_hbar (1);
+
+show_hbar (-1);
+
+for_inc (i, 11,
+    show_fragments (StrN, i..10, 0..i));
+
+show_hbar (0);
+
+for_dec (i, 11,
+    show_fragments (StrN, i..10, 0..i));
+
+show_hbar (1);
+};
+
+`
+	String searching
+`
+
+! show_search (str ctx dir) =
+    <: ('"', str, '" ', dir ? '<<' : '>>', " '", ctx, "' = ",
+	(dir ? str <<$ ctx : str >>$ ctx), '\n');
+
+StrS = wide '[' +$ StrN +$ wide '] : [' +$ StrN +$ wide ']';
+
+{
+show_hbar (-1);
+
+for_inc (i, 10, show_search (StrS, wide (i), 0));
+
+show_hbar (0);
+
+for_dec (i, 10, show_search (StrS, wide (i), 1));
+
+show_hbar (1);
+};
+
+show_search (StrS, '', 0);
+show_search (StrS, '', 1);
+
+show_search (StrS, wide '*', 0);
+show_search (StrS, wide '*', 1);
+
+{
+show_hbar (-1);
+
+for_dec (i, 10, show_search (StrS, StrN $[i..10], 0));
+
+show_hbar (0);
+
+for_inc (i, 10, show_search (StrS, StrN $[i..10], 1));
+
+show_hbar (1);
+};
+
+`
+	String mapping
+`
+
+StrAlpha = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
+
+StrAlpha;
+
+` map to ASCII uppercase `
+! to_upper (code) =
+	(dc_b 'a' <= code && code <= dc_b 'z') ?
+	    dc_b 'A' + code - dc_b 'a' : code;
+
+` map to ASCII lowercase `
+! to_lower (code) =
+	(dc_b 'A' <= code && code <= dc_b 'Z') ?
+	    dc_b 'a' + code - dc_b 'A' : code;
+
+` toggle ASCII case `
+! case_toggle (code) =
+	(dc_b 'a' <= code && code <= dc_b 'z') ?
+	    dc_b 'A' + code - dc_b 'a' :
+
+	(dc_b 'A' <= code && code <= dc_b 'Z') ?
+	    dc_b 'a' + code - dc_b 'A' :
+
+	code;
+
+s_map (!to_upper, StrAlpha);
+s_map (!to_lower, StrAlpha);
+
+s_map (!case_toggle, StrAlpha);
+s_map (!case_toggle, s_map (!case_toggle, StrAlpha));
+
+` rot-13 encode/decode `
+
+! rot13 (code) = 
+	(dc_b 'a' <= code && code <= dc_b 'z')?
+	    dc_b 'z' - code + dc_b 'a' :
+
+	(dc_b 'A' <= code && code <= dc_b 'Z')?
+	    dc_b 'Z' - code + dc_b 'A' :
+
+	    code;
+
+s_map (!rot13, StrAlpha);
+
+Text = "A quick brown fox jumps over the lazy dog";
+EText = s_map (!rot13, Text);
+s_map (!rot13, EText);
+
+EText = s_map (!rot13, wide (Text));
+s_map (!rot13, EText);
+
+s_map (!to_upper, wide (StrAlpha));
+s_map (!to_lower, wide (StrAlpha));
+
+`
+    Using 's_join':
+`
+
+list1 = ['alpha' 'beta' 'gamma' 'delta' 'epsilon'];
+
+s_join (':', list1);
+s_join (", ", l_map (!(s) = (s_map (!to_upper, s)), list1));
+s_join (" = ", l_map (!(S) = (s_map (!case_toggle, S)), l_rev (list1)));
+
+s_join (" < ", l_range (10..25, !string));
+s_join (" > ", l_range_r (15, !string));
+
+
+`
+    Using string range
+`
+
+! expect_s_eq (s0 s1) = 
+	if (s0 <>$ s1)::
+		(<: ("\aUNEXPECTED s_eq: ", s0, " <>$ ", s1, "\n"));
+
+! expect_eq (s0 s1) = 
+	if (s0 <> s1)::
+		(<: ("\aUNEXPECTED eq: ", s0, " <> ", s1, "\n"));
+
+` Range test 1: predicate search `
+
+! str_range_test_1 (Wide FromChar ToChar) : [str len i] = {
+	[FromChar ToChar] = (dc_b (FromChar), dc_b (ToChar));
+
+	len = ToChar - FromChar + 1;
+
+	` test string reverse: `
+	expect_s_eq (s_rev (s_range (Wide, 0, FromChar .. ToChar+1)),
+		s_range (Wide, 1, FromChar .. ToChar+1));
+	expect_s_eq (s_rev (s_range (Wide, 1, FromChar .. ToChar+1)),
+		s_range (Wide, 0, FromChar .. ToChar+1));
+
+	` test string prefix: `
+
+	str = s_range (Wide, 0, FromChar .. ToChar+1);
+	for_inc (i, len + 1,
+		expect_s_eq (str $[i], s_range (Wide, 0, FromChar .. ToChar - len + 1 + i))
+		);
+
+	` test string search: `
+	for_dec (i, len + 1, {
+		expect_eq (s_span_ex (str, !(c) = (c >= FromChar + i)), i);
+		expect_eq (s_rspan_in (str, !(c) = (c >= FromChar + i)), i);
+		});
+
+	` test string suffix: `
+
+	str = s_range (Wide, 1, FromChar .. ToChar+1);
+	for_dec (i, len + 1,
+		expect_s_eq (str $[i], s_range (Wide, 1, FromChar + len - i .. ToChar + 1))
+		);
+
+	` test string search: `
+	for_inc (i, len + 1, {
+		expect_eq (s_span_in (str, !(c) = (c >= FromChar + i)), len - i);
+		expect_eq (s_rspan_ex (str, !(c) = (c >= FromChar + i)), len - i);
+		});
+
+	};		` -- str_range_test_1 `
+
+str_range_test_1 (1, '0'..'9');
+str_range_test_1 (0, 'a'..'z');
+
+` Range test 2: predicate filter `
+
+! str_range_test_2 (Wide FromChar ToChar) : [i delim] = {
+	[FromChar ToChar] = (dc_b (FromChar), dc_b (ToChar));
+
+	delim = s_retype (Wide, ";");
+	for_inc (i, 2..8, {
+
+		! filter_inc(n) = s_filter_in (s_range(Wide, 0, FromChar .. ToChar+1),
+			!(c) = (c%%i == n));
+
+		! filter_dec(n) = s_filter_in (s_range(Wide, 1, FromChar .. ToChar+1),
+			!(c) = (c%%i == n));
+
+		expect_s_eq (
+			s_join (delim, l_range (i, !filter_inc)),
+			s_rev (s_join (delim, l_range_r (i, !filter_dec)))
+			);
+		});
+	};		` -- str_range_test_2 `
+
+str_range_test_2 (0, 'A'..'Z');
+str_range_test_2 (1, '0'..'9');
+
+` Range test 3: predicate count `
+
+! str_range_test_3 (Wide FromChar ToChar) : [str len i j count] = {
+	[FromChar ToChar] = (dc_b (FromChar), dc_b (ToChar));
+
+	str = s_range(Wide, 0, FromChar .. ToChar+1);
+	len = #$ str;
+
+	for_inc (i, 2..8, {
+		count = 0;
+		for_inc (j, i,
+			count =+: s_count_in (str, !(c) = (c %% i == j))
+			);
+		expect_eq (count, len);
+		});
+	};		` -- str_range_test_3 `
+
+str_range_test_3 (1, 'A'..'Z');
+str_range_test_3 (0, '0'..'9');
+

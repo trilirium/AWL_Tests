@@ -1,0 +1,103 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'PermComb.awl':
+	|	Permutations/combinations generators.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+` Permuting numbers from 0..N `
+! permute (N action) : [index total] = {
+
+index = array (N);
+total = 0;
+
+` Recursive permutations generator `
+! r_perm (n) : [i] =
+	n <> N ? {
+		index{n} = n;
+		n ++;
+		for_dec (i, 1..n, index{i} :=: index{i-1});
+		r_perm (n);
+		for_inc (i, 1..n, {
+			index{i} :=: index{i-1};
+			r_perm (n)
+			})
+		} :
+
+	`... or end of recursion (call 'action' with 'index') `
+	{ action ! index; ++ total; };		` -- r_perm `
+
+` Entry point `
+r_perm (0);
+total
+};		` -- permute `
+
+` Enumerating ordered selections of M numbers from 0..N `
+! combine (M N action) : [index total] = {
+
+index = array (M);
+total = 0;
+
+` Recursive combinations generator `
+! r_comb (m n) : [i] = {
+	m <> M ? {
+		for_inc (i, n .. m + N-M + 1, {
+			index {m} = i;
+			r_comb (m+1, i+1);
+			});
+		} :
+	`... or end of recursion (call 'action' with 'index') `
+	{ action ! index; ++ total; }		` -- r_comb `
+	};
+
+` Entry point `
+r_comb (0, 0);
+total
+};		` -- combine `
+
+
+` Charater at i in str: `
+! char_at (str i) = str$[i .. i+1];
+
+! dump_array (index string length) : [i] = {
+<: "\t[";
+    for_inc (i, length, <: char_at(string, index{i}));
+<: "]\n";
+};
+
+` Permute characters in the string Str `
+! permute_str (Str) : [Len Total] = {
+	Len = #$Str;
+	<: ["Permutations of '" Str "' (length: " Len "):\n"];
+	Total = permute (Len, !(index) = (dump_array (index, Str, Len)));
+	<: ["(total: " Total ")\n\n"];
+	};
+
+` Find combinations of Count characters in the string Str `
+! combine_str (Count Str) : [Len Total] = {
+	Len = #$Str;
+	<: ["Combinations of '" Str "' (length: " Len "), by " Count ":\n"];
+	Total = combine (Count, Len,
+		!(index) = (dump_array (index, Str, Count)));
+	<: ["(total: " Total ")\n\n"];
+	};
+
+`
+	Testing:
+`
+
+permute_str ('1234');
+permute_str ('ABCDF');
+
+combine_str (4, 'ABCDEFGH');
+combine_str (3, 'abcdefg');
+combine_str (2, "13579");
+combine_str (5, "123456789");
+

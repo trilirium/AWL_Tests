@@ -1,0 +1,60 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'BitCount.awl':
+	|	various ways of counting bits in integer.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+` Count bits in number (brute force approach) `
+! BC (n) : [c] = {
+	c = 0;
+	n ?? {
+		n & 1 ? ++ c :;
+		n =>>: 1;
+		};
+	c };
+
+` Count bits in number (optimized approach) `
+! BC1 (n) : [c] = {
+	c = 0;
+	n ?? {
+		n =&: n - 1;
+		c ++;
+		};
+	c
+	};
+
+` Count bits in number (a very weird approach) `
+! BC2 (n) = {
+	! BX(n) = n
+			- ((n >> 1) & \x77777777)
+			- ((n >> 2) & \x33333333)
+			- ((n >> 3) & \x11111111);
+
+	((BX(n) + (BX(n) >> 4)) & \x0F0F0F0F) %% 255
+	};
+
+`
+	Testing all methods...
+`
+
+:[i bc];
+
+for_inc (i, 1 << 12, {
+	bc = BC(i);
+	<: (i, ": ", bc, '\n');
+
+	if (BC1(i) <> bc)::
+		(<: (" \aError (BC1): ", BC1(i), '\n'));
+
+	if (BC2(i) <> bc)::
+		(<: (" \aError (BC2): ", BC2(i), '\n'));
+	});
+

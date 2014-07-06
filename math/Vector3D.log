@@ -1,0 +1,18 @@
+
+
+
+  !! vector3D:(x y z) {3};
+
+
+  y;
+  x;
+  z;
+
+
+  ! vector3D.prod:(V1 V2) [2] = sqr:add:(add:(mul:(with:(V1, vector3D.x), with:(V2, vector3D.x)), mul:(with:(V1, vector3D.y), with:(V2, vector3D.y))), mul:(with:(V1, vector3D.z), with:(V2, vector3D.z)));
+  ! vector3D.sub:(V1 V2) [2] = .vector3D:(sub:(with:(V1, vector3D.x), with:(V2, vector3D.x)), sub:(with:(V1, vector3D.y), with:(V2, vector3D.y)), sub:(with:(V1, vector3D.z), with:(V2, vector3D.z)));
+  ! vector3D.neg:() [0] = .vector3D:(neg:vector3D.x, neg:vector3D.y, neg:vector3D.z);
+  ! vector3D.cross:(V1 V2) [2] = .vector3D:(sub:(mul:(with:(V1, vector3D.y), with:(V2, vector3D.z)), mul:(with:(V2, vector3D.y), with:(V1, vector3D.z))), sub:(mul:(with:(V1, vector3D.z), with:(V2, vector3D.x)), mul:(with:(V2, vector3D.z), with:(V1, vector3D.x))), sub:(mul:(with:(V1, vector3D.x), with:(V2, vector3D.y)), mul:(with:(V2, vector3D.x), with:(V1, vector3D.y))));
+  ! vector3D.add:(V1 V2) [2] = .vector3D:(add:(with:(V1, vector3D.x), with:(V2, vector3D.x)), add:(with:(V1, vector3D.y), with:(V2, vector3D.y)), add:(with:(V1, vector3D.z), with:(V2, vector3D.z)));
+  ! vector3D.length:() [0] = sqr:add:(add:(mul:(vector3D.x, vector3D.x), mul:(vector3D.y, vector3D.y)), mul:(vector3D.z, vector3D.z));
+

@@ -1,0 +1,27 @@
+
+` List range checks... `
+
+! expect_eq(tag i v0 v1) =
+    (v0 [<>] v1 ? (<: ("Failure: ", tag, "@", i, " ", v0, " ", v1, "\n")) :);
+
+! range_check (Range) : [total list i] = {
+total = Range[1] - Range[0];
+list = l_range (Range, );
+
+for_inc (i, total, expect_eq ('index_f', i, list[i], Range[0] + i));
+
+expect_eq ('[after last]', total, list[total], []);
+
+for_dec (i, 1..total+1, expect_eq ('index_r', i, list[-i], Range[1] - i));
+
+expect_eq ('[before first]', -1, list[-total-1], []);
+
+};
+
+` -- Checking ranges -- `
+
+range_check (10..20);
+range_check (-30..15);
+range_check (-15..30);
+range_check (-50..50);
+

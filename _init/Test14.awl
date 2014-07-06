@@ -1,0 +1,199 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test14.awl': #14
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+`
+
+	Testing classes && objects
+
+`
+
+x_trace ();
+
+!! vect(X Y Z) {
+	! calc1(v) = (X+Z)*v - Y,
+	! calc2(a b) = a*(Z-X)*2 + b*(Y-Z)*3,
+	! str3(s1 s2 s3) = '{' +$
+		s1 +$ ':' +$ X +$ '; ' +$
+		s2 +$ ':' +$ Y +$ '; ' +$
+		s3 +$ ':' +$ Z +$
+		'}'
+	}
+;
+
+Va = vect ([1 2 3]);
+
+Vb = vect ([30 20 10]);
+
+vect !! {
+<: [X Y Z];
+
+<: (Va.(X+Y+Z), '\n');
+<: (Vb.(X*Y*Z), '\n');
+
+<: (Va.[X ' ' Y ' ' Z], '\n');
+<: (Vb.[X ' ' Y ' ' Z], '\n');
+
+<: (Va. (X / Vb.Z, ' ', Y / Vb.Y, ' ', Z / Vb.X), '\n');
+<: (Vb. (X % Va.Z, ' ', Y % Va.Y, ' ', Z % Va.X), '\n');
+};
+
+!vect;
+
+` list of vectors `
+VL_1 = ( vect([22 77 44]), vect([15 35 75]), vect([3 5 9]) );
+
+sumXY = 0;
+vect!! l_loop (p, VL_1, sumXY =+: p.(X + Y));
+
+prodZ = 1;
+vect!! l_loop (p, VL_1, prodZ =*: p.Z);
+
+scatZX = '';
+vect!! l_loop (p, VL_1, scatZX =+$: p.('{' +$ Z +$ '}[' +$ X +$ ']') +$ ', ');
+
+
+vect!! (Va.calc1(10), Vb.calc1(5));
+
+vect!! (Va.calc2(-3,5), Vb.calc2(7,-4));
+
+vect!! (Va.str3 (['x' 'y' 'z']), Vb.str3 (['Xx' 'Yy' 'Zz']));
+
+(class_of(Va), class_of(Vb));
+
+Va.(self (!vect), Vb.self (!vect));
+Vb.(self (!vect), Va.self (!vect));
+
+x_vars (!vect);
+x_funcs (!vect);
+
+
+` Class with constructor & destructor `
+!! traced (A B):[S D]
+ = {	[S D] = (A*3 + B*2, A*5 - B*3);
+	<: ['\n[constructor: traced (' A ',' B ')]\n' ]
+   }
+ ~ {
+	<: ['\n[destructor: traced (' A ',' B ')]\n']
+   }
+
+ {
+
+ ` A <- (S, D) `
+ ! calcA = (3*S + 2*D) / 19,
+
+ ` B <- (S, D) `
+ ! calcB = (5*S - 3*D) / 19,
+
+ ` check object internal consistency `
+ ! check = { <: [
+	'A = ' A ':' (calcA ()) ', '
+	'B = ' B ':' (calcB ()) '\n' ]}
+
+ };	` (end of traced) `
+
+
+traced !! traced (15,25).check ();
+
+traced !! traced (-21,-17).check ();
+
+vv = (traced(10,12), traced(16,5), traced(24,31), traced(9,17));
+
+traced !! l_loop (V, vv, V.check ());
+
+! my_test(vv) = traced!!vv.check ();
+
+my_test (traced (21,12));
+
+my_test (traced (301,402));
+
+l_loop (W, vv, my_test (W));
+
+` Mutual objects `
+
+!! testA (Aa Ab Ac);
+!! testB (Bx By Bz);
+
+! fA_1 (p r) = testA !! (Aa*p + Ab + Ac*r);
+! fA_2 (q) = testA !! ((Aa - Ac) * q - Ab);
+
+AA_1 = testA ([15 34 27]);
+AA_2 = testA ([31 17 43]);
+
+AA_1.fA_1 ([3 8]);
+AA_1.fA_2 (15);
+
+AA_2.fA_1 ([11 (-3)]);
+AA_2.fA_2 (34);
+
+! fB_1 (z) = testB !! ((z + Bx) * By * (z - Bz));
+! fB_2 (x y z) = testB !! ((x ~ Bx) + (y ~ By) + (z ~ Bz));
+
+BB_1 = testB ([3 9 11]);
+BB_2 = testB ([16 21 8]);
+
+BB_1.fB_1 (31);
+BB_1.fB_2 ([3 5 9]);
+
+BB_2.fB_1 (14);
+BB_2.fB_2 ([7 11 1]);
+
+! fAB_1 = testA !! testB !! (Aa*Bx - Ab*By + Ac*Bz);
+
+AA_1.BB_1.fAB_1();
+AA_1.BB_2.fAB_1();
+AA_2.BB_1.fAB_1();
+AA_2.BB_2.fAB_1();
+
+AA_1.(BB_1.fAB_1(), BB_2.fAB_1());
+AA_2.(BB_1.fAB_1(), BB_2.fAB_1());
+BB_1.(AA_1.fAB_1(), AA_2.fAB_1());
+BB_2.(AA_1.fAB_1(), AA_2.fAB_1());
+
+! fAB_2 = testB !! testA !! ((Bx - By)*(Ac + Ab) - (By + Bz)*(Ab - Aa) + (Bz - Bx)*(Aa + Ac));
+
+AA_1.BB_1.fAB_2();
+AA_1.BB_2.fAB_2();
+AA_2.BB_1.fAB_2();
+AA_2.BB_2.fAB_2();
+
+AA_1.(BB_1.fAB_2(), BB_2.fAB_2());
+AA_2.(BB_1.fAB_2(), BB_2.fAB_2());
+BB_1.(AA_1.fAB_2(), AA_2.fAB_2());
+BB_2.(AA_1.fAB_2(), AA_2.fAB_2());
+
+(class_of(AA_1), class_of(BB_1), class_of(AA_2), class_of(BB_2));
+
+AA_1.	(
+	self (!testA),
+	without (!testA, self (!testA)),
+	self (!testA)
+	);
+
+BB_2.	(
+	self (!testB),
+	without (!testB, self (!testB)),
+	self (!testB)
+	);
+
+
+!PP = <: (
+	  "testA => ", x_trace(2, self (!testA)),
+	", testB => ", x_trace(2, self (!testB)), "\n");
+
+AA_1.(BB_1.PP(), BB_2.PP());
+AA_2.(BB_1.PP(), BB_2.PP());
+BB_1.(AA_1.PP(), AA_2.PP());
+BB_2.(AA_1.PP(), AA_2.PP());
+
+x_vars_ord();
+x_funcs_ord();
+

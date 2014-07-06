@@ -1,0 +1,30 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Inc_B.awl'
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+x_trace ();
+
+` Include test B `
+
+B_open = '[{';
+B_close = '}]';
+
+B_sep = ", ";
+
+! B_func (sss) = B_open +$ sss +$ B_close;
+
+! B_func2 (aa bb cc) = B_open +$ aa +$ B_sep +$ bb +$ B_sep +$ cc +$ B_close;
+
+B_xl = (73*5, 'TYYDF', 15+67*2-9);
+
+inc_list [<-] 'Inc_b';
+
+<: "Inc_B included\n";

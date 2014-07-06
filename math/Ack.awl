@@ -1,0 +1,25 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Ack.awl':
+	|	Ackermann function.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+` Definition: `
+! ack (m n) = m ? (ack (m-1, n ? ack (m, n-1) : 1)) : n+1;
+
+` Evaluation check: `
+
+for_inc (i, 0..4, {
+    for_inc (j, 0..6,
+	<: ["ack(" i "," j ") = " (ack (i, j)) "\n"]
+	);
+    <: "\n";
+    });
+

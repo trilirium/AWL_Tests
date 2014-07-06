@@ -1,0 +1,31 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'EvenOdd.awl':
+	|	Mutual recursive functors post-declaration.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+! even_odd (range) : [i] = {
+
+	` functors predeclare... `
+	! even(n) = [];
+	! odd (n) = [];
+
+	` functors implement... `
+	! even := (n > 0) ? odd(n-1) : (n < 0) ? odd (n+1) : 1;
+	! odd := (n > 1) ? even(n-1) : (n < -1) ? even (n+1) : (n<>0);
+
+	for_inc (i, range, <: (i, " -> ", even(i), "\t", odd(i), "\n"));
+
+	};
+
+` Test... `
+even_odd (-10..10);
+

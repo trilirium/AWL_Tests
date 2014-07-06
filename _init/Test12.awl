@@ -1,0 +1,215 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test12.awl': #12
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+`
+	Common array operations
+`
+
+x_trace();
+
+A1 = a_create ([3 4 5]);
+
+put_A1 := {
+<: "\n";
+for_inc (k, 0..5,
+	for_inc (j, 0..4,
+		for_inc (i, 0..3, <: (A1 {[i j k]}, ' ')), <: '\n'), <: "\n")
+	};
+
+for_inc (i, 0..3,
+	for_inc (j, 0..4,
+		for_inc (k, 0..5, A1 {[i j k]} = (i+1)*(j+1)*(k+1))));
+
+^put_A1;
+<: "\n";
+
+for_inc (k, 1..4,
+	for_inc (j, 1..3,
+		for_inc (i, 1..2, A1 {[i j k]} =*: 10)));
+
+^put_A1;
+<: "\n";
+
+for_inc (i, 1..2,
+	for_inc (j, 1..3,
+		for_inc (k, 1..4, A1 {[i j k]} =%: 10)));
+
+^put_A1;
+<: "\n";
+
+A2 = a_create ([10 10]);
+
+put_A2 := {
+<: "\n";
+for_inc (i, 0..10, for_inc (j, 0..10, <: (A2{i, j}, ' ')), <: "\n");
+<: "\n";
+};
+
+for_inc (i, 0..10, for_inc (j, 0..10, A2{i, j} = i - j));
+
+^put_A2;
+<: "\n";
+
+` (transpose A2) `
+
+for_inc (i, 10, for_inc (j, i, A2{i, j} :=: A2{j, i}));
+
+^put_A2;
+<: "\n";
+
+` *
+  * Array sorting
+  *
+`
+
+` Quick sort `
+! QuickSort(array lo0 hi0) : [lo hi mid] = {
+	[lo hi] = [lo0 hi0];
+	(hi0 > lo0) ? {
+		mid = array {(lo0 + hi0) % 2};
+
+		(lo <= hi) ?? {
+		(lo < hi0 && array{lo} < mid) ??
+			++ lo;
+
+		(hi > lo0 && array{hi} > mid) ??
+			-- hi;
+
+		(lo <= hi) ?
+			(array {lo ++} :=: array {hi --}):
+		};	` (lo <= hi) ?? `
+
+		(lo0 < hi) ?
+			QuickSort (array, lo0, hi):;
+
+		(lo < hi0) ?
+			QuickSort (array, lo, hi0):;
+		} :	` (hi0 > lo0) `
+	};	` !QuickSort `
+
+N = 30;
+a_test = a_create (N);
+for_inc (i, N, a_test{i} = N - i);
+QuickSort (a_test, 0, N-1);
+{ for_inc (i, N, <: (a_test{i}, ' ')); <: "\n" };
+
+`
+ *	Permutations generator
+`
+
+` Permute elements 0..N, calling iterator do_it `
+! permute (N do_it):[A] = {
+A = a_create (N);
+
+! r_perm (n):[i] =
+    n <> N ? {
+		A{n} = n;
+		n ++;
+		for_dec (i, 1..n, A{i} :=: A{i-1});
+		r_perm (n);
+		for_inc (i, 1..n, {
+			A{i} :=: A{i-1};
+			r_perm (n)
+			})
+		} :
+
+    do_it! (N, A);
+
+r_perm (0)
+};
+
+{ <: "\n";
+permute (4,
+	!(N A):[i] = {<: '['; for_inc (i, N, <: A{i}); <: ']\n' }
+	);
+ <: "\n"; };
+
+{ <: "\n";
+permute (5,
+	!(N A):[i] = {<: '<'; for_inc (i, N, <: A{i}); <: '>\n' }
+	);
+ <: "\n"; };
+
+`
+	Common hash operations
+`
+
+H1 = h_create ();
+
+H1;
+
+h_elem (H1, 'alpha') = 'AAaa';
+h_elem (H1, 'beta')  = 'BBbb';
+h_elem (H1, 'gamma') = 'CCcc';
+h_elem (H1, 'delta') = 'DDdd';
+
+{ <: '\n';
+l_loop (key, ['alpha' 'beta' 'gamma' 'delta'],
+	<: ['- ' key ' => ' (h_elem(H1, key)) '\n']);
+  <: '\n'; };
+
+H1;
+
+k_codes = ['A-a' 'E-e' 'I-i' 'O-o' 'U-u'];
+
+l_loop (K, k_codes,
+	for_inc (I, 10, 
+		h_elem (H1, I, K) = I +$ '[' +$ K +$ ']'));
+
+H1;
+
+for_inc (K, 12,
+	l_loop (I, k_codes,
+		h_elem (H1, I, K) = I +$ '::' +$ K));
+
+H1;
+
+{ <: '\n';
+  for_dec (I, 10,
+	l_loop (K, k_codes,
+		<: [K ':' I ' = ' (h_lookup (H1, I, K)) '\n']));
+  <: '\n'; };
+
+{ <: '\n';
+  l_loop_r (K, k_codes, {
+	for_dec (I, 10,
+		unless (I +$ '[' +$ K +$ ']' ==$ h_remove (H1, I, K))::
+			(<: ['(Error at ' I ', ' K ')\n']));
+
+	<: ("\t#H1: ", h_count (H1), "\n")
+	});
+  <: '\n'; };
+
+
+{ <: '\n';
+  l_loop_r (I, k_codes, {
+	for_dec (K, 12,
+		unless (h_remove (H1, I, K) ==$ I +$ '::' +$ K)::
+			(<: ['(Error at ' I ', ' K ')\n']));
+
+	<: ("\t#H1: ", h_count (H1), "\n")
+	});
+  <: '\n'; };
+
+
+H1;
+
+ZZ = ();
+l_loop_r (K, ['alpha' 'beta' 'gamma' 'delta'],
+	ZZ [<-] h_remove (H1, K));
+
+ZZ;
+	
+H1;
+
+h_count (H1);
+

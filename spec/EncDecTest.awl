@@ -1,0 +1,50 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'EncDecTest.awl':
+	|	Testing signed|unsigned encode|decode.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: ec_b, ec_w, ec_l 
+	CHECKED: dc_b, dc_sb, dc_w, dc_sw, dc_l
+`
+
+! report_error (f_dc f_ec index) = 
+    <: ('\aError: ', f_dc, '(', f_ec, '(', index, '))!\n');
+
+<: "Checking: unsigned byte conversions...\n";
+for_inc (i, 0 .. 1<<8,
+	if (i <> dc_b(ec_b(i), ))::
+		report_error ('dc_b', 'ec_b', i)
+    );
+
+<: "Checking: signed byte conversions...\n";
+for_inc (i, -1<<7 .. 1<<7,
+	if (i <> dc_sb(ec_b(i), ))::
+		report_error ('dc_sb', 'ec_b', i)
+    );
+
+<: "Checking: unsigned word conversions...\n";
+for_inc (i, 0 .. 1<<16,
+	if (i <> dc_w(ec_w(i), ))::
+		report_error ('dc_w', 'ec_w', i)
+    );
+
+<: "Checking: signed word conversions...\n";
+for_inc (i, -1<<15 .. 1<<15,
+	if (i <> dc_sw(ec_w(i), ))::
+		report_error ('dc_sw', 'ec_w', i)
+    );
+
+<: "Checking: long conversions...\n";
+for_inc (i, -1<<12 .. 1<<12,
+	if (i << 12 <> dc_l(ec_l(i << 12), ))::
+		report_error ('dc_l', 'ec_l', i)
+    );
+

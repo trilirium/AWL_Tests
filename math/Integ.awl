@@ -1,0 +1,40 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Integ.awl':
+	|	Integrals.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+x_trace();
+
+` Integral of func (by x from a to b with n steps `
+integ := {
+	s = 0.0;
+	p = (b - a) / n;
+	x = a + s / 2;
+
+	n -- ?? { s =+: p*^func; x =+: p };
+
+	s
+	};
+
+func := 5;
+[n a b] = (20, -2.0, 2.0);
+
+^integ;
+
+func := x;
+[n a b] = (1000, -2.0, 3.0);
+
+^integ;
+
+func := exp (x);
+[n a b] = (500, 0.0, 1.0);
+^integ;
+

@@ -1,0 +1,22 @@
+<Det.awl> #13 / [1] {
+
+  x_trace:() => 0;
+  ! Det2:(M) [1] = sub:(mul:(l_item:(0, l_item:(0, M)), l_item:(1, l_item:(1, M))), mul:(l_item:(1, l_item:(0, M)), l_item:(0, l_item:(1, M)))) => Det2:;
+  ! Det3:(M) [1] = sub:(sub:(sub:(add:(add:(mul:(mul:(l_item:(0, l_item:(0, M)), l_item:(1, l_item:(1, M))), l_item:(2, l_item:(2, M))), mul:(mul:(l_item:(1, l_item:(0, M)), l_item:(2, l_item:(1, M))), l_item:(0, l_item:(2, M)))), mul:(mul:(l_item:(2, l_item:(0, M)), l_item:(1, l_item:(2, M))), l_item:(0, l_item:(1, M)))), mul:(mul:(l_item:(0, l_item:(0, M)), l_item:(2, l_item:(1, M))), l_item:(1, l_item:(2, M)))), mul:(mul:(l_item:(2, l_item:(0, M)), l_item:(1, l_item:(1, M))), l_item:(0, l_item:(2, M)))), mul:(mul:(l_item:(1, l_item:(0, M)), l_item:(0, l_item:(1, M))), l_item:(2, l_item:(2, M)))) => Det3:;
+  set:(m1, (1, 2, 7), (6, 5, 2), (7, 8, 3), ) => ((1, 2, 7), (6, 5, 2), (7, 8, 3), );
+  set:(m2, (1, 6, 7), (2, 5, 8), (7, 2, 3), ) => ((1, 6, 7), (2, 5, 8), (7, 2, 3), );
+  set:(m4, (1, 2), (3, 4), ) => ((1, 2), (3, 4), );
+  Det3:m1 => 82;
+  Det2:m4 => -2;
+  let:(Det2_M, sub:(mul:(l_item:(0, l_item:(0, M)), l_item:(1, l_item:(1, M))), mul:(l_item:(1, l_item:(0, M)), l_item:(0, l_item:(1, M))))) => Det2_M;
+  let:(Det3_M, sub:(sub:(sub:(add:(add:(mul:(mul:(l_item:(0, l_item:(0, M)), l_item:(1, l_item:(1, M))), l_item:(2, l_item:(2, M))), mul:(mul:(l_item:(1, l_item:(0, M)), l_item:(2, l_item:(1, M))), l_item:(0, l_item:(2, M)))), mul:(mul:(l_item:(2, l_item:(0, M)), l_item:(1, l_item:(2, M))), l_item:(0, l_item:(1, M)))), mul:(mul:(l_item:(0, l_item:(0, M)), l_item:(2, l_item:(1, M))), l_item:(1, l_item:(2, M)))), mul:(mul:(l_item:(2, l_item:(0, M)), l_item:(1, l_item:(1, M))), l_item:(0, l_item:(2, M)))), mul:(mul:(l_item:(1, l_item:(0, M)), l_item:(0, l_item:(1, M))), l_item:(2, l_item:(2, M))))) => Det3_M;
+  let:(Xpose3, (l_item:(0, l_item:(0, M)), l_item:(0, l_item:(1, M)), l_item:(0, l_item:(2, M))), (l_item:(1, l_item:(0, M)), l_item:(1, l_item:(1, M)), l_item:(1, l_item:(2, M))), l_item:(2, l_item:(0, M)), l_item:(2, l_item:(1, M)), l_item:(2, l_item:(2, M))) => Xpose3;
+  set:(M, m4) => ((1, 2), (3, 4), );
+  reval:Det2_M => -2;
+  set:(M, m1) => ((1, 2, 7), (6, 5, 2), (7, 8, 3), );
+  reval:Det3_M => 82;
+  reval:Xpose3 => ((1, 6, 7), (2, 5, 8), 7, 2, 3);
+  set:(M, m2) => ((1, 6, 7), (2, 5, 8), (7, 2, 3), );
+  reval:Det3_M => 82;
+
+} <Det.awl> #66 / [18]

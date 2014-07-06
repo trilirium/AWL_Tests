@@ -1,0 +1,52 @@
+F1 => ! (y) [1] = sub:(6, mul:(7, y)) <*> ! (x) [1] = add:(mul:(2, x), 3)
+
+Test F1:
+0: -15
+1: -29
+2: -43
+3: -57
+4: -71
+5: -85
+
+F2 => ! (c) [1] = div:(add:(c, 7.9), 5.11) <*> ! (b) [1] = div:(sub:(b, 12.2), 7.3) <*> ! (a) [1] = div:(add:(a, 78.5), 9.2)
+
+Test F2:
+0: 1.4476747
+1: 1.4539978
+2: 1.4603208
+3: 1.4666439
+4: 1.472967
+5: 1.47929
+6: 1.4856131
+7: 1.4919362
+8: 1.4982593
+9: 1.5045823
+
+F3 => ! (t) [1] = s_rep:(t, 3) <*> ! (s) [1] = s_cat:(s_cat:("[", s), "]")
+
+Test F3:
+qwert: [qwert][qwert][qwert]
+asdf: [asdf][asdf][asdf]
+zxcv: [zxcv][zxcv][zxcv]
+uiop: [uiop][uiop][uiop]
+ghjkl: [ghjkl][ghjkl][ghjkl]
+bnm: [bnm][bnm][bnm]
+
+F4 => ! (w) [1] = s_rep:(w, 3) <*> ! (v) [1] = s_cat:(s_cat:("{", v), "}") <*> ! (u) [1] = s_rep:(u, 2)
+
+Test F4:
+Aaa: {AaaAaa}{AaaAaa}{AaaAaa}
+Bbbb: {BbbbBbbb}{BbbbBbbb}{BbbbBbbb}
+Cc: {CcCc}{CcCc}{CcCc}
+Ddd: {DddDdd}{DddDdd}{DddDdd}
+EeFf: {EeFfEeFf}{EeFfEeFf}{EeFfEeFf}
+
+F5 => ! (w) [1] = s_cat:(s_cat:("(", w), ")") <*> ! (t) [1] = s_rep:(t, 4) <*> ! (s) [1] = s_cat:(s_cat:("[-", s), "-]")
+
+Test F5:
+epsilon: ([-epsilon-][-epsilon-][-epsilon-][-epsilon-])
+delta: ([-delta-][-delta-][-delta-][-delta-])
+gamma: ([-gamma-][-gamma-][-gamma-][-gamma-])
+beta: ([-beta-][-beta-][-beta-][-beta-])
+alpha: ([-alpha-][-alpha-][-alpha-][-alpha-])
+

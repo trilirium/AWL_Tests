@@ -1,0 +1,317 @@
+<Strings.awl> #19 / [1] {
+
+  x_trace:() => 0;
+  ! wide:(s) [1] = s_retype:(1, s) => wide:;
+  ! narrow:(s) [1] = s_retype:(0, s) => narrow:;
+  set:(Str1, wide:"Hello!") => _"Hello!";
+  set:(Str2, wide:"Goodbye!") => _"Goodbye!";
+  set:(Str3, wide:"abcd") => _"abcd";
+  set:(Str4, wide:"ijklmn") => _"ijklmn";
+  set:(StrN, wide:"0123456789") => _"0123456789";
+  s_type:Str1 => 1;
+  s_type:Str2 => 1;
+  s_type:Str3 => 1;
+  s_type:Str4 => 1;
+  (s_len:Str1, s_len:Str2, s_len:Str3, s_len:Str4) => (6, 8, 4, 6);
+  s_len:StrN => 10;
+  s_cat:(Str1, Str2) => _"Hello!Goodbye!";
+  s_cat:(Str4, Str3) => _"ijklmnabcd";
+  s_cat:(Str2, StrN) => _"Goodbye!0123456789";
+  s_rep:(StrN, 2) => _"01234567890123456789";
+  s_cat:(s_rep:(Str1, 3), s_rep:(Str3, 4)) => _"Hello!Hello!Hello!abcdabcdabcdabcd";
+  s_cat:(s_rep:(Str3, 5), Str2) => _"abcdabcdabcdabcdabcdGoodbye!";
+  s_rep:(s_cat:(Str2, Str1), 3) => _"Goodbye!Hello!Goodbye!Hello!Goodbye!Hello!";
+  s_rep:(s_cat:(Str3, Str4), 4) => _"abcdijklmnabcdijklmnabcdijklmnabcdijklmn";
+  s_rep:(s_cat:(s_cat:(Str3, wide:" "), Str1), 3) => _"abcd Hello!abcd Hello!abcd Hello!";
+  s_rep:(s_cat:(s_cat:(wide:"{", Str2), wide:"}"), 4) => _"{Goodbye!}{Goodbye!}{Goodbye!}{Goodbye!}";
+  s_rep:(wide:s_cat:(s_cat:(s_cat:(s_rep:("ab", 3), " "), s_rep:("xyz", 2)), "-"), 2) => _"ababab xyzxyz-ababab xyzxyz-";
+  ! xrep:(s N) [2] = s_rep:(s_cat:(s_cat:(.wide:"<", s), .wide:">"), N) => xrep:;
+  xrep:(StrN, 3) => _"<0123456789><0123456789><0123456789>";
+  xrep:(Str2, 2) => _"<Goodbye!><Goodbye!>";
+  xrep:(Str3, 4) => _"<abcd><abcd><abcd><abcd>";
+  ! show_hbar:(at) [1] = {
+    if:(lt:(at, 0), f_put:((), "\n"), );
+    f_put:((), "[", s_rep:(if:(at, "=", "-"), 40), "]\n");
+    if:(gt:(at, 0), f_put:((), "\n"), );
+    } => show_hbar:;
+  ! show_fragment:(s R) [2] = f_put:((), "[", l_item:(0, R), "..", l_item:(1, R), "] :\t(", s_slice:(R, s), ")\n") => show_fragment:;
+
+[========================================]
+[0..0] :	()
+[0..1] :	(0)
+[0..2] :	(01)
+[0..3] :	(012)
+[0..4] :	(0123)
+[0..5] :	(01234)
+[0..6] :	(012345)
+[0..7] :	(0123456)
+[0..8] :	(01234567)
+[0..9] :	(012345678)
+[0..10] :	(0123456789)
+[----------------------------------------]
+[0..10] :	(0123456789)
+[1..10] :	(123456789)
+[2..10] :	(23456789)
+[3..10] :	(3456789)
+[4..10] :	(456789)
+[5..10] :	(56789)
+[6..10] :	(6789)
+[7..10] :	(789)
+[8..10] :	(89)
+[9..10] :	(9)
+[10..10] :	()
+[========================================]
+
+  {
+    show_hbar:neg:1;
+    for_inc:(i, 11, show_fragment:(StrN, 0, i));
+    show_hbar:0;
+    for_inc:(i, 11, show_fragment:(StrN, i, 10));
+    show_hbar:1;
+    } => ();
+
+[========================================]
+[-10..0] :	(          )
+[-9..1] :	(         0)
+[-8..2] :	(        01)
+[-7..3] :	(       012)
+[-6..4] :	(      0123)
+[-5..5] :	(     01234)
+[-4..6] :	(    012345)
+[-3..7] :	(   0123456)
+[-2..8] :	(  01234567)
+[-1..9] :	( 012345678)
+[0..10] :	(0123456789)
+[----------------------------------------]
+[0..10] :	(0123456789)
+[1..11] :	(123456789 )
+[2..12] :	(23456789  )
+[3..13] :	(3456789   )
+[4..14] :	(456789    )
+[5..15] :	(56789     )
+[6..16] :	(6789      )
+[7..17] :	(789       )
+[8..18] :	(89        )
+[9..19] :	(9         )
+[10..20] :	(          )
+[========================================]
+
+  {
+    show_hbar:neg:1;
+    for_inc:(i, 11, show_fragment:(StrN, sub:(i, 10), i));
+    show_hbar:0;
+    for_inc:(i, 11, show_fragment:(StrN, i, add:(i, 10)));
+    show_hbar:1;
+    } => ();
+  ! show_fragments:(s R1 R2) [3] = f_put:((), "[", l_item:(0, R1), "..", l_item:(1, R1), "]+[", l_item:(0, R2), "..", l_item:(1, R2), "] :\t(", s_cat:(s_cat:(s_slice:(R1, s), .wide:"|"), s_slice:(R2, s)), ")\n") => show_fragments:;
+
+[========================================]
+[0..0]+[0..10] :	(|0123456789)
+[0..1]+[1..10] :	(0|123456789)
+[0..2]+[2..10] :	(01|23456789)
+[0..3]+[3..10] :	(012|3456789)
+[0..4]+[4..10] :	(0123|456789)
+[0..5]+[5..10] :	(01234|56789)
+[0..6]+[6..10] :	(012345|6789)
+[0..7]+[7..10] :	(0123456|789)
+[0..8]+[8..10] :	(01234567|89)
+[0..9]+[9..10] :	(012345678|9)
+[0..10]+[10..10] :	(0123456789|)
+[----------------------------------------]
+[0..10]+[10..10] :	(0123456789|)
+[0..9]+[9..10] :	(012345678|9)
+[0..8]+[8..10] :	(01234567|89)
+[0..7]+[7..10] :	(0123456|789)
+[0..6]+[6..10] :	(012345|6789)
+[0..5]+[5..10] :	(01234|56789)
+[0..4]+[4..10] :	(0123|456789)
+[0..3]+[3..10] :	(012|3456789)
+[0..2]+[2..10] :	(01|23456789)
+[0..1]+[1..10] :	(0|123456789)
+[0..0]+[0..10] :	(|0123456789)
+[========================================]
+
+
+[========================================]
+[0..10]+[0..0] :	(0123456789|)
+[1..10]+[0..1] :	(123456789|0)
+[2..10]+[0..2] :	(23456789|01)
+[3..10]+[0..3] :	(3456789|012)
+[4..10]+[0..4] :	(456789|0123)
+[5..10]+[0..5] :	(56789|01234)
+[6..10]+[0..6] :	(6789|012345)
+[7..10]+[0..7] :	(789|0123456)
+[8..10]+[0..8] :	(89|01234567)
+[9..10]+[0..9] :	(9|012345678)
+[10..10]+[0..10] :	(|0123456789)
+[----------------------------------------]
+[10..10]+[0..10] :	(|0123456789)
+[9..10]+[0..9] :	(9|012345678)
+[8..10]+[0..8] :	(89|01234567)
+[7..10]+[0..7] :	(789|0123456)
+[6..10]+[0..6] :	(6789|012345)
+[5..10]+[0..5] :	(56789|01234)
+[4..10]+[0..4] :	(456789|0123)
+[3..10]+[0..3] :	(3456789|012)
+[2..10]+[0..2] :	(23456789|01)
+[1..10]+[0..1] :	(123456789|0)
+[0..10]+[0..0] :	(0123456789|)
+[========================================]
+
+  {
+    show_hbar:neg:1;
+    for_inc:(i, 11, show_fragments:(StrN, (0, i), i, 10));
+    show_hbar:0;
+    for_dec:(i, 11, show_fragments:(StrN, (0, i), i, 10));
+    show_hbar:1;
+    show_hbar:neg:1;
+    for_inc:(i, 11, show_fragments:(StrN, (i, 10), 0, i));
+    show_hbar:0;
+    for_dec:(i, 11, show_fragments:(StrN, (i, 10), 0, i));
+    show_hbar:1;
+    } => ();
+  ! show_search:(str ctx dir) [3] = f_put:((), "\"", str, "\" ", if:(dir, "<<", ">>"), " '", ctx, "' = ", if:(dir, s_findlast:(str, ctx), s_findfirst:(str, ctx)), "\n") => show_search:;
+  set:(StrS, s_cat:(s_cat:(s_cat:(s_cat:(wide:"[", StrN), wide:"] : ["), StrN), wide:"]")) => _"[0123456789] : [0123456789]";
+
+[========================================]
+"[0123456789] : [0123456789]" >> '0' = 1
+"[0123456789] : [0123456789]" >> '1' = 2
+"[0123456789] : [0123456789]" >> '2' = 3
+"[0123456789] : [0123456789]" >> '3' = 4
+"[0123456789] : [0123456789]" >> '4' = 5
+"[0123456789] : [0123456789]" >> '5' = 6
+"[0123456789] : [0123456789]" >> '6' = 7
+"[0123456789] : [0123456789]" >> '7' = 8
+"[0123456789] : [0123456789]" >> '8' = 9
+"[0123456789] : [0123456789]" >> '9' = 10
+[----------------------------------------]
+"[0123456789] : [0123456789]" << '9' = 25
+"[0123456789] : [0123456789]" << '8' = 24
+"[0123456789] : [0123456789]" << '7' = 23
+"[0123456789] : [0123456789]" << '6' = 22
+"[0123456789] : [0123456789]" << '5' = 21
+"[0123456789] : [0123456789]" << '4' = 20
+"[0123456789] : [0123456789]" << '3' = 19
+"[0123456789] : [0123456789]" << '2' = 18
+"[0123456789] : [0123456789]" << '1' = 17
+"[0123456789] : [0123456789]" << '0' = 16
+[========================================]
+
+  {
+    show_hbar:neg:1;
+    for_inc:(i, 10, show_search:(StrS, wide:i, 0));
+    show_hbar:0;
+    for_dec:(i, 10, show_search:(StrS, wide:i, 1));
+    show_hbar:1;
+    } => ();
+"[0123456789] : [0123456789]" >> '' = 0
+  show_search:(StrS, "", 0) => 9;
+"[0123456789] : [0123456789]" << '' = 27
+  show_search:(StrS, "", 1) => 9;
+"[0123456789] : [0123456789]" >> '*' = -1
+  show_search:(StrS, wide:"*", 0) => 9;
+"[0123456789] : [0123456789]" << '*' = -1
+  show_search:(StrS, wide:"*", 1) => 9;
+
+[========================================]
+"[0123456789] : [0123456789]" >> '9' = 10
+"[0123456789] : [0123456789]" >> '89' = 9
+"[0123456789] : [0123456789]" >> '789' = 8
+"[0123456789] : [0123456789]" >> '6789' = 7
+"[0123456789] : [0123456789]" >> '56789' = 6
+"[0123456789] : [0123456789]" >> '456789' = 5
+"[0123456789] : [0123456789]" >> '3456789' = 4
+"[0123456789] : [0123456789]" >> '23456789' = 3
+"[0123456789] : [0123456789]" >> '123456789' = 2
+"[0123456789] : [0123456789]" >> '0123456789' = 1
+[----------------------------------------]
+"[0123456789] : [0123456789]" << '0123456789' = 16
+"[0123456789] : [0123456789]" << '123456789' = 17
+"[0123456789] : [0123456789]" << '23456789' = 18
+"[0123456789] : [0123456789]" << '3456789' = 19
+"[0123456789] : [0123456789]" << '456789' = 20
+"[0123456789] : [0123456789]" << '56789' = 21
+"[0123456789] : [0123456789]" << '6789' = 22
+"[0123456789] : [0123456789]" << '789' = 23
+"[0123456789] : [0123456789]" << '89' = 24
+"[0123456789] : [0123456789]" << '9' = 25
+[========================================]
+
+  {
+    show_hbar:neg:1;
+    for_dec:(i, 10, show_search:(StrS, s_slice:((i, 10), StrN), 0));
+    show_hbar:0;
+    for_inc:(i, 10, show_search:(StrS, s_slice:((i, 10), StrN), 1));
+    show_hbar:1;
+    } => ();
+  set:(StrAlpha, "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz") => "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
+  StrAlpha => "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
+  ! to_upper:(code) [1] = if:(c_and:(le:(dc_b:"a", code), le:(code, dc_b:"z")), sub:(add:(dc_b:"A", code), dc_b:"a"), code) => to_upper:;
+  ! to_lower:(code) [1] = if:(c_and:(le:(dc_b:"A", code), le:(code, dc_b:"Z")), sub:(add:(dc_b:"a", code), dc_b:"A"), code) => to_lower:;
+  ! case_toggle:(code) [1] = if:(c_and:(le:(dc_b:"a", code), le:(code, dc_b:"z")), sub:(add:(dc_b:"A", code), dc_b:"a"), if:(c_and:(le:(dc_b:"A", code), le:(code, dc_b:"Z")), sub:(add:(dc_b:"a", code), dc_b:"A"), code)) => case_toggle:;
+  s_map:(to_upper:, StrAlpha) => "AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQRRSSTTUUVVWWXXYYZZ";
+  s_map:(to_lower:, StrAlpha) => "aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz";
+  s_map:(case_toggle:, StrAlpha) => "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ";
+  s_map:(case_toggle:, s_map:(case_toggle:, StrAlpha)) => "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
+  ! rot13:(code) [1] = if:(c_and:(le:(dc_b:"a", code), le:(code, dc_b:"z")), add:(sub:(dc_b:"z", code), dc_b:"a"), if:(c_and:(le:(dc_b:"A", code), le:(code, dc_b:"Z")), add:(sub:(dc_b:"Z", code), dc_b:"A"), code)) => rot13:;
+  s_map:(rot13:, StrAlpha) => "ZzYyXxWwVvUuTtSsRrQqPpOoNnMmLlKkJjIiHhGgFfEeDdCcBbAa";
+  set:(Text, "A quick brown fox jumps over the lazy dog") => "A quick brown fox jumps over the lazy dog";
+  set:(EText, s_map:(rot13:, Text)) => "Z jfrxp yildm ulc qfnkh levi gsv ozab wlt";
+  s_map:(rot13:, EText) => "A quick brown fox jumps over the lazy dog";
+  set:(EText, s_map:(rot13:, wide:Text)) => _"Z jfrxp yildm ulc qfnkh levi gsv ozab wlt";
+  s_map:(rot13:, EText) => _"A quick brown fox jumps over the lazy dog";
+  s_map:(to_upper:, wide:StrAlpha) => _"AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQRRSSTTUUVVWWXXYYZZ";
+  s_map:(to_lower:, wide:StrAlpha) => _"aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz";
+  set:(list1, "alpha", "beta", "gamma", "delta", "epsilon") => ("alpha", "beta", "gamma", "delta", "epsilon");
+  s_join:(":", list1) => "alpha:beta:gamma:delta:epsilon";
+  s_join:(", ", l_map:(! (s) [1] = s_map:(.to_upper:, s), list1)) => "ALPHA, BETA, GAMMA, DELTA, EPSILON";
+  s_join:(" = ", l_map:(! (S) [1] = s_map:(.case_toggle:, S), l_rev:list1)) => "EPSILON = DELTA = GAMMA = BETA = ALPHA";
+  s_join:(" < ", l_range:((10, 25), string:)) => "10 < 11 < 12 < 13 < 14 < 15 < 16 < 17 < 18 < 19 < 20 < 21 < 22 < 23 < 24";
+  s_join:(" > ", l_range_r:(15, string:)) => "14 > 13 > 12 > 11 > 10 > 9 > 8 > 7 > 6 > 5 > 4 > 3 > 2 > 1 > 0";
+  ! expect_s_eq:(s0 s1) [2] = if:(s_ne:(s0, s1), f_put:((), "\aUNEXPECTED s_eq: ", s0, " <>$ ", s1, "\n")) => expect_s_eq:;
+  ! expect_eq:(s0 s1) [2] = if:(ne:(s0, s1), f_put:((), "\aUNEXPECTED eq: ", s0, " <> ", s1, "\n")) => expect_eq:;
+  ! str_range_test_1:(Wide FromChar ToChar) [6] = {
+    set:((FromChar, ToChar), dc_b:FromChar, dc_b:ToChar);
+    set:(len, add:(sub:(ToChar, FromChar), 1));
+    .expect_s_eq:(s_rev:s_range:(Wide, 0, FromChar, add:(ToChar, 1)), s_range:(Wide, 1, FromChar, add:(ToChar, 1)));
+    .expect_s_eq:(s_rev:s_range:(Wide, 1, FromChar, add:(ToChar, 1)), s_range:(Wide, 0, FromChar, add:(ToChar, 1)));
+    set:(str, s_range:(Wide, 0, FromChar, add:(ToChar, 1)));
+    for_inc:(i, add:(len, 1), .expect_s_eq:(s_slice:(i, str), s_range:(Wide, 0, FromChar, add:(add:(sub:(ToChar, len), 1), i))));
+    for_dec:(i, add:(len, 1), {
+      .expect_eq:(s_span_ex:(str, ! (c) [1] = ge:(c, add:(str_range_test_1.FromChar, str_range_test_1.i))), i);
+      .expect_eq:(s_rspan_in:(str, ! (c) [1] = ge:(c, add:(str_range_test_1.FromChar, str_range_test_1.i))), i);
+      });
+    set:(str, s_range:(Wide, 1, FromChar, add:(ToChar, 1)));
+    for_dec:(i, add:(len, 1), .expect_s_eq:(s_slice:(i, str), s_range:(Wide, 1, sub:(add:(FromChar, len), i), add:(ToChar, 1))));
+    for_inc:(i, add:(len, 1), {
+      .expect_eq:(s_span_in:(str, ! (c) [1] = ge:(c, add:(str_range_test_1.FromChar, str_range_test_1.i))), sub:(len, i));
+      .expect_eq:(s_rspan_ex:(str, ! (c) [1] = ge:(c, add:(str_range_test_1.FromChar, str_range_test_1.i))), sub:(len, i));
+      });
+    } => str_range_test_1:;
+  str_range_test_1:(1, "0", "9") => ();
+  str_range_test_1:(0, "a", "z") => ();
+  ! str_range_test_2:(Wide FromChar ToChar) [5] = {
+    set:((FromChar, ToChar), dc_b:FromChar, dc_b:ToChar);
+    set:(delim, s_retype:(Wide, ";"));
+    for_inc:(i, (2, 8), {
+      ! filter_inc:(n) [1] = s_filter_in:(s_range:(str_range_test_2.Wide, 0, str_range_test_2.FromChar, add:(str_range_test_2.ToChar, 1)), ! (c) [1] = eq:(irem:(c, str_range_test_2.i), filter_inc.n));
+      ! filter_dec:(n) [1] = s_filter_in:(s_range:(str_range_test_2.Wide, 1, str_range_test_2.FromChar, add:(str_range_test_2.ToChar, 1)), ! (c) [1] = eq:(irem:(c, str_range_test_2.i), filter_dec.n));
+      .expect_s_eq:(s_join:(delim, l_range:(i, filter_inc:)), s_rev:s_join:(delim, l_range_r:(i, filter_dec:)));
+      });
+    } => str_range_test_2:;
+  str_range_test_2:(0, "A", "Z") => ();
+  str_range_test_2:(1, "0", "9") => ();
+  ! str_range_test_3:(Wide FromChar ToChar) [8] = {
+    set:((FromChar, ToChar), dc_b:FromChar, dc_b:ToChar);
+    set:(str, s_range:(Wide, 0, FromChar, add:(ToChar, 1)));
+    set:(len, s_len:str);
+    for_inc:(i, (2, 8), {
+      set:(count, 0);
+      for_inc:(j, i, comb:add:(count, s_count_in:(str, ! (c) [1] = eq:(irem:(c, str_range_test_3.i), str_range_test_3.j))));
+      .expect_eq:(count, len);
+      });
+    } => str_range_test_3:;
+  str_range_test_3:(1, "A", "Z") => ();
+  str_range_test_3:(0, "0", "9") => ();
+
+} <Strings.awl> #363 / [78]

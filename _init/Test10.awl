@@ -1,0 +1,140 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test10.awl': #10
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+x_trace();
+
+` String permutations `
+
+[a b] = ['hello' 'goodbye'];
+
+[a b];
+
+[c d] = ('[' +$ a +$ ']', '{' +$ b +$ '}');
+[c d];
+
+[c d] = [d c];
+[c d];
+
+i = 4;
+i -- ?? ([c d] = [d c]);
+
+[c d];
+
+i = 6;
+i -- ?? ([b a] = [a b]);
+
+i = 13;
+i -- ?? ([a b c d] = [b c d a]);
+
+i = 8;
+i ++ <> 23 ?? ([a b c d] = [d a b c]);
+
+[a b c d];
+
+
+` reversing array A (same as [~] A) `
+Reverse_A := {
+	i = 0;
+	j = #A;
+	i < --j ?? (A[i++] :=: A[j])
+	};
+
+A = [1 2 3 4 5 6 7 8 9];
+
+^Reverse_A;
+A;
+
+^Reverse_A;
+A;
+
+A = ['aaAA' 'bBBB' 'cccC' 'dDDddD' 'eeeEeEE' 'fFFfFFFf'];
+
+^Reverse_A;
+A;
+
+^Reverse_A;
+A;
+
+` sorting string array A (exchange sort) `
+XchangeSort_A := {
+	I = 1;
+	I < #A ?? {
+	    J = I;
+	    (J && A[J-1] >$ A[J]) ?? {
+		A[J-1] :=: A[J];
+		-- J
+		};
+	    I ++
+	    }
+	};
+
+` sorting string array A (search sort) `
+SearchSort_A := {
+	I = 0;
+	I < #A-1 ?? {
+	    _Min = I;
+	    J = I+1;
+	    J <> #A ?? {
+		A[J] <$ A[_Min] ? (_Min = J) : ;
+		++ J
+		};
+	    _Min <> I ? (A[_Min] :=: A[I]) : ;
+	    ++ I
+	    }
+	};
+
+_A = [	'aabbb' 'hertruy' 'puadr' 'teer' 'lowab' 'xylla' 'dee' 'zzzyy'
+	'caaa' 'wrwty' 'ghyab' 'axada' 'eeemyddd' 'breaass' 'nonol' 'kequ'
+	'threnj' 'vaghe' 'sewqy' 'manegh' 'doolpa' 'rhan' 'fernyu' 'jujox'
+	];
+
+A = l_copy (_A);
+^SearchSort_A;
+A;
+
+A = l_copy (_A);
+^XchangeSort_A;
+A;
+
+
+` Input/Output `
+
+ll = [11 '++ aaa ++' 23 '-- bbb --' 35];
+mm = [12.22 33.71 '**' 81.23 '##' 67.15 21.89];
+
+<: [ll '\n'];
+<: [mm '\n'];
+
+<: ['\n----\n' ll mm '\n----\n'];
+<: ['\n' ll "\n ** **\n" mm '\n'];
+
+
+` Mutable functors `
+
+LL = [1 2 3 4 5 6 7 8 9 10];
+MM = ['aaAAA' 'bBBB' 'cccCCC' 'ddddDDD' 'eeEEEE' 'fF'];
+
+` Even element #i `
+! l_even (list i) = list[2*i];
+
+` Odd element #j `
+! l_odd (list j) = list[2*j + 1];
+
+for_inc (i, 5,
+	{ l_even (LL, i) =*: 3; l_odd (LL, i) =%: 2 }
+	);
+LL;
+
+for_inc (j, 3,
+	{ l_even (MM, j) =*$: 2; l_odd (MM, j) =+$: "--" }
+	);
+
+MM;

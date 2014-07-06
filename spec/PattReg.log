@@ -1,0 +1,13 @@
+<PattReg.awl> #18 / [1] {
+
+  x_trace:() => 0;
+  set:(strings, "abc", "=hgf=", "ijk", "op%|%qr", "$vw$", "z-y-x") => ("abc", "=hgf=", "ijk", "op%|%qr", "$vw$", "z-y-x");
+  ! error_at:(L) [1] = f_put:((), "Error with: ", s_join:(":", L), "!\a\n") => error_at:;
+  set:(rxp_2s, rx_cat:(rx_cat:("[", rx_cat:(rx_store:(1, rx_rep:((0, ), 1, rx_any:())), "] ")), rx_cat:(" {", rx_cat:(rx_recall:1, "}")))) => <<'[' & <<#1 = <<.> * 0..->> & "] ">> & <" {" & <<#?1> & '}'>>>;
+  l_loop:(U, strings, l_loop:(V, strings, if:(ge:(rx_match:(rxp_2s, s_join:("", "[", U, "]  {", V, "}")), 0), if:(s_ne:(U, V), error_at:(U, V)), if:(s_eq:(U, V), error_at:(U, V))))) => ();
+  set:(rxp_3s, rx_cat:(rx_cat:(rx_cat:("{", rx_cat:(rx_store:(2, rx_rep:((0, ), 1, rx_any:())), "}")), rx_cat:("*(", rx_cat:(rx_recall:2, ")*"))), rx_cat:("<", rx_cat:(rx_recall:2, ">.")))) => <<<'{' & <<#2 = <<.> * 0..->> & '}'>> & <"*(" & <<#?2> & ")*">>> & <'<' & <<#?2> & ">.">>>;
+  l_loop:(U, strings, l_loop:(V, strings, l_loop:(W, strings, if:(ge:(rx_match:(rxp_3s, s_join:("", "{", U, "}*(", V, ")*<", W, ">.")), 0), if:(c_or:(s_ne:(U, V), s_ne:(V, W)), error_at:(U, V, W)), if:(c_and:(s_eq:(U, V), s_eq:(V, W)), error_at:(U, V, W)))))) => ();
+  set:(rxp_2dr, rx_cat:(rx_cat:(rx_cat:("[", rx_cat:(rx_store:(1, rx_rep:((0, ), 1, rx_any:())), "]")), rx_cat:("{", rx_cat:(rx_store:(2, rx_rep:((0, ), 1, rx_any:())), "}"))), rx_cat:(rx_cat:(":<", rx_cat:(rx_recall:2, ">")), rx_cat:("@", rx_cat:(rx_recall:1, ". "))))) => <<<'[' & <<#1 = <<.> * 0..->> & ']'>> & <'{' & <<#2 = <<.> * 0..->> & '}'>>> & <<":<" & <<#?2> & '>'>> & <'@' & <<#?1> & ". ">>>>;
+  l_loop:(U, strings, l_loop:(V, strings, if:(lt:(rx_match:(rxp_2dr, s_join:("", "[", U, "]{", V, "}:<", V, ">@", U, ". ")), 0), error_at:(U, V)))) => ();
+
+} <PattReg.awl> #96 / [9]

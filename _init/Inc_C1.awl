@@ -1,0 +1,17 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Inc_C1.awl'
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+[c1_p c1_v c1_s] = (22*3, 143/15, "asdfg");
+
+inc_list [<-] 'Inc_c1';
+
+<: "Inc_C1 included\n";
+

@@ -1,0 +1,44 @@
+#:	&	&&	|	||	~
+0:	0	0	0	0	0
+1:	0	0	1	1	1
+2:	0	0	1	1	1
+3:	0	0	1	1	0
+4:	0	0	1	1	1
+5:	0	0	1	1	0
+6:	0	0	1	1	0
+7:	0	0	1	1	1
+8:	0	0	1	1	1
+9:	0	0	1	1	0
+10:	0	0	1	1	0
+11:	0	0	1	1	1
+12:	0	0	1	1	0
+13:	0	0	1	1	1
+14:	0	0	1	1	1
+15:	0	0	1	1	0
+16:	0	0	1	1	1
+17:	0	0	1	1	0
+18:	0	0	1	1	0
+19:	0	0	1	1	1
+20:	0	0	1	1	0
+21:	0	0	1	1	1
+22:	0	0	1	1	1
+23:	0	0	1	1	0
+24:	0	0	1	1	0
+25:	0	0	1	1	1
+26:	0	0	1	1	1
+27:	0	0	1	1	0
+28:	0	0	1	1	1
+29:	0	0	1	1	0
+30:	0	0	1	1	0
+31:	1	1	1	1	1
+Checking: Idempotence of AND ...done OK= 2 fail=0.
+Checking: Idempotence of OR ...done OK= 2 fail=0.
+Checking: Idempotence of XOR ...done OK= 1 fail=1.
+Checking: Commutativity of AND ...done OK= 4 fail=0.
+Checking: Commutativity of OR ...done OK= 4 fail=0.
+Checking: Commutativity of XOR ...done OK= 4 fail=0.
+Checking: Associativity of AND ...done OK= 8 fail=0.
+Checking: Associativity of OR ...done OK= 8 fail=0.
+Checking: Associativity of XOR ...done OK= 8 fail=0.
+Checking: De Morgan Laws for AND/OR ...done OK= 4 fail=0.
+Checking: De Morgan Laws for OR/AND ...done OK= 4 fail=0.

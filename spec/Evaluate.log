@@ -1,0 +1,35 @@
+<Evaluate.awl> #17 / [1] {
+
+  x_trace:() => 0;
+  set:(a, "Aa") => "Aa";
+  set:(b, "Bb") => "Bb";
+  set:(c, "Cc") => "Cc";
+  v => ();
+  xv => ();
+  xxv => ();
+  xxxv => ();
+  set:(v, a) => "Aa";
+  set:(xv, deval:a) => a;
+  set:(xxv, deval:deval:a) => deval:a;
+  set:(xxxv, deval:deval:deval:a) => deval:deval:a;
+  (v, xv, xxv, xxxv) => ("Aa", a, deval:a, deval:deval:a);
+  (reval:v, reval:xv, reval:xxv, reval:xxxv) => ("Aa", "Aa", a, deval:a);
+  (reval:reval:v, reval:reval:xv, reval:reval:xxv, reval:reval:xxxv) => ("Aa", "Aa", "Aa", a);
+  (reval:reval:reval:v, reval:reval:reval:xv, reval:reval:reval:xxv, reval:reval:reval:xxxv) => ("Aa", "Aa", "Aa", "Aa");
+  ((xv, reval:xxv, reval:reval:xxxv), (xxv, reval:xxxv), xxxv) => ((a, a, a), (deval:a, deval:a), deval:deval:a);
+  (v, xv, xxv, xxxv) => ("Aa", a, deval:a, deval:deval:a);
+  reval:(v, xv, xxv, xxxv) => ("Aa", "Aa", a, deval:a);
+  reval:reval:(v, xv, xxv, xxxv) => ("Aa", "Aa", "Aa", a);
+  reval:reval:reval:(v, xv, xxv, xxxv) => ("Aa", "Aa", "Aa", "Aa");
+
+    a = "Aa";
+    xxxv = deval:deval:a;
+    c = "Cc";
+    b = "Bb";
+    xv = a;
+    xxv = deval:a;
+    v = "Aa";
+
+  x_vars:() => 7;
+
+} <Evaluate.awl> #46 / [22]

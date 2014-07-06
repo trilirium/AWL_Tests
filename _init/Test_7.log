@@ -1,0 +1,70 @@
+<Test_7.awl> #15 / [1] {
+
+  x_trace:() => 0;
+  let:(ta, {
+    set:((a, b), sub:(add:(a, b), 2), add:(sub:(b, a), 5));
+    (mul:(add:(a, b), 4), mul:(sub:(b, a), 3)) }) => ta;
+  let:(tb, {
+    set:((a, b), add:(a, 2), sub:(b, 3));
+    (sub:(a, b), add:(a, b)) }) => tb;
+  set:(a, 22) => 22;
+  set:(b, 43) => 43;
+  reval:tb => (-16, 64);
+  reval:tb => (-11, 63);
+  reval:tb => (-6, 62);
+  reval:tb => (-1, 61);
+  reval:tb => (4, 60);
+  reval:ta => (236, -171);
+  reval:ta => (20, -327);
+  reval:ta => (-404, -321);
+  reval:ta => (-820, 3);
+  set:(xyz, "XXXxxx", "YYYyyy", "ZZZzzz") => ("XXXxxx", "YYYyyy", "ZZZzzz");
+  l_item:(0, xyz) => "XXXxxx";
+  l_item:(1, xyz) => "YYYyyy";
+  l_item:(2, xyz) => "ZZZzzz";
+  set:(i, 0) => 0;
+  set:(v, 0) => 0;
+  set:(n, 0) => 0;
+  while:(lt:(inc_p:i, l_len:xyz), inc_p:n, set:(v, add:(v, i))) => (2, 6);
+  l_len:xyz => 3;
+  v => 6;
+  n => 3;
+  s_cat:(s_cat:(l_item:(0, xyz), l_item:(1, xyz)), l_item:(2, xyz)) => "XXXxxxYYYyyyZZZzzz";
+  set:(sa, set:(sb, "")) => "";
+  set:(i, 0) => 0;
+  while:(ne:(i, l_len:xyz), {
+    comb:s_cat:(sa, s_slice:((0, 3), l_item:(i, xyz)));
+    comb:s_cat:(sb, s_slice:((3, 6), l_item:(i, xyz)));
+    inc:i }) => 3;
+  (sa, sb, s_cat:(sa, sb)) => ("XXXYYYZZZ", "xxxyyyzzz", "XXXYYYZZZxxxyyyzzz");
+  let:(ij, i, j) => ij;
+  set:((i, j), 0, 6) => (0, 6);
+  reval:ij => (0, 6);
+  while:(j, inc_p:i, dec_p:j) => (5, 1);
+  reval:ij => (6, 0);
+  set:((k, l), 5, 3) => (5, 3);
+  do_while:(k, dec_p:k, inc_p:l) => (1, 7);
+  (k, l) => (0, 8);
+
+    ta = {
+      set:((a, b), sub:(add:(a, b), 2), add:(sub:(b, a), 5));
+      (mul:(add:(a, b), 4), mul:(sub:(b, a), 3)) };
+    a = -103;
+    b = -102;
+    tb = {
+      set:((a, b), add:(a, 2), sub:(b, 3));
+      (sub:(a, b), add:(a, b)) };
+    xyz = ("XXXxxx", "YYYyyy", "ZZZzzz");
+    i = 6;
+    v = 6;
+    n = 3;
+    sa = "XXXYYYZZZ";
+    sb = "xxxyyyzzz";
+    ij = (i, j);
+    j = 0;
+    k = 0;
+    l = 8;
+
+  x_vars_ord:() => 14;
+
+} <Test_7.awl> #79 / [39]

@@ -1,0 +1,76 @@
+<ListEval.awl> #11 / [1] {
+
+  x_trace:() => 0;
+  let:(L_SS, f_put:((), "aa"), f_put:((), "bb"), f_put:((), "cc"), f_put:((), "dd")) => L_SS;
+  let:(L_II, f_put:((), 11), f_put:((), 22), f_put:((), 33), f_put:((), 44), f_put:((), 55)) => L_II;
+  let:(L_FF, f_put:((), 333.33), f_put:((), 555.55), f_put:((), 777.77)) => L_FF;
+  L_SS => (f_put:((), "aa"), f_put:((), "bb"), f_put:((), "cc"), f_put:((), "dd"));
+  L_II => (f_put:((), 11), f_put:((), 22), f_put:((), 33), f_put:((), 44), f_put:((), 55));
+  L_FF => (f_put:((), 333.33), f_put:((), 555.55), f_put:((), 777.77));
+  set:(L__, L_SS, L_II, L_FF) => ((f_put:((), "aa"), f_put:((), "bb"), f_put:((), "cc"), f_put:((), "dd")), (f_put:((), 11), f_put:((), 22), f_put:((), 33), f_put:((), 44), f_put:((), 55)), f_put:((), 333.33), f_put:((), 555.55), f_put:((), 777.77));
+aabbccdd  reval:L_SS => (1, 1, 1, 1);
+1122334455  reval:L_II => (1, 1, 1, 1, 1);
+333.33555.55777.77  reval:L_FF => (1, 1, 1);
+aabbccdd1122334455333.33555.55777.77  reval:L__ => ((1, 1, 1, 1), (1, 1, 1, 1, 1), 1, 1, 1);
+  ! acc_test:(L) [2] = for_inc:(i, l_len:L, {
+    l_item:(i, L);
+    l_tail_by:(i, L);
+    }) => acc_test:;
+  ! acc_test_x:(L) [2] = for_inc:(i, l_len:L, {
+    reval:l_item:(i, L);
+    f_put:((), ":");
+    reval:l_tail_by:(i, L);
+    f_put:((), "\n");
+    }) => acc_test_x:;
+  acc_test:L_SS => ();
+  acc_test:L_II => ();
+  acc_test:L_FF => ();
+aa:aabbccdd
+bb:bbccdd
+cc:ccdd
+dd:dd
+  acc_test_x:L_SS => ();
+11:1122334455
+22:22334455
+33:334455
+44:4455
+55:55
+  acc_test_x:L_II => ();
+333.33:333.33555.55777.77
+555.55:555.55777.77
+777.77:777.77
+  acc_test_x:L_FF => ();
+  ! loop_test:(L) [2] = l_loop:(v, L, v) => loop_test:;
+  ! loop_test_x:(L) [2] = l_loop:(v, L, reval:v) => loop_test_x:;
+  loop_test:L_SS => f_put:((), "dd");
+  loop_test:L_II => f_put:((), 55);
+  loop_test:L_FF => f_put:((), 777.77);
+aabbccdd  loop_test_x:L_SS => 1;
+1122334455  loop_test_x:L_II => 1;
+333.33555.55777.77  loop_test_x:L_FF => 1;
+  l_cat:(l_cat:(L_SS, L_II), L_FF) => (f_put:((), "aa"), f_put:((), "bb"), f_put:((), "cc"), f_put:((), "dd"), f_put:((), 11), f_put:((), 22), f_put:((), 33), f_put:((), 44), f_put:((), 55), f_put:((), 333.33), f_put:((), 555.55), f_put:((), 777.77));
+  l_cat:(l_cat:(L_II, L_FF), L_SS) => (f_put:((), 11), f_put:((), 22), f_put:((), 33), f_put:((), 44), f_put:((), 55), f_put:((), 333.33), f_put:((), 555.55), f_put:((), 777.77), f_put:((), "aa"), f_put:((), "bb"), f_put:((), "cc"), f_put:((), "dd"));
+  l_cat:(l_cat:(L_FF, L_SS), L_II) => (f_put:((), 333.33), f_put:((), 555.55), f_put:((), 777.77), f_put:((), "aa"), f_put:((), "bb"), f_put:((), "cc"), f_put:((), "dd"), f_put:((), 11), f_put:((), 22), f_put:((), 33), f_put:((), 44), f_put:((), 55));
+aabbccdd1122334455333.33555.55777.77  reval:l_cat:(l_cat:(L_SS, L_II), L_FF) => (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+1122334455333.33555.55777.77aabbccdd  reval:l_cat:(l_cat:(L_II, L_FF), L_SS) => (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+333.33555.55777.77aabbccdd1122334455  reval:l_cat:(l_cat:(L_FF, L_SS), L_II) => (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+aabbccddaabbccdd112233445511223344551122334455333.33555.55777.77333.33555.55777.77333.33555.55777.77333.33555.55777.77  reval:l_cat:(l_cat:(l_rep:(2, L_SS), l_rep:(3, L_II)), l_rep:(4, L_FF)) => (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+1122334455112233445511223344551122334455333.33555.55777.77333.33555.55777.77aabbccddaabbccddaabbccdd  reval:l_cat:(l_cat:(l_rep:(4, L_II), l_rep:(2, L_FF)), l_rep:(3, L_SS)) => (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+333.33555.55777.77333.33555.55777.77333.33555.55777.77aabbccddaabbccddaabbccddaabbccdd11223344551122334455  reval:l_cat:(l_cat:(l_rep:(3, L_FF), l_rep:(4, L_SS)), l_rep:(2, L_II)) => (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+  l_rev:L_SS => (f_put:((), "dd"), f_put:((), "cc"), f_put:((), "bb"), f_put:((), "aa"));
+  l_rev:L_II => (f_put:((), 55), f_put:((), 44), f_put:((), 33), f_put:((), 22), f_put:((), 11));
+  l_rev:L_FF => (f_put:((), 777.77), f_put:((), 555.55), f_put:((), 333.33));
+ddccbbaa  reval:l_rev:L_SS => (1, 1, 1, 1);
+5544332211  reval:l_rev:L_II => (1, 1, 1, 1, 1);
+777.77555.55333.33  reval:l_rev:L_FF => (1, 1, 1);
+  l_rev:l_cat:(L_SS, L_II) => (f_put:((), 55), f_put:((), 44), f_put:((), 33), f_put:((), 22), f_put:((), 11), f_put:((), "dd"), f_put:((), "cc"), f_put:((), "bb"), f_put:((), "aa"));
+  l_rev:l_cat:(L_II, L_FF) => (f_put:((), 777.77), f_put:((), 555.55), f_put:((), 333.33), f_put:((), 55), f_put:((), 44), f_put:((), 33), f_put:((), 22), f_put:((), 11));
+  l_rev:l_cat:(L_FF, L_SS) => (f_put:((), "dd"), f_put:((), "cc"), f_put:((), "bb"), f_put:((), "aa"), f_put:((), 777.77), f_put:((), 555.55), f_put:((), 333.33));
+5544332211ddccbbaa  reval:l_rev:l_cat:(L_SS, L_II) => (1, 1, 1, 1, 1, 1, 1, 1, 1);
+777.77555.55333.335544332211  reval:l_rev:l_cat:(L_II, L_FF) => (1, 1, 1, 1, 1, 1, 1, 1);
+ddccbbaa777.77555.55333.33  reval:l_rev:l_cat:(L_FF, L_SS) => (1, 1, 1, 1, 1, 1, 1);
+  l_copy:L_SS => (f_put:((), "aa"), f_put:((), "bb"), f_put:((), "cc"), f_put:((), "dd"));
+  l_copy:L_FF => (f_put:((), 333.33), f_put:((), 555.55), f_put:((), 777.77));
+  l_copy:L_II => (f_put:((), 11), f_put:((), 22), f_put:((), 33), f_put:((), 44), f_put:((), 55));
+
+} <ListEval.awl> #86 / [52]

@@ -1,0 +1,48 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test13.awl': #13
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+x_trace ();
+
+` Generate sorted indexes `
+
+cmp0 = !(x y) = { <: [ '<' x ':' y '>\n' ]; x <?> y };
+
+{ <: '\n'; l_sort_index (cmp0, 10..30); <: '\n'; };
+
+vv = [5 2 7 9 0 6 3 8 1 4];
+
+l_sort_index (!(x y) = (vv[x] <?> vv[y]), 0..#vv);
+
+ww = ['sigma' 'gamma' 'beta' 'mu' 'psi' 'theta'
+	  'rho' 'zeta' 'pi' 'epsilon' 'alpha' 'omega' ];
+
+ww_i = l_sort_index (!(x y) = (ww[x] <?>$ ww[y]), 0..#ww);
+
+{ <: '\n'; l_loop (w, ww_i, <: ('- ', ww[w], '\n')); <: '\n'; };
+
+aa = array ([3 3]);
+
+a_load (aa, [77 22 44 11 33 88 66 99 55]);
+
+vv_h = ();
+vv_v = ();
+
+for_inc (i, 0..3, {
+	vv_h [<-] l_sort_index (!(j k) = (aa {i, j} <?> aa {i, k}), 0..3);
+	vv_v [<-] l_sort_index (!(j k) = (aa {j, i} <?> aa {k, i}), 0..3)
+	});
+
+vv_h;
+vv_v;
+
+a_save (aa);
+

@@ -1,0 +1,36 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Primes.awl':
+	|	Find all prime numbers, in range 2..N.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[primes N v r i j];
+
+N = 1000;	` (until N) `
+
+primes = 2;
+i = 3;
+
+(i < N) ?? {
+
+j = #primes;
+(-- j >= 0 && (r = i %% (v = primes[j])) && v*v < i) ?? ();
+
+` if found: add to list... `
+r ? (primes [<-] i):;
+
+i =+: 2;	` check only odd numbers... `
+};
+
+<: ('\nPrime numbers (< ', N, '):\n\n');
+j = #primes;
+
+?? (<: (' ', primes[--j], '\n')) (j);
+<: ('\n(total: ', #primes, ').\n')
+

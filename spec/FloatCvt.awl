@@ -1,0 +1,82 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'FloatCvt.awl':
+	|	Explicit float coercions.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+`
+	CHECKED: s_ffloat, s_efloat, s_gfloat
+`
+
+! make_range (range) =
+	"[" +$ (#range > 1 ? (range[0] +$ ".." +$ range[1]) : range) +$ "]";
+
+! test_format_f (base_val range_prec range_fact) : [val fact prec] = {
+	<: ("Test format F: ", base_val, " * ",
+		make_range (range_fact), " :: ",
+		make_range (range_prec), " ...\n");
+
+	for_inc (prec, range_prec,
+		<: ("\t:", prec));
+	<: "\n";
+
+    for_inc (fact, range_fact, {
+	val = base_val * fact;
+	<: (val, ':');
+
+	for_inc (prec, range_prec,
+		<: ("\t", s_ffloat (val, prec)));
+
+	<: "\n";
+	});
+	
+	<: "\n";
+	};	` === test_format_f `
+
+test_format_f (1.1, -1..2, 0..10);
+test_format_f (11.11, -2..3, 0..10);
+test_format_f (111.111, -3..4, 0..10);
+
+! test_format_e (base_val range_cap) = {
+
+<: ("Test format E: ", base_val, " :: ", make_range (range_cap), " ...\n");
+
+for_inc (cap, range_cap, {
+	<: ('[', cap, '] ', -cap, '..', cap, ':');
+
+    for_inc (shift, -cap..cap+1,
+		<: ('\t', s_efloat (base_val, shift << 16 + cap))
+		);
+    <: '\n';
+	});
+
+	
+<: "\n";
+};	` === test_format_e `
+
+test_format_e (98.76, 5);
+test_format_e (123.456, 7);
+
+! test_format_g (base_val range_cap) = {
+
+<: ("Test format G: ", base_val, " :: ", make_range (range_cap), " ...\n");
+
+for_inc (cap, range_cap + 1, {
+    <: ('[', cap, ']\t', s_gfloat (base_val, 1 << 16 | cap), '\n');
+
+	});
+	
+<: "\n";
+};	` === test_format_g `
+
+test_format_g (5.6, 3);
+test_format_g (98.76, 5);
+test_format_g (123.456, 7);
+test_format_g (1928.2819, 9);

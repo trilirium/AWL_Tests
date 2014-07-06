@@ -1,0 +1,106 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'ParseCode.awl':
+	|	Source code parser test.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+! parse_expr (source) = _parse_code (source);
+
+table = [
+	` scalar expressions `
+	"a + b + c"
+	"3*a + 5*b + 7*c"
+	"'ab' *$ 8 +$ 'rst' *$ 5 +$ 'ijk'"
+	"(a + 3)*(b - 5) + (b + 7)*(c - 15) - (c - 3)*(a + 11)"
+	"a <= b + 6*c && b > c - 8*a && c <> 11*a - 13*b"
+	"a + (a*b ?< c)*b - (b*c ?> a)*c + c"
+	"nn < mm ? 2*mm - 13 : 7*nn + 6"
+	"inside (a, b..c) ?
+		outside (b, 16) ? (a+1, 2*c) : (c-2, 3*a)
+	:	outside (c, 25) ? (b-3, 6*a) : (a+9, 7*c)"
+
+	` list expressions `
+	"(11, 22, 33, 44)"
+	"[24 'aa' 36 'bb' 48 'cc']"
+	"[ [1 1 1] [2 2 2] [3 3 3] :]"
+	"[ [15 'a'] [25 'bb'] [35 'cd'] [45 'efg'] :]"
+	"[1.1 [2.2 [3.3 4.4]] [[5.5 6.6] 7.7]]"
+
+	"(
+		(a, (b+1, c*2), 0),
+		(c, (a-2, b*7), 1),
+		(b, (c-9, a*3), 2),
+	 )"
+
+	` blocks `
+	"{ 1; 2; 3; 4 }"
+	
+	"{ { 'aa'; 'bbb'; }; 'cc'; { 'dd'; 'eee'; }; 'ffff'; }"
+
+	"{
+		<: '-- aaa\n';
+		<: '-- bbb cc ddddd\n';
+		<: '-- eeee ff gggg\n';
+		}"
+
+	` assignments `
+	"aa = [a b c]"
+	"aa[0] =+: b*c"
+	"aa[1] =-: a%%c"
+	"aa[2] =*: 2.5"
+
+	` functor calls `
+	
+	"for_inc (i, 10..20, <: (2*i+3))"
+	"for_dec (i, 20..40, <: (7*i-5))"
+
+	"for_inc (m, 10..20, for_inc (n, 10, <: (m*n-1)))"
+
+	"pp = ! (x y z) = (x*y - y*z, z*x - x*y)"
+	"qq = ! (i j k l) = (i*j - 1, j*k + 1, k*l - 1, l*i + 1)"
+
+	` lists `
+
+	"list_fn_1 = (
+		!(x) = (sin(x) - cos(x)),
+		!(y) = (2*exp(y) + log(y)),
+		!(z) = (0.5*z*z - 0.75*z + 2.5)
+		)"
+
+	"list_fn_2 = (
+		!(s) = ('(' +$ ('[' +$ s +$ ']') *$ 5 +$ ')'),
+		!(t) = ('{-- ' +$ t +$ ' --}')
+		)"
+
+	"list_fn_3 = (
+		!(a b) = (2*a - b + 1, 3*b + a - 4, 6*b - 5*a + 8),
+		!(p q r) = (p & q ~ r, r | q ~ p, r ~ p ~ q),
+		!(s t u) = (
+			'1: ' +$ s$[1..3] +$ ' : ' +$ t$[5..6] +$ '.',
+			'2: ' +$ t$[0..3] +$ ' | ' +$ u$[7..9] +$ '.',
+			'3: ' +$ u$[0..2] +$ ' / ' +$ s$[6..8] +$ '.',
+			)
+		)"
+
+	"[10.1 20.2 30.3] [+] ['aaBB' 'ccDD' 'eeFF']"
+	"[100.001 200.002 300.003] [*] 5"
+	"[~] [11 'xxXxx' 22 'yyYyy' 33 'zzZzz']"
+	];
+
+` Check all items in table... `
+l_loop (item, table, {
+	<: ('"', item, '"', " => ");
+	x_trace (2, parse_expr (item));
+	<: "\n";
+	});
+
+table = item = [];		` not needed anymore... `
+
+x_vars_ord ();
+

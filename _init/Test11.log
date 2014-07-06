@@ -1,0 +1,46 @@
+<Test11.awl> #13 / [1] {
+
+  x_trace:() => 0;
+  ! show_all:(S ss) [6] = {
+    set:(start, 0);
+    set:(count, 0);
+    set:(sslen, s_len:ss);
+    f_put:((), "\n", S, "\n");
+    while:(ge:(set:(index, s_findfirst:(s_slice:((start, ), S), ss)), 0), {
+      f_put:((), s_rep:(" ", index), s_rep:("-", sslen));
+      inc:count;
+      comb:add:(start, add:(index, sslen)) });
+    f_put:((), "\nTotal: ", count, "\n\n");
+    } => show_all:;
+
+aardvark
+--   -
+Total: 3
+
+  show_all:("aardvark", "a") => ();
+
+aardvark
+ --  --
+Total: 2
+
+  show_all:("aardvark", "ar") => ();
+
+The rain in Spain falls mainly on a plain
+     ---      ---        ---          ---
+Total: 4
+
+  show_all:("The rain in Spain falls mainly on a plain", "ain") => ();
+
+Don't trouble trouble until trouble troubles you
+      ------- -------       ------- -------
+Total: 4
+
+  show_all:("Don't trouble trouble until trouble troubles you", "trouble") => ();
+
+How now a brown cow?
+ --  --     --   --
+Total: 4
+
+  show_all:("How now a brown cow?", "ow") => ();
+
+} <Test11.awl> #37 / [7]

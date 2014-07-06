@@ -1,0 +1,175 @@
+<Test16.awl> #17 / [1] {
+
+  x_trace:() => 0;
+  ! C_root.f_sum:() [0] = add:(add:(C_root.x, C_root.y), C_root.z) => C_root.f_sum:;
+  ! C_root.f_prod:() [0] = mul:(mul:(C_root.x, C_root.y), C_root.z) => C_root.f_prod:;
+  ! C_root.f_sq_sum:() [0] = add:(add:(mul:(C_root.x, C_root.x), mul:(C_root.y, C_root.y)), mul:(C_root.z, C_root.z)) => C_root.f_sq_sum:;
+  !! C_root:(x y z) {3}
+    = f_put:((), "\nCreated: C_root\n")
+    ~ f_put:((), "\nDestroyed: C_root\n") => C_root:;
+
+Created: C_root
+  set:(C_a, C_root:(10, 25, 40)) => C_root:{10, 25, 40};
+
+Created: C_root
+  set:(C_b, C_root:(2.2, 4.4, 6.6)) => C_root:{2.2, 4.4, 6.6};
+
+Created: C_root
+  set:(C_c, C_root:(1, 2, 3)) => C_root:{1, 2, 3};
+Sum = 6, Prod = 6, SQP = 14.
+Sum = 13.2, Prod = 63.888, SQP = 67.76.
+Sum = 75, Prod = 10000, SQP = 2325.
+  l_loop:(V, (C_c, C_b, C_a), with:(V, f_put:((), "Sum = ", C_root.f_sum:(), ", Prod = ", C_root.f_prod:(), ", SQP = ", C_root.f_sq_sum:(), ".\n"))) => 7;
+  ! C_1.fcA:() [0] = add:(add:(mul:(C_1.a1, C_root.x), mul:(C_1.b2, C_root.y)), mul:(C_1.c3, C_root.z)) => C_1.fcA:;
+  ! C_1.fcB:() [0] = sub:(mul:(mul:(C_root.x, C_root.y), C_root.z), mul:(mul:(C_1.a1, C_1.b2), C_1.c3)) => C_1.fcB:;
+  ! C_1.fcC:() [0] = (mul:(C_1.a1, C_1.a1), mul:(C_1.b2, C_1.b2), mul:(C_1.c3, C_1.c3)) => C_1.fcC:;
+  !! C_root:->C_1:(a1 b2 c3) {6}
+    = f_put:((), "\n\tCreated: C_1\n")
+    ~ f_put:((), "\n\tDestroyed: C_1\n") => C_1:;
+
+Created: C_root
+
+	Created: C_1
+  set:(C_1_x, C_1:((10, 20, 30), sqr:2, sqr:3, sqr:5)) => C_root:{10, 20, 30}->C_1:{1.4142136, 1.7320508, 2.236068};
+
+Created: C_root
+
+	Created: C_1
+  set:(C_1_y, C_1:((101, 202, 303), sqr:7, sqr:11, sqr:13)) => C_root:{101, 202, 303}->C_1:{2.6457513, 3.3166248, 3.6055513};
+  with:(C_1_y, (C_root.z, C_root.y, C_root.x), C_1.a1, C_1.b2, C_1.c3) => ((303, 202, 101), 2.6457513, 3.3166248, 3.6055513);
+  with:(C_1_x, (C_root.x, C_root.y, C_root.z), C_1.c3, C_1.b2, C_1.a1) => ((10, 20, 30), 2.236068, 1.7320508, 1.4142136);
+  l_cat:(with:(C_1_x, C_1.fcC:()), with:(C_1_y, C_1.fcC:())) => (2., 3., 5., 7., 11., 13.);
+SQP = 1400, fcA = 115.86519, fcB = 5994.5228.
+SQP = 142814, fcA = 2029.6611, fcB = 6181774.4.
+  l_loop:(V, (C_1_x, C_1_y), with:(V, f_put:((), "SQP = ", C_root.f_sq_sum:(), ", fcA = ", C_1.fcA:(), ", fcB = ", C_1.fcB:(), ".\n"))) => 7;
+  ! C_2.fcX:() [0] = s_cat:(s_cat:(s_cat:(s_cat:(s_rep:(C_2.Xx, C_root.x), ", "), s_rep:(C_2.Yy, C_root.y)), ", "), s_rep:(C_2.Zz, C_root.z)) => C_2.fcX:;
+  ! C_2.fcY:() [0] = {
+    ! fff:(Aa a) [2] = s_cat:(s_cat:(s_cat:(s_cat:("[", Aa), "#"), a), "]");
+    s_cat:(s_cat:(fff:(C_2.Xx, C_root.x), fff:(C_2.Yy, C_root.y)), fff:(C_2.Zz, C_root.z)) } => C_2.fcY:;
+  !! C_root:->C_2:(Xx Yy Zz) {6}
+    = f_put:((), "\n\tCreated: C_2\n")
+    ~ f_put:((), "\n\tDestroyed: C_2\n") => C_2:;
+
+Created: C_root
+
+	Created: C_2
+  set:(C_2_l, C_2:((1, 2, 3), "abc", "def", "ghi")) => C_root:{1, 2, 3}->C_2:{"abc", "def", "ghi"};
+
+Created: C_root
+
+	Created: C_2
+  set:(C_2_m, C_2:((6, 5, 4), "++", "--", "***")) => C_root:{6, 5, 4}->C_2:{"++", "--", "***"};
+
+Created: C_root
+
+	Created: C_2
+  set:(C_2_n, C_2:((3, 5, 7), 3, 5, 7)) => C_root:{3, 5, 7}->C_2:{3, 5, 7};
+SQP = 14, fcX = abc, defdef, ghighighi, fcY = [abc#1][def#2][ghi#3].
+SQP = 77, fcX = ++++++++++++, ----------, ************, fcY = [++#6][--#5][***#4].
+SQP = 83, fcX = 333, 55555, 7777777, fcY = [3#3][5#5][7#7].
+  l_loop:(V, (C_2_l, C_2_m, C_2_n), with:(V, f_put:((), "SQP = ", C_root.f_sq_sum:(), ", fcX = ", C_2.fcX:(), ", fcY = ", C_2.fcY:(), ".\n"))) => 7;
+  ! C_3.label:() [0] = s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:("{", C_root.x), C_3.SS), C_root.y), C_3.SS), C_root.z), "}") => C_3.label:;
+  !! C_root:->C_3:(SS) {4}
+    = f_put:((), "\n\tCreated: C_3\n")
+    ~ f_put:((), "\n\tDestroyed: C_3\n") => C_3:;
+
+Created: C_root
+
+	Created: C_3
+  set:(C_3_A, C_3:((11, 44, 77), "<.>")) => C_root:{11, 44, 77}->C_3:{"<.>"};
+
+Created: C_root
+
+	Created: C_3
+  set:(C_3_B, C_3:((60, 50, 40), "[-]")) => C_root:{60, 50, 40}->C_3:{"[-]"};
+
+Created: C_root
+
+	Created: C_3
+  set:(C_3_C, C_3:((303, 202, 101), "^")) => C_root:{303, 202, 101}->C_3:{"^"};
+
+Created: C_root
+
+	Created: C_3
+  set:(C_3_D, C_3:((9, 8, 7), "//")) => C_root:{9, 8, 7}->C_3:{"//"};
+SQP = 7986, label = {11<.>44<.>77}.
+SQP = 7700, label = {60[-]50[-]40}.
+SQP = 142814, label = {303^202^101}.
+SQP = 194, label = {9//8//7}.
+  l_loop:(V, (C_3_A, C_3_B, C_3_C, C_3_D), with:(V, f_put:((), "SQP = ", C_root.f_sq_sum:(), ", label = ", C_3.label:(), ".\n"))) => 5;
+  l_map:(! (obj) [1] = with:(obj, C_root.f_sq_sum:()), C_a, C_1_x, C_1_y, C_b, C_2_n, C_2_m, C_2_l, C_c, C_3_A, C_3_C, C_3_B, C_3_D) => (2325, 1400, 142814, 67.76, 83, 77, 14, 14, 7986, 142814, 7700, 194);
+
+    C_a = C_root:{10, 25, 40};
+    C_b = C_root:{2.2, 4.4, 6.6};
+    C_c = C_root:{1, 2, 3};
+    V = C_root:{9, 8, 7}->C_3:{"//"};
+    C_1_x = C_root:{10, 20, 30}->C_1:{1.4142136, 1.7320508, 2.236068};
+    C_1_y = C_root:{101, 202, 303}->C_1:{2.6457513, 3.3166248, 3.6055513};
+    C_2_l = C_root:{1, 2, 3}->C_2:{"abc", "def", "ghi"};
+    C_2_m = C_root:{6, 5, 4}->C_2:{"++", "--", "***"};
+    C_2_n = C_root:{3, 5, 7}->C_2:{3, 5, 7};
+    C_3_A = C_root:{11, 44, 77}->C_3:{"<.>"};
+    C_3_B = C_root:{60, 50, 40}->C_3:{"[-]"};
+    C_3_C = C_root:{303, 202, 101}->C_3:{"^"};
+    C_3_D = C_root:{9, 8, 7}->C_3:{"//"};
+
+  x_vars_ord:() => 13;
+
+    !! C_root:(x y z) {3}
+      = f_put:((), "\nCreated: C_root\n")
+      ~ f_put:((), "\nDestroyed: C_root\n");
+    !! C_root:->C_1:(a1 b2 c3) {6}
+      = f_put:((), "\n\tCreated: C_1\n")
+      ~ f_put:((), "\n\tDestroyed: C_1\n");
+    !! C_root:->C_2:(Xx Yy Zz) {6}
+      = f_put:((), "\n\tCreated: C_2\n")
+      ~ f_put:((), "\n\tDestroyed: C_2\n");
+    !! C_root:->C_3:(SS) {4}
+      = f_put:((), "\n\tCreated: C_3\n")
+      ~ f_put:((), "\n\tDestroyed: C_3\n");
+
+  x_funcs_ord:() => 4;
+
+Destroyed: C_root
+
+Destroyed: C_root
+
+Destroyed: C_root
+
+	Destroyed: C_3
+
+Destroyed: C_root
+
+	Destroyed: C_3
+
+Destroyed: C_root
+
+	Destroyed: C_3
+
+Destroyed: C_root
+
+	Destroyed: C_3
+
+Destroyed: C_root
+
+	Destroyed: C_2
+
+Destroyed: C_root
+
+	Destroyed: C_2
+
+Destroyed: C_root
+
+	Destroyed: C_2
+
+Destroyed: C_root
+
+	Destroyed: C_1
+
+Destroyed: C_root
+
+	Destroyed: C_1
+
+Destroyed: C_root
+
+} <Test16.awl> #107 / [36]

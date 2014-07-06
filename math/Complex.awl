@@ -1,0 +1,90 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Complex.awl':
+	|	Complex numbers implementation.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+!! complex (Re Im) {
+
+	` output this value `
+	! put () = <:
+		(Im > 0 ? [Re '+' Im 'i'] :
+		 Im < 0 ? [Re '-' (-Im) 'i'] : Re),
+
+	` equality test `
+	! c_eq (X Y) = (X.Re == Y.Re && X.Im == Y.Im),
+
+	` inequality test `
+	! c_ne (X Y) = (X.Re <> Y.Re || X.Im <> Y.Im),
+
+	` complex conjugation `
+	! c_conj (X) = X.complex(Re, - Im),
+
+	` complex negation `
+	! c_neg (X) = X.complex(- Re, - Im),
+
+	` complex addition `
+	! c_add (X Y) = complex(X.Re + Y.Re, X.Im + Y.Im),
+
+	` complex subtraction `
+	! c_sub (X Y) = complex(X.Re - Y.Re, X.Im - Y.Im),
+
+	` complex multiplication `
+	! c_mul (X Y):[X_Re Y_Re X_Im Y_Im] = {
+		[X_Re X_Im] = X.[Re Im];
+		[Y_Re Y_Im] = Y.[Re Im];
+		complex(X_Re*Y_Re - X_Im*Y_Im, X_Re*Y_Im + Y_Re*X_Im)
+		},
+
+	` complex division `
+	! c_div (X Y):[X_Re Y_Re X_Im Y_Im D] = {
+		[X_Re X_Im] = X.[Re Im];
+		[Y_Re Y_Im] = Y.[Re Im];
+		D = Y_Re*Y_Re + Y_Im*Y_Im;
+		complex(
+			(X_Re*Y_Re + X_Im*Y_Im) / D,
+			(X_Im*Y_Re - X_Re*Y_Im) / D)
+		},
+
+	` polar absolute value `
+	! c_abs (X) = X.rad (Re, Im),
+
+	` polar argument (in radians) `
+	! c_arg (X) = X.ang (Re, Im),
+
+	` polar constructor (absolute value, argument) `
+	! c_polar (abs arg) = complex (abs*cos(arg), abs*sin(arg)),
+	
+	` complex square root `
+	! c_sqr (X):[X_abs] = X.{
+		X_abs = rad (Re, Im);
+		complex (sqr ((X_abs + Re) / 2), (Im >= 0? 1 : -1) * sqr ((X_abs - Re) / 2))
+		},
+
+	` complex Exponent `
+	! c_exp (X) = X.c_polar (exp (Re), Im),
+
+	` complex Logarythm `
+	! c_log (X) = complex (log (c_abs (X)), c_arg (X)),
+
+	` complex Sine `
+	! c_sin (X) = X.complex (sin(Re)*cosh(Im), cos(Re)*sinh(Im)),
+
+	` complex Cosine `
+	! c_cos (X) = X.complex (cos(Re)*cosh(Im), - sin(Re)*sinh(Im)),
+
+	` complex Hyperbolic Sine `
+	! c_sinh (X) = X.complex (sinh(Re)*cos(Im), cosh(Re)*sin(Im)),
+
+	` complex Hyperbolic Cosine `
+	! c_cosh (X) = X.complex (cosh(Re)*cos(Im), sinh(Re)*sin(Im))
+
+	};
+

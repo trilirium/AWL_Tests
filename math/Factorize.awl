@@ -1,0 +1,39 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Factorize.awl':
+	|	Cardinal numbers factorization (incremental).
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+! factorize (N) : [primes_found count i j] = {
+primes_found = ();
+
+for_inc (i, 2..N, {
+	<: (i, ' = ');
+
+	l_loop_r (j, primes_found, {
+		count = 0;
+		until (i %% j):: { i =%: j; ++ count; };
+
+		if (count):: {
+			<: j;
+			if (count > 1):: (<: ('^', count));
+			if (i <> 1):: (<: " * ");
+			}
+		});
+
+	if (i <> 1):: {
+		<: (i, " (prime)");
+		primes_found [<-] i;
+		};
+	
+	<: "\n";
+	});
+};	` -- factorize `
+
+factorize (1001);

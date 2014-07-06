@@ -1,0 +1,179 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Pattern1.awl':
+	|	Patterns span/repeat test.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+` Expect 'expr1' to be equal to 'expr2' `
+! expect (expr1 expr2) =
+	if (expr1 [<>] expr2):: {
+		<: "\aExpected: ";
+		x_trace (2, expr1);
+		<: " / found: ";
+		x_trace (2, expr2);
+		<: ".\n";
+		};
+
+` Expect first 'pattern' found in 'context' to be at 'range' `
+! expect_first (pattern context range) =
+	expect (rx_findfirst (pattern, context), range);
+
+` Expect last 'pattern' found in 'context' to be at 'range' `
+! expect_last (pattern context range) =
+	expect (rx_findlast (pattern, context), range);
+
+` Test 2-pattern repetitions:
+  (S *$ m) +$ (T *$ n) `
+! test_rep_2 (S m T n) : [text lS lT] = {
+	<: ["Testing rep_2: ('" S "' * " m ") + ('" T "' * " n ")\n"];
+
+    text = (S *$ m) +$ (T *$ n);
+	[lS lT] = (#$S, #$T);
+
+	expect_first (S, text, 0 .. lS);
+	expect_last (S, text, lS*(m-1) .. lS*m);
+	expect_first (T, text, lS*m .. lS*m+lT);
+	expect_last (T, text, #$text-lT .. #$text);
+
+	expect_first (rx_cat (rx_rep (m, 1, S), rx_rep (n, 1, T)), text, 0 .. #$text);
+
+    for_inc (i, m+1,
+		expect_first (rx_cat (rx_rep (i, 0, S), T), text, (m-i)*lS .. m*lS + lT)
+		);
+
+	for_inc (i, 1..n+1,
+		expect_first (rx_cat (S, rx_rep (1..i, 1, T)), text, lS*(m-1) .. lS*m + i*lT)
+		);
+
+	expect_first (rx_cat (S, T), text, lS*(m-1) .. lS*m + lT);
+
+	};	` -- test_rep_2 `
+
+<: "Test: rep_2...\n";
+
+test_rep_2 ('-', 4, '+', 3);
+test_rep_2 ('{}', 5, '[]', 5);
+test_rep_2 ('<^>', 3, '[--]', 5);
+test_rep_2 ('{**}', 5, '@', 7);
+
+` Test 3-pattern repetitions:
+  (R *$ l) +$ (S *$ m) +$ (T *$ n) `
+! test_rep_3 (R l S m T n) : [text lR lS lT] = {
+	<: ["Testing rep_3: ('" R "' * " l ") + ('" S "' * " m ") + ('" T "' * " n ")\n"];
+
+    text = (R *$ l) +$ (S *$ m) +$ (T *$ n);
+	[lR lS lT] = (#$R, #$S, #$T);
+
+	expect_first (rx_rep (1..m, 1, S), text, lR*l .. lR*l + lS*m);
+	expect_last (rx_rep (1..m, 0, S), text, lR*l + lS*(m-1) .. lR*l + lS*m);
+
+	expect_first (rx_cat (R, rx_rep (1..m, 1, S)), text, lR*(l-1) .. lR*l + lS*m);
+	expect_last (rx_cat (R, rx_rep (1..m, 1, S)), text, lR*(l-1) .. lR*l + lS*m);
+
+	expect_first (rx_cat (rx_rep (1..m, 1, S), T), text, lR*l .. lR*l + lS*m + lT);
+	expect_last (rx_cat (rx_rep (1..m, 1, S), T), text, lR*l + lS*(m-1) .. lR*l + lS*m + lT);
+
+	expect_first (rx_cat (R, rx_cat (rx_rep (1..m, 1, S), T)), text, lR*(l-1) .. lR*l + lS*m + lT);
+	expect_last (rx_cat (R, rx_cat (rx_rep (1..m, 1, S), T)), text, lR*(l-1) .. lR*l + lS*m + lT);
+
+	};	` -- test_rep_3 `
+
+<: "Test: rep_3...\n";
+
+test_rep_3 ('%', 12, '<*>', 5, '[]', 6);
+test_rep_3 ('(==)', 8, '<>', 7, '[...]', 10);
+test_rep_3 ('()', 4, '{=}', 5, '-', 8);
+test_rep_3 ('{^}', 7, '<$>', 3, ']%[', 4);
+
+` Test span/break sequences:
+	(E *$ l) +$ (F *$ m) +$ (E *$ r)
+`
+! test_span_1 (EF l m r) : [text] = {
+	<: ["Testing span_1: ('" EF "' * [" l " < " m " > " r "])\n"];
+
+	!is_full (c) = c == dc_b(EF, 1);
+
+	text = (EF$[0..1] *$ l) +$ (EF$[1..2] *$ m) +$ (EF$[0..1] *$ r);
+
+	expect_first (rx_rep (1.., 1, rx_any_in (!is_full)), text, l .. l+m);
+	expect_last (rx_rep (1.., 1, rx_any_in (!is_full)), text, l+m-1 .. l+m);
+
+	expect_first (rx_before_in (!is_full), text, l..l);
+	expect_first (rx_after_in (!is_full), text, l+m..l+m);
+
+	expect_first (rx_before_ex (!is_full), text, 0..0);
+	expect_first (rx_after_ex (!is_full), text, l..l);
+
+	expect_last (rx_before_in (!is_full), text, l..l);
+	expect_last (rx_after_in (!is_full), text, l+m..l+m);
+
+	expect_last (rx_before_ex (!is_full), text, l+m..l+m);
+	expect_last (rx_after_ex (!is_full), text, l+m+r..l+m+r);
+
+	text = (EF$[1..2] *$ l) +$ (EF$[0..1] *$ m) +$ (EF$[1..2] *$ r);
+
+	expect_first (rx_rep (1.., 1, rx_any_in (!is_full)), text, 0..l);
+	expect_last (rx_rep (1.., 1, rx_any_in (!is_full)), text, l+m+r - 1 .. l+m+r);
+
+	expect_first (rx_before_in (!is_full), text, 0..0);
+	expect_first (rx_after_in (!is_full), text, l..l);
+
+	expect_first (rx_before_ex (!is_full), text, l..l);
+	expect_first (rx_after_ex (!is_full), text, l+m..l+m);
+
+	expect_last (rx_before_in (!is_full), text, l+m..l+m);
+	expect_last (rx_after_in (!is_full), text, l+m+r..l+m+r);
+
+	expect_last (rx_before_ex (!is_full), text, l..l);
+	expect_last (rx_after_ex (!is_full), text, l+m..l+m);
+
+	};	` -- test_span_1 `
+
+<: "Test: span_1...\n";
+
+test_span_1 ('+-', 3, 2, 4);
+test_span_1 ('_*', 6, 5, 8);
+test_span_1 ('.&', 5, 9, 7);
+
+` Test position anchors: (S *$ n) `
+! test_pos (S n) : [text i] = {
+	<: ["Testing pos: ('" S "' * [" n "])\n"];
+
+	text = S *$ n;
+
+	for_inc (i, n + 1,
+		expect_first (rx_at_start(i), text, i..i)
+		);
+
+	for_dec (i, n + 1,
+		expect_last (rx_at_end(i), text, n-i..n-i)
+		);
+	};	` -- test_pos `
+
+<: "Test: pos...\n";
+
+test_pos ('^', 10);
+test_pos ('#', 16);
+
+` Testing splitting/joining `
+! test_split (delim List) : [joined] = {
+	<: ("Testing split/join: ('", delim, "' // [",
+		s_join (" ", List), "]:", #List, ")\n");
+
+	joined = s_join (delim, List);
+	expect (List, rx_split (delim, joined));
+	};	` -- test_split `
+
+
+<: "Test: split...\n";
+
+test_split ("/", "10", "20", "30", "40");
+test_split ("$", "a", "bb", "ccc", "dddd", "eee", "ff", "g");
+test_split ("<>", "aa11", "c432", "b90", "dx666", "enm1092");
+test_split ("/-/", "TTTwww", "XXaa", "RRuuuu", "Yyyrrr", "ZZZgg", "Aqqwww");

@@ -1,0 +1,358 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Array3.awl':
+	|	Testing 1D/2D/3D array reversing/rotating.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: array, a_init_all, a_reverse, a_rotate
+`
+
+! expect (where condition) =
+	unless (condition):: (<: ("\aExpect failed (", where, ")!\n"));
+
+! array_dump (array) = { x_trace (2+64, array); <: "\n"; };
+
+! a_validate (array fn_init) : [dims array_alt] = {
+dims = a_dims (array);
+array_alt = array (dims);
+a_init_all (array_alt, fn_init);
+
+if (0):: {
+	array_dump (array);
+	array_dump (array_alt);
+	};
+
+` check equality `
+array [==] array_alt
+};		` a_validate `
+
+! array_add_all (array) : [sum elem] = {
+sum = 0;
+a_loop (array, elem, sum =+: elem);
+sum };
+
+`
+	1D array reverse test
+`
+! array_revert_test_1D (n_len fn_init) : [array1D total] = {
+array1D = array (n_len);
+a_init_all (array1D, fn_init);
+
+total = array_add_all (array1D);
+
+array_dump (array1D);
+<: ("(Sum (", a_total(array1D), ") = ", total, ")\n");
+
+a_reverse (array1D, 0);
+expect ("array 1D : rev/0",
+	total == array_add_all (array1D) &&
+	a_validate (array1D, ! (i) = (fn_init ! (n_len - 1 - i)))
+	);
+
+a_reverse (array1D, 0);
+expect ("array 1D : rev/",
+	total == array_add_all (array1D) &&
+	a_validate (array1D, fn_init)
+	);
+
+};	` -- array_revert_test_1D `
+
+array_revert_test_1D (25, !(i) = (3*i - 7));
+array_revert_test_1D (32, !(i) = (4*i - 10));
+array_revert_test_1D (16, !(i) = (20 - 5*i));
+
+`
+	2D array reverse test
+`
+! array_revert_test_2D (n_row n_col fn_init) : [array2D total] = {
+array2D = array (n_row, n_col);
+a_init_all (array2D, fn_init);
+
+total = array_add_all (array2D);
+
+array_dump (array2D);
+<: ("(Sum (", a_total(array2D), ") = ", total, ")\n");
+
+a_reverse (array2D, 0);
+expect ("array 2D : rev/0",
+	total == array_add_all (array2D) &&
+	a_validate (array2D, ! (r c) = (fn_init ! (n_row - 1 - r, c)))
+	);
+
+a_reverse (array2D, 1);
+expect ("array 2D : rev/01",
+	total == array_add_all (array2D) &&
+	a_validate (array2D, ! (r c) = (fn_init ! (n_row - 1 - r, n_col - 1 - c)))
+	);
+
+a_reverse (array2D, 0);
+expect ("array 2D : rev/1",
+	total == array_add_all (array2D) &&
+	a_validate (array2D, ! (r c) = (fn_init ! (r, n_col - 1 - c)))
+	);
+
+a_reverse (array2D, 1);
+expect ("array 2D : rev/",
+	total == array_add_all (array2D) &&
+	a_validate (array2D, fn_init)
+	);
+
+};		` -- array_revert_test_2D `
+
+array_revert_test_2D (7, 9, !(row col) = (row*10 + col));
+array_revert_test_2D (8, 5, !(row col) = (row + col*100));
+
+`
+	3D array reverse test
+`
+! array_revert_test_3D (n_pag n_row n_col fn_init) : [array3D total] = {
+array3D = array (n_pag, n_row, n_col);
+a_init_all (array3D, fn_init);
+
+total = array_add_all (array3D);
+
+array_dump (array3D);
+<: ("(Sum (", a_total(array3D), ") = ", total, ")\n");
+
+a_reverse (array3D, 0);
+expect ("array 3D : rev/0",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) = (fn_init ! (n_pag - 1 - p, r, c)))
+	);
+
+a_reverse (array3D, 1);
+expect ("array 3D : rev/01",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) = (fn_init ! (n_pag - 1 - p, n_row - 1 - r, c)))
+	);
+
+a_reverse (array3D, 0);
+expect ("array 3D : rev/1",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) = (fn_init ! (p, n_row - 1 - r, c)))
+	);
+
+a_reverse (array3D, 2);
+expect ("array 3D : rev/12",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) = (fn_init ! (p, n_row - 1 - r, n_col - 1 - c)))
+	);
+
+a_reverse (array3D, 0);
+expect ("array 3D : rev/012",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) = (fn_init ! (n_pag - 1 - p, n_row - 1 - r, n_col - 1 - c)))
+	);
+
+a_reverse (array3D, 1);
+expect ("array 3D : rev/02",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) = (fn_init ! (n_pag - 1 - p, r, n_col - 1 - c)))
+	);
+
+a_reverse (array3D, 0);
+expect ("array 3D : rev/2",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) = (fn_init ! (p, r, n_col - 1 - c)))
+	);
+
+a_reverse (array3D, 2);
+expect ("array 3D : rev/",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, fn_init)
+	);
+
+};	` -- array_revert_test_3D `
+
+array_revert_test_3D (9, 6, 3, !(pag row col) = (pag*100 + row*10 + col));
+array_revert_test_3D (2, 5, 6, !(pag row col) = (pag + row*10 + col*100));
+
+! array_rotate_test_1D (n_len fn_init) : [array1D total offset h_len] = {
+array1D = array (n_len);
+a_init_all (array1D, fn_init);
+
+total = array_add_all (array1D);
+
+array_dump (array1D);
+<: ("(Sum (", a_total(array1D), ") = ", total, ")\n");
+
+for_inc (offset, n_len, {
+	a_rotate (array1D, 0, 1);
+	expect ("array 1D : rot >> " +$ offset,
+		total == array_add_all (array1D) &&
+		a_validate (array1D, ! (i) = (fn_init ! ((i + offset + 1) %% n_len)))
+		);
+	});
+
+h_len = n_len % 2;
+a_rotate (array1D, 0, h_len);
+expect ("array 1D : rot >> " +$ h_len,
+	total == array_add_all (array1D) &&
+	a_validate (array1D, ! (i) = (fn_init ! ((i + h_len) %% n_len)))
+	);
+
+a_rotate (array1D, 0, -h_len);
+expect ("array 1D : rot >> " +$ -h_len,
+	total == array_add_all (array1D) &&
+	a_validate (array1D, fn_init)
+	);
+
+};	` -- array_rotate_test_1D `
+
+array_rotate_test_1D (10, !(i) = (6*i + 5));
+array_rotate_test_1D (10, !(i) = (7*i + 12));
+
+! array_rotate_test_2D (n_row n_col fn_init) : [array2D total row col h_row h_col] = {
+array2D = array (n_row, n_col);
+a_init_all (array2D, fn_init);
+
+total = array_add_all (array2D);
+
+array_dump (array2D);
+<: ("(Sum (", a_total(array2D), ") = ", total, ")\n");
+
+for_inc (row, n_row, {
+	a_rotate (array2D, 0, 1);
+	expect ("array 2D : rot(r):" +$ row,
+		total == array_add_all (array2D) &&
+		a_validate (array2D, ! (r c) = (fn_init ! ((r + row + 1) %% n_row, c)))
+		);
+	});
+
+for_inc (col, n_col, {
+	a_rotate (array2D, 1, 1);
+	expect ("array 2D : rot(c):" +$ col,
+		total == array_add_all (array2D) &&
+		a_validate (array2D, ! (r c) = (fn_init ! (r, (c + col + 1) %% n_col)))
+		);
+	});
+
+[h_row h_col] = (n_row % 2, n_col % 2);
+
+a_rotate (array2D, 0, h_row);
+expect ("array 2D : rot(r/2)",
+	total == array_add_all (array2D) &&
+	a_validate (array2D, ! (r c) = (fn_init ! ((r + h_row) %% n_row, c)))
+	);
+
+a_rotate (array2D, 1, h_col);
+expect ("array 2D : rot(rc/2)",
+	total == array_add_all (array2D) &&
+	a_validate (array2D, ! (r c) = (fn_init ! ((r + h_row) %% n_row, (c + h_col) %% n_col)))
+	);
+
+a_rotate (array2D, 0, -h_row);
+expect ("array 2D : rot(c/2)",
+	total == array_add_all (array2D) &&
+	a_validate (array2D, ! (r c) = (fn_init ! (r, (c + h_col) %% n_col)))
+	);
+
+a_rotate (array2D, 1, -h_col);
+expect ("array 2D : rot(/2)",
+	total == array_add_all (array2D) &&
+	a_validate (array2D, fn_init)
+	);
+};	` -- array_rotate_test_2D `
+
+array_rotate_test_2D (6, 8, !(row col) = (row*10 + col));
+array_rotate_test_2D (9, 5, !(row col) = (row + col*10));
+
+! array_rotate_test_3D (n_pag n_row n_col fn_init) :
+	[array3D total pag row col h_pag h_row h_col] = {
+array3D = array (n_pag, n_row, n_col);
+a_init_all (array3D, fn_init);
+
+total = array_add_all (array3D);
+
+array_dump (array3D);
+<: ("(Sum (", a_total(array3D), ") = ", total, ")\n");
+
+for_inc (pag, n_pag, {
+	a_rotate (array3D, 0, 1);
+	expect ("array 3D : rot(p):" +$ pag,
+		total == array_add_all (array3D) &&
+		a_validate (array3D, ! (p r c) = (fn_init ! ((p + pag + 1) %% n_pag, r, c)))
+		);
+	});
+
+for_inc (row, n_row, {
+	a_rotate (array3D, 1, 1);
+	expect ("array 3D : rot(r):" +$ row,
+		total == array_add_all (array3D) &&
+		a_validate (array3D, ! (p r c) = (fn_init ! (p, (r + row + 1) %% n_row, c)))
+		);
+	});
+
+for_inc (col, n_col, {
+	a_rotate (array3D, 2, 1);
+	expect ("array 3D : rot(c):" +$ col,
+		total == array_add_all (array3D) &&
+		a_validate (array3D, ! (p r c) = (fn_init ! (p, r, (c + col + 1) %% n_col)))
+		);
+	});
+
+[h_pag h_row h_col] = (n_pag % 2, n_row % 2, n_col % 2);
+
+a_rotate (array3D, 0, h_pag);
+expect ("array 3D : rot(p/2)",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) = (fn_init ! ((p + h_pag) %% n_pag, r, c)))
+	);
+
+a_rotate (array3D, 1, h_row);
+expect ("array 3D : rot(pr/2)",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) =
+		(fn_init ! ((p + h_pag) %% n_pag, (r + h_row) %% n_row, c)))
+	);
+
+a_rotate (array3D, 0, -h_pag);
+expect ("array 3D : rot(r/2)",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) = (fn_init ! (p, (r + h_row) %% n_row, c)))
+	);
+
+a_rotate (array3D, 2, h_col);
+expect ("array 3D : rot(rc/2)",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) =
+		(fn_init ! (p, (r + h_row) %% n_row, (c + h_col) %% n_col)))
+	);
+
+a_rotate (array3D, 0, h_pag);
+expect ("array 3D : rot(prc/2)",
+	total == array_add_all (array3D) &&
+	a_validate (array3D,
+	! (p r c) = (fn_init ! ((p + h_pag) %% n_pag, (r + h_row) %% n_row, (c + h_col) %% n_col)))
+	);
+
+a_rotate (array3D, 1, -h_row);
+expect ("array 3D : rot(pc/2)",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) = (fn_init ! ((p + h_pag) %% n_pag, r, (c + h_col) %% n_col)))
+	);
+
+a_rotate (array3D, 0, -h_pag);
+expect ("array 3D : rot(c/2)",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, ! (p r c) = (fn_init ! (p, r, (c + h_col) %% n_col)))
+	);
+
+a_rotate (array3D, 2, -h_col);
+expect ("array 3D : rot(/2)",
+	total == array_add_all (array3D) &&
+	a_validate (array3D, fn_init)
+	);
+
+};	` -- array_rotate_test_3D `
+
+array_rotate_test_3D (3, 5, 6, !(pag row col) = (pag*100 + row*10 + col));
+array_rotate_test_3D (9, 7, 3, !(pag row col) = (pag + row*10 + col*100));
+

@@ -1,0 +1,22 @@
+Test: rep_2...
+Testing rep_2: ('-' * 4) + ('+' * 3)
+Testing rep_2: ('{}' * 5) + ('[]' * 5)
+Testing rep_2: ('<^>' * 3) + ('[--]' * 5)
+Testing rep_2: ('{**}' * 5) + ('@' * 7)
+Test: rep_3...
+Testing rep_3: ('%' * 12) + ('<*>' * 5) + ('[]' * 6)
+Testing rep_3: ('(==)' * 8) + ('<>' * 7) + ('[...]' * 10)
+Testing rep_3: ('()' * 4) + ('{=}' * 5) + ('-' * 8)
+Testing rep_3: ('{^}' * 7) + ('<$>' * 3) + (']%[' * 4)
+Test: span_1...
+Testing span_1: ('+-' * [3 < 2 > 4])
+Testing span_1: ('_*' * [6 < 5 > 8])
+Testing span_1: ('.&' * [5 < 9 > 7])
+Test: pos...
+Testing pos: ('^' * [10])
+Testing pos: ('#' * [16])
+Test: split...
+Testing split/join: ('/' // [10 20 30 40]:4)
+Testing split/join: ('$' // [a bb ccc dddd eee ff g]:7)
+Testing split/join: ('<>' // [aa11 c432 b90 dx666 enm1092]:5)
+Testing split/join: ('/-/' // [TTTwww XXaa RRuuuu Yyyrrr ZZZgg Aqqwww]:6)

@@ -1,0 +1,354 @@
+
+`
+	"ListOp.awl":
+	Testing basic list operations
+`
+
+`
+	CHECKED: l_len, l_cat, l_rep, l_rev, l_copy
+`
+
+x_trace ();
+
+ListI = [10 12 25 47 61 89];
+
+ListF = [22.5 66.7 73.9 48.4];
+
+ListS = ['aA' 'cC' 'eE' 'fF' 'gG' 'hH' 'kK' 'lL' 'mM'];
+
+` just a check ... `
+
+ListI;
+ListF;
+ListS;
+
+<: "Test: list lengths\n";
+
+#ListI;
+#ListF;
+#ListS;
+
+<: "Test: list concatenations\n";
+
+ListI [+] ListF;
+ListF [+] ListS;
+ListS [+] ListI;
+
+ListS [+] ListF [+] ListI;
+ListI [+] ListS [+] ListF;
+
+<: "Test: list repetitions\n";
+
+ListI [*] 2;
+ListF [*] 3;
+ListS [*] 2;
+
+<: "Test: list inversions\n";
+
+[~] ListI;
+[~] ListF;
+[~] ListS;
+
+` Perform check of test condition `
+! Check (test) = {
+	<: (": ", test ? "ok." : "failed!\a", "\n");
+	test
+	};
+
+` List tuples (Name, List): `
+
+TupleI = ('ListI', ListI);
+TupleF = ('ListF', ListF);
+TupleS = ('ListS', ListS);
+
+` Name part of tuple: `
+! Name(Tuple) = [<] Tuple;
+
+` List part of tuple: `
+! List(Tuple) = Tuple [>];
+
+` Check:
+	Lists concatenation associativity `
+! ListCatAssoc (OpndA OpndB OpndC) = {
+	<: ("List/CatAssoc check: ",
+		'(', Name(OpndA), '[+]', Name(OpndB), ') [+] ', Name(OpndC), ' [==] ',
+		     Name(OpndA), ' [+] (', Name(OpndB), '[+]', Name(OpndC), ')'
+		);
+
+	Check (
+		((List(OpndA) [+] List(OpndB)) [+] List(OpndC))
+		    [==]
+		 (List(OpndA) [+] (List(OpndB) [+] List(OpndC)))
+		)
+	};		` -- ListCatAssoc `
+
+ListCatAssoc ([TupleI TupleF TupleS]);
+ListCatAssoc ([TupleF TupleS TupleI]);
+ListCatAssoc ([TupleS TupleI TupleF]);
+
+` Check:
+	Lists repetition/concatenation `
+! ListRepCat (Count OpndA OpndB) = {
+	<: ("List/RepCat check: ",
+		'(', Name(OpndA), '[+]', Name(OpndB), ') [*] ', Count, ' [==] ',
+		Name(OpndA), ' [+] ',
+		'(', Name(OpndB), '[+]', Name(OpndA), ') [*] ', (Count-1),
+		' [+] ', Name(OpndB)
+		);
+
+	Check (
+		((List(OpndA) [+] List(OpndB)) [*] Count)
+		    [==]
+		  List(OpndA) [+] ((List(OpndB) [+] List(OpndA)) [*] (Count-1)) [+] List(OpndB)
+		)
+	};		` -- ListRepCat `
+
+ListRepCat ([3 TupleI TupleF]);
+ListRepCat ([5 TupleF TupleS]);
+ListRepCat ([4 TupleS TupleI]);
+
+` Check:
+	Lists concatenation/inversion anticommutativity `
+! ListCatAnti (OpndA OpndB) = {
+	<: ("List/CatInv check: ",
+		'[~](', Name(OpndA), ' [+] ', Name(OpndB), ')', ' [==] ',
+		'(', '[~]', Name(OpndB), ' [+] ', '[~]', Name(OpndA), ')'
+		);
+
+	Check (
+		[~] (List(OpndA) [+] List(OpndB))
+		    [==]
+		([~] List(OpndB) [+] [~] List(OpndA))
+		)
+	};		` -- ListCatAnti `
+
+ListCatAnti ([TupleI TupleF]);
+ListCatAnti ([TupleF TupleS]);
+ListCatAnti ([TupleS TupleI]);
+
+` Check:
+	Lists repetition/inversion distributivity `
+! ListRepInv (Count OpndA) = {
+	<: ("List/RepInv check: ",
+		'[~](', Name(OpndA), ' [*] ', Count, ')', ' [==] ',
+		'(', '[~]', Name(OpndA), ') [*] ', Count
+		);
+
+	Check (
+		[~] (List(OpndA) [*] Count) [==]
+		([~] List(OpndA)) [*] Count
+		)
+	};		` -- ListRepInv `
+
+ListRepInv ([4 TupleI]);
+ListRepInv ([5 TupleF]);
+ListRepInv ([6 TupleS]);
+
+
+
+` TODO: move all following to other file... `
+
+
+` Check:
+	range inversion `
+! ListRangeInv (From To) = {
+	<: ("List/RangeInv check: ", From, "..", To);
+	Check (
+	        l_range (From..To, ) [==] [~] l_range_r (From..To, )
+	        )
+	};
+
+ListRangeInv (1..9);
+ListRangeInv (20..40);
+ListRangeInv (-16..16);
+
+` Check list with index `
+! CheckI (i test) = { <: i; Check (test); };
+
+` Check:
+	ranges concatenation `
+! ListRangeCat (From To) : [i list] = {
+	<: ("List/RangeCat check: ", From, "..", To, "\n");
+
+	<: "++\n";
+	list = l_range (From..To, );
+
+	for_inc (i, From..To+1,
+	    CheckI (i,
+	        list [==] l_range (From..i, ) [+] l_range (i..To, )
+	        )
+		);
+
+	<: "--\n";
+	list = l_range_r (From..To, );
+
+	for_dec (i, From..To+1,
+	    CheckI (i,
+	        list [==] l_range_r (i..To, ) [+] l_range_r (From..i, )
+	        )
+		);
+	};
+
+ListRangeCat (10..20);
+ListRangeCat (-5..5);
+ListRangeCat (-15..-5);
+
+` Check:
+	range scanning `
+! ListRangeScan (From To) : [i list] = {
+	<: ("List/RangeScan check: ", From, "..", To, "\n");
+
+	<: "++\n";
+	list = l_range (From..To, );
+
+	for_inc (i, From..To+1,
+	    CheckI (i,
+		l_while (!(x) = (x < i), list) == i - From
+		    &&
+		l_until_r (!(y) = (y < i), list) == i - From)
+		);
+
+	<: "--\n";
+	list = l_range_r (From..To, );
+
+	for_dec (i, From..To+1,
+	    CheckI (i,
+		i + l_while_r (!(x) = (x < i), list) == To
+		    &&
+		i + l_until (!(y) = (y < i), list) == To)
+		);
+	};
+
+ListRangeScan (12..24);
+ListRangeScan (-10..10);
+
+` Check:
+	range splitting `
+! ListRangeSplit (From To) : [i list] = {
+	<: ("List/RangeSplit check: ", From, "..", To, "\n");
+
+	for_inc (i, From..To-1, {
+		list = l_range (From..To, );
+		l_split (i - From, list);
+
+	    CheckI (i,
+			l_head(list) [==] l_range(From .. i+1, )
+			&&
+			l_tail(list) [==] l_range(i+1 .. To, )
+			);
+	    });
+	};		` -- ListRangeSplit `
+
+ListRangeSplit (15..35);
+ListRangeSplit (-12..6);
+
+` Check:
+	iterate through range `
+! ListRangeLoop (From To) : [elem list i] = {
+	<: ("List/RangeLoop check: ", From, "..", To, "\n");
+
+	list = l_range (From..To, );
+
+	<: "++\n";
+	i = From;
+	l_loop (elem, list,
+		CheckI (elem, elem == i++));
+
+	<: "--\n";
+	i = To;
+	l_loop_r (elem, list,
+		CheckI (elem, elem == --i));
+	};		` -- ListRangeLoop `
+
+ListRangeLoop (-10..20);
+ListRangeLoop (-20..10);
+
+` Check:
+	list range tail loop `
+! ListRangeTail (From To) : [i list] = {
+	<: ("List/RangeTail check: ", From, "..", To, "\n");
+
+	<: "++\n";
+	list = l_range (From..To, );
+
+	for_inc (i, From..To,
+		CheckI (i, l_tail_by (i - From, list) [==] l_range (i .. To, )));
+
+	<: "--\n";
+	list = l_range_r (From..To, );
+
+	for_dec (i, From..To,
+		CheckI (i, l_tail_by (i - From, list) [==] l_range_r (From .. From-i+To, )));
+
+	};		` -- ListRangeTail `
+
+ListRangeTail (-15..5);
+ListRangeTail (-5..15);
+
+` Check:
+	list range filtering `
+! ListRangeFilter (From To) : [i list] = {
+	<: ("List/RangeFilter check: ", From, "..", To, "\n");
+
+	<: "++\n";
+	list = l_range (From..To, );
+
+	for_inc (i, From..To,
+		CheckI (i, l_filter_in (!(x) = (x <= i), list) [==] l_range (From .. i+1, )));
+	
+	<: "--\n";
+	list = l_range_r (From..To, );
+
+	for_dec (i, From..To,
+		CheckI (i, l_filter_ex (!(x) = (x < i), list) [==] l_range_r (i .. To, )));
+
+	};		` -- ListRangeFilter `
+
+ListRangeFilter (-16..16);
+
+` Check:
+	list range odd/even filter `
+! ListRangeRatio (N From To) : [list n] = {
+	<: ("List/RangeRatio check: ", From, "..", To, "\n");
+
+	<: "++\n";
+	list = l_range (From..To, );
+
+	for_inc (n, 1..N,
+		CheckI (n, l_filter_ex (!(x) = (x %% n), list) [==]
+			l_range (From % n .. (To-1) % n+1, !(x) = (x * n))
+		));
+
+	<: "--\n";
+	list = l_range_r (From..To, );
+
+	for_dec (n, 1..N,
+		CheckI (n, l_filter_ex (!(x) = (x %% n), list) [==]
+			l_range_r (From % n .. (To-1) % n+1, !(x) = (x * n))
+		));
+
+	};		` -- ListRangeRatio `
+
+ListRangeRatio (10, -40..40);
+
+` Check:
+	list range counting `
+! ListRangeCount (From To) : [i list] = {
+	<: ("List/RangeCount check: ", From, "..", To, "\n");
+
+	<: "++\n";
+	list = l_range (From..To, );
+
+	for_inc (i, From..To,
+		CheckI (i, l_count_in (!(x) = (x <= i), list) [==] i+1 - From));
+	
+	<: "--\n";
+	list = l_range_r (From..To, );
+
+	for_dec (i, From..To,
+		CheckI (i, l_count_ex (!(x) = (x < i), list) [==] To - i));
+
+	};		` -- ListRangeCount `
+
+ListRangeCount (-18..18);
+

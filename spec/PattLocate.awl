@@ -1,0 +1,176 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'PattLocate.awl':
+	|	Pattern location test.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: rx_locate, rx_any_in, rx_any_ex, rx_before_in, rx_before_ex, rx_after_in, rx_after_ex
+`
+
+! test_wrap (name @tests) : [total_count total_fail] = {
+	total_count = total_fail = 0;
+	<: ("    Testing: ", name, "...\n");
+	^tests;
+	<: ("\t total checks: ", total_count, " (failed: ", total_fail, ").\n");
+
+	total_fail };
+
+! expect_match (where iter left right) = {
+	++ test_wrap!!total_count;
+	unless (left [==] right):: {
+		<: ("\aFailed: (", where, " @", iter, ") ");
+		x_trace ((), left);
+		<: " [<>] ";
+		x_trace ((), right);
+		<: "\n";
+		++ test_wrap!!total_fail;
+		}
+	};
+
+` tool: make list of pairs with offset `
+! pair_list (range offset) = l_zip (l_range(range, ), l_range(range, !(n) = (n + offset)));
+
+! test_package (source) : [s_len failures] = {
+s_len = #$source;
+
+<: ("TEST PACK: source '", source, "' (#", s_len, ")...\n");
+
+failures = 0;
+
+failures =+: test_wrap ("locate single char", {
+	for_inc (i, s_len,
+		expect_match ("find char (++)", i,
+			rx_locate (s_ord(source, i), source), (i..i+1, ))
+		);
+
+	for_dec (i, s_len,
+		expect_match ("find char (--)", i,
+			rx_locate (s_ord(source, i), source), (i..i+1, ))
+		);
+	});
+
+failures =+: test_wrap ("locate string slice", {
+	for_inc (i, 1..s_len,
+		expect_match ("find slice (<<)", i,
+			rx_locate (source$[..i], source), (0..i, ))
+		);
+
+	for_dec (i, 1..s_len,
+		expect_match ("find slice (>>)", i,
+			rx_locate (source$[i..], source), (i..s_len, ))
+		);
+
+	for_inc (i, 0..s_len,
+		expect_match ("find slice (<>)", i,
+			rx_locate (source$[i..i+1], source), (i..i+1, ))
+		);
+	});
+
+failures =+: test_wrap ("locate any character", {
+
+	expect_match ("find any", 0,
+		rx_locate (rx_any (), source), pair_list(0..s_len, 1));
+
+	expect_match ("find any *", 0,
+		rx_locate (rx_rep (1.., 1, rx_any ()), source), (0..s_len, ));
+
+	});
+
+failures =+: test_wrap ("locate character from set (incl./excl.)", {
+
+	for_inc (i, 0..s_len, {
+		expect_match ("find cs << +", i,
+			rx_locate (rx_any_in (cc_incl (source$[..i])), source), pair_list(0..i, 1));
+		expect_match ("find cs << -", i,
+			rx_locate (rx_any_ex (cc_incl (source$[..i])), source), pair_list(i..s_len, 1));
+
+		expect_match ("find cs << + *", i,
+			rx_locate (rx_rep (1.., 1, rx_any_in (cc_incl (source$[..i]))), source), i ? (0..i, ) : ());
+		expect_match ("find cs << - *", i,
+			rx_locate (rx_rep (1.., 1, rx_any_ex (cc_incl (source$[..i]))), source), (i..s_len, ));
+		});
+
+	for_dec (i, 0..s_len, {
+		expect_match ("find cs >> +", i,
+			rx_locate (rx_any_in (cc_incl (source$[i..])), source), pair_list(i..s_len, 1));
+		expect_match ("find cs >> -", i,
+			rx_locate (rx_any_ex (cc_incl (source$[i..])), source), pair_list(0..i, 1));
+
+		expect_match ("find cs >> + *", i,
+			rx_locate (rx_rep (1.., 1, rx_any_in (cc_incl (source$[i..]))), source), (i..s_len, ));
+		expect_match ("find cs >> - *", i,
+			rx_locate (rx_rep (1.., 1, rx_any_ex (cc_incl (source$[i..]))), source), i ? (0..i, ) : ());
+		});
+
+	});
+
+failures =+: test_wrap ("locate charset boundaries (incl./excl.)", {
+	for_inc (i, 0..s_len, {
+		expect_match ("find cs| >> [+", i,
+			rx_locate (rx_before_in (cc_incl (source$[i..])), source), ((i..i), ));
+		expect_match ("find cs| >> +]", i,
+			rx_locate (rx_after_in (cc_incl (source$[i..])), source), ((s_len..s_len), ));
+
+		expect_match ("find cs| >> [-", i,
+			rx_locate (rx_before_ex (cc_incl (source$[i..])), source), i ? ((0..0), ) : ());
+		expect_match ("find cs| >> -]", i,
+			rx_locate (rx_after_ex (cc_incl (source$[i..])), source), i ? ((i..i), ) : ());
+		});
+
+	for_dec (i, 0..s_len, {
+		expect_match ("find cs| << [+", i,
+			rx_locate (rx_before_in (cc_incl (source$[..i])), source), i ? ((0..0), ) : ());
+		expect_match ("find cs| << +]", i,
+			rx_locate (rx_after_in (cc_incl (source$[..i])), source), i ? ((i..i), ) : ());
+
+		expect_match ("find cs| << [-", i,
+			rx_locate (rx_before_ex (cc_incl (source$[..i])), source), ((i..i), ));
+		expect_match ("find cs| << -]", i,
+			rx_locate (rx_after_ex (cc_incl (source$[..i])), source), ((s_len..s_len), ));
+		});
+	});
+
+failures =+: test_wrap ("locate position anchors",
+	for_inc (i, 0..s_len, {
+		expect_match ("find @ ++ ", i,
+			rx_locate (rx_at_start (i), source), ((i..i), ));
+		expect_match ("find @ -- ", i,
+			rx_locate (rx_at_end (i), source), ((s_len - i..s_len - i), ));
+		})
+	);
+
+failures =+: test_wrap ("locate context anchors", {
+	for_inc (i, 1..s_len, {
+		expect_match ("find << @[ ", i,
+			rx_locate (rx_is_before (source$[..i]), source), (i..i, ));
+		expect_match ("find << @] ", i,
+			rx_locate (rx_is_after (source$[..i]), source), (0..0, ));
+		});
+
+	for_dec (i, 1..s_len, {
+		expect_match ("find >> @[ ", i,
+			rx_locate (rx_is_before (source$[i..]), source), (s_len..s_len, ));
+		expect_match ("find >> @] ", i,
+			rx_locate (rx_is_after (source$[i..]), source), (i..i, ));
+		});
+
+	expect_match ("find << @''", 0,
+		rx_locate (rx_is_before (""), source), pair_list (0..s_len+1, 0));
+	expect_match ("find >> @''", 0,
+		rx_locate (rx_is_after (""), source), pair_list (0..s_len+1, 0));
+	});
+
+<: ("DONE (total failures: ", failures, ").\n");
+
+};		` -- test_package `
+
+test_package ("0123456789");
+test_package ("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+

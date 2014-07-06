@@ -1,0 +1,88 @@
+<Test10.awl> #12 / [1] {
+
+  x_trace:() => 0;
+  set:((a, b), "hello", "goodbye") => ("hello", "goodbye");
+  (a, b) => ("hello", "goodbye");
+  set:((c, d), s_cat:(s_cat:("[", a), "]"), s_cat:(s_cat:("{", b), "}")) => ("[hello]", "{goodbye}");
+  (c, d) => ("[hello]", "{goodbye}");
+  set:((c, d), d, c) => ("{goodbye}", "[hello]");
+  (c, d) => ("{goodbye}", "[hello]");
+  set:(i, 4) => 4;
+  while:(dec_p:i, set:((c, d), d, c)) => ("{goodbye}", "[hello]");
+  (c, d) => ("{goodbye}", "[hello]");
+  set:(i, 6) => 6;
+  while:(dec_p:i, set:((b, a), a, b)) => ("goodbye", "hello");
+  set:(i, 13) => 13;
+  while:(dec_p:i, set:((a, b, c, d), b, c, d, a)) => ("goodbye", "{goodbye}", "[hello]", "hello");
+  set:(i, 8) => 8;
+  while:(ne:(inc_p:i, 23), set:((a, b, c, d), d, a, b, c)) => ("{goodbye}", "[hello]", "hello", "goodbye");
+  (a, b, c, d) => ("{goodbye}", "[hello]", "hello", "goodbye");
+  let:(Reverse_A, {
+    set:(i, 0);
+    set:(j, l_len:A);
+    while:(lt:(i, dec:j), swap:(l_item:(inc_p:i, A), l_item:(j, A))) }) => Reverse_A;
+  set:(A, 1, 2, 3, 4, 5, 6, 7, 8, 9) => (1, 2, 3, 4, 5, 6, 7, 8, 9);
+  reval:Reverse_A => ();
+  A => (9, 8, 7, 6, 5, 4, 3, 2, 1);
+  reval:Reverse_A => ();
+  A => (1, 2, 3, 4, 5, 6, 7, 8, 9);
+  set:(A, "aaAA", "bBBB", "cccC", "dDDddD", "eeeEeEE", "fFFfFFFf") => ("aaAA", "bBBB", "cccC", "dDDddD", "eeeEeEE", "fFFfFFFf");
+  reval:Reverse_A => ();
+  A => ("fFFfFFFf", "eeeEeEE", "dDDddD", "cccC", "bBBB", "aaAA");
+  reval:Reverse_A => ();
+  A => ("aaAA", "bBBB", "cccC", "dDDddD", "eeeEeEE", "fFFfFFFf");
+  let:(XchangeSort_A, {
+    set:(I, 1);
+    while:(lt:(I, l_len:A), {
+      set:(J, I);
+      while:(c_and:(J, s_gt:(l_item:(sub:(J, 1), A), l_item:(J, A))), {
+	swap:(l_item:(sub:(J, 1), A), l_item:(J, A));
+	dec:J });
+      inc_p:I }) }) => XchangeSort_A;
+  let:(SearchSort_A, {
+    set:(I, 0);
+    while:(lt:(I, sub:(l_len:A, 1)), {
+      set:(_Min, I);
+      set:(J, add:(I, 1));
+      while:(ne:(J, l_len:A), {
+	if:(s_lt:(l_item:(J, A), l_item:(_Min, A)), set:(_Min, J), );
+	inc:J });
+      if:(ne:(_Min, I), swap:(l_item:(_Min, A), l_item:(I, A)), );
+      inc:I }) }) => SearchSort_A;
+  set:(_A, "aabbb", "hertruy", "puadr", "teer", "lowab", "xylla", "dee", "zzzyy", "caaa", "wrwty", "ghyab", "axada", "eeemyddd", "breaass", "nonol", "kequ", "threnj", "vaghe", "sewqy", "manegh", "doolpa", "rhan", "fernyu", "jujox") => ("aabbb", "hertruy", "puadr", "teer", "lowab", "xylla", "dee", "zzzyy", "caaa", "wrwty", "ghyab", "axada", "eeemyddd", "breaass", "nonol", "kequ", "threnj", "vaghe", "sewqy", "manegh", "doolpa", "rhan", "fernyu", "jujox");
+  set:(A, l_copy:_A) => ("aabbb", "hertruy", "puadr", "teer", "lowab", "xylla", "dee", "zzzyy", "caaa", "wrwty", "ghyab", "axada", "eeemyddd", "breaass", "nonol", "kequ", "threnj", "vaghe", "sewqy", "manegh", "doolpa", "rhan", "fernyu", "jujox");
+  reval:SearchSort_A => 23;
+  A => ("aabbb", "axada", "breaass", "caaa", "dee", "doolpa", "eeemyddd", "fernyu", "ghyab", "hertruy", "jujox", "kequ", "lowab", "manegh", "nonol", "puadr", "rhan", "sewqy", "teer", "threnj", "vaghe", "wrwty", "xylla", "zzzyy");
+  set:(A, l_copy:_A) => ("aabbb", "hertruy", "puadr", "teer", "lowab", "xylla", "dee", "zzzyy", "caaa", "wrwty", "ghyab", "axada", "eeemyddd", "breaass", "nonol", "kequ", "threnj", "vaghe", "sewqy", "manegh", "doolpa", "rhan", "fernyu", "jujox");
+  reval:XchangeSort_A => 23;
+  A => ("aabbb", "axada", "breaass", "caaa", "dee", "doolpa", "eeemyddd", "fernyu", "ghyab", "hertruy", "jujox", "kequ", "lowab", "manegh", "nonol", "puadr", "rhan", "sewqy", "teer", "threnj", "vaghe", "wrwty", "xylla", "zzzyy");
+  set:(ll, 11, "++ aaa ++", 23, "-- bbb --", 35) => (11, "++ aaa ++", 23, "-- bbb --", 35);
+  set:(mm, 12.22, 33.71, "**", 81.23, "##", 67.15, 21.89) => (12.22, 33.71, "**", 81.23, "##", 67.15, 21.89);
+11++ aaa ++23-- bbb --35
+  f_put:((), ll, "\n") => 6;
+12.2233.71**81.23##67.1521.89
+  f_put:((), mm, "\n") => 8;
+
+----
+11++ aaa ++23-- bbb --3512.2233.71**81.23##67.1521.89
+----
+  f_put:((), "\n----\n", ll, mm, "\n----\n") => 14;
+
+11++ aaa ++23-- bbb --35
+ ** **
+12.2233.71**81.23##67.1521.89
+  f_put:((), "\n", ll, "\n ** **\n", mm, "\n") => 15;
+  set:(LL, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) => (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+  set:(MM, "aaAAA", "bBBB", "cccCCC", "ddddDDD", "eeEEEE", "fF") => ("aaAAA", "bBBB", "cccCCC", "ddddDDD", "eeEEEE", "fF");
+  ! l_even:(list i) [2] = l_item:(mul:(2, i), list) => l_even:;
+  ! l_odd:(list j) [2] = l_item:(add:(mul:(2, j), 1), list) => l_odd:;
+  for_inc:(i, 5, {
+    comb:mul:(l_even:(LL, i), 3);
+    comb:idiv:(l_odd:(LL, i), 2) }) => 5;
+  LL => (3, 1, 9, 2, 15, 3, 21, 4, 27, 5);
+  for_inc:(j, 3, {
+    comb:s_rep:(l_even:(MM, j), 2);
+    comb:s_cat:(l_odd:(MM, j), "--") }) => "fF--";
+  MM => ("aaAAAaaAAA", "bBBB--", "cccCCCcccCCC", "ddddDDD--", "eeEEEEeeEEEE", "fF--");
+
+} <Test10.awl> #141 / [51]

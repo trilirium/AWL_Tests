@@ -1,0 +1,85 @@
+
+`
+	"ListEval.awl":
+	Testing basic list operations (and evaluations)
+`
+
+`
+	CHECKED: let, l_loop, l_tail_by, l_cat, l_rep, l_rev, l_copy
+`
+
+x_trace ();
+
+` Initializations... `
+
+L_SS := (<: 'aa', <: 'bb', <: 'cc', <: 'dd');
+L_II := (<: 11, <: 22, <: 33, <: 44, <: 55);
+L_FF := (<: 333.33, <: 555.55, <: 777.77);
+
+L_SS; L_II; L_FF;
+
+L__ = L_SS :: L_II :: L_FF;
+
+` Evaluations... `
+
+^L_SS;
+^L_II;
+^L_FF;
+^L__;
+
+` List accessors: `
+
+! acc_test (L) : [i] =
+    for_inc (i, #L, { L[i]; l_tail_by (i, L); });
+
+! acc_test_x (L) : [i] =
+    for_inc (i, #L, { ^L[i]; <: ':'; ^l_tail_by (i, L); <: '\n'; });
+
+acc_test (L_SS);
+acc_test (L_II);
+acc_test (L_FF);
+
+acc_test_x (L_SS);
+acc_test_x (L_II);
+acc_test_x (L_FF);
+
+` List iterators: `
+
+! loop_test (L) : [v] = l_loop (v, L, v);
+! loop_test_x (L) : [v] = l_loop (v, L, ^v);
+
+loop_test (L_SS);
+loop_test (L_II);
+loop_test (L_FF);
+
+loop_test_x (L_SS);
+loop_test_x (L_II);
+loop_test_x (L_FF);
+
+` List operations `
+
+L_SS [+] L_II [+] L_FF;
+L_II [+] L_FF [+] L_SS;
+L_FF [+] L_SS [+] L_II;
+
+^(L_SS [+] L_II [+] L_FF);
+^(L_II [+] L_FF [+] L_SS);
+^(L_FF [+] L_SS [+] L_II);
+
+^(L_SS[*]2 [+] L_II[*]3 [+] L_FF[*]4);
+^(L_II[*]4 [+] L_FF[*]2 [+] L_SS[*]3);
+^(L_FF[*]3 [+] L_SS[*]4 [+] L_II[*]2);
+
+[~] L_SS; [~] L_II; [~] L_FF;
+^ [~] L_SS; ^ [~] L_II; ^ [~] L_FF;
+
+[~] (L_SS [+] L_II);
+[~] (L_II [+] L_FF);
+[~] (L_FF [+] L_SS);
+
+^ [~] (L_SS [+] L_II);
+^ [~] (L_II [+] L_FF);
+^ [~] (L_FF [+] L_SS);
+
+l_copy (L_SS); l_copy (L_FF); l_copy (L_II);
+

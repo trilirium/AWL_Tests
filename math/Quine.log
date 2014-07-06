@@ -1,0 +1,6 @@
+Q = ec_b(39);
+L = [ 'Q = ec_b(39);
+' 'L = [ ' '' '];
+' 'l_loop (l, L, #$l ? (<: l) : l_loop (l, L, <: (Q, l, Q, " ")));
+' ];
+l_loop (l, L, #$l ? (<: l) : l_loop (l, L, <: (Q, l, Q, " ")));

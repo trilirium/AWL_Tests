@@ -1,0 +1,738 @@
+<ListOp.awl> #11 / [1] {
+
+  x_trace:() => 0;
+  set:(ListI, 10, 12, 25, 47, 61, 89) => (10, 12, 25, 47, 61, 89);
+  set:(ListF, 22.5, 66.7, 73.9, 48.4) => (22.5, 66.7, 73.9, 48.4);
+  set:(ListS, "aA", "cC", "eE", "fF", "gG", "hH", "kK", "lL", "mM") => ("aA", "cC", "eE", "fF", "gG", "hH", "kK", "lL", "mM");
+  ListI => (10, 12, 25, 47, 61, 89);
+  ListF => (22.5, 66.7, 73.9, 48.4);
+  ListS => ("aA", "cC", "eE", "fF", "gG", "hH", "kK", "lL", "mM");
+Test: list lengths
+  f_put:((), "Test: list lengths\n") => 1;
+  l_len:ListI => 6;
+  l_len:ListF => 4;
+  l_len:ListS => 9;
+Test: list concatenations
+  f_put:((), "Test: list concatenations\n") => 1;
+  l_cat:(ListI, ListF) => (10, 12, 25, 47, 61, 89, 22.5, 66.7, 73.9, 48.4);
+  l_cat:(ListF, ListS) => (22.5, 66.7, 73.9, 48.4, "aA", "cC", "eE", "fF", "gG", "hH", "kK", "lL", "mM");
+  l_cat:(ListS, ListI) => ("aA", "cC", "eE", "fF", "gG", "hH", "kK", "lL", "mM", 10, 12, 25, 47, 61, 89);
+  l_cat:(l_cat:(ListS, ListF), ListI) => ("aA", "cC", "eE", "fF", "gG", "hH", "kK", "lL", "mM", 22.5, 66.7, 73.9, 48.4, 10, 12, 25, 47, 61, 89);
+  l_cat:(l_cat:(ListI, ListS), ListF) => (10, 12, 25, 47, 61, 89, "aA", "cC", "eE", "fF", "gG", "hH", "kK", "lL", "mM", 22.5, 66.7, 73.9, 48.4);
+Test: list repetitions
+  f_put:((), "Test: list repetitions\n") => 1;
+  l_rep:(2, ListI) => (10, 12, 25, 47, 61, 89, 10, 12, 25, 47, 61, 89);
+  l_rep:(3, ListF) => (22.5, 66.7, 73.9, 48.4, 22.5, 66.7, 73.9, 48.4, 22.5, 66.7, 73.9, 48.4);
+  l_rep:(2, ListS) => ("aA", "cC", "eE", "fF", "gG", "hH", "kK", "lL", "mM", "aA", "cC", "eE", "fF", "gG", "hH", "kK", "lL", "mM");
+Test: list inversions
+  f_put:((), "Test: list inversions\n") => 1;
+  l_rev:ListI => (89, 61, 47, 25, 12, 10);
+  l_rev:ListF => (48.4, 73.9, 66.7, 22.5);
+  l_rev:ListS => ("mM", "lL", "kK", "hH", "gG", "fF", "eE", "cC", "aA");
+  ! Check:(test) [1] = {
+    f_put:((), ": ", if:(test, "ok.", "failed!\a"), "\n");
+    test } => Check:;
+  set:(TupleI, "ListI", ListI) => ("ListI", 10, 12, 25, 47, 61, 89);
+  set:(TupleF, "ListF", ListF) => ("ListF", 22.5, 66.7, 73.9, 48.4);
+  set:(TupleS, "ListS", ListS) => ("ListS", "aA", "cC", "eE", "fF", "gG", "hH", "kK", "lL", "mM");
+  ! Name:(Tuple) [1] = l_head:Tuple => Name:;
+  ! List:(Tuple) [1] = l_tail:Tuple => List:;
+  ! ListCatAssoc:(OpndA OpndB OpndC) [3] = {
+    f_put:((), "List/CatAssoc check: ", "(", .Name:OpndA, "[+]", .Name:OpndB, ") [+] ", .Name:OpndC, " [==] ", .Name:OpndA, " [+] (", .Name:OpndB, "[+]", .Name:OpndC, ")");
+    .Check:ident:(l_cat:(l_cat:(.List:OpndA, .List:OpndB), .List:OpndC), l_cat:(.List:OpndA, l_cat:(.List:OpndB, .List:OpndC))) } => ListCatAssoc:;
+List/CatAssoc check: (ListI[+]ListF) [+] ListS [==] ListI [+] (ListF[+]ListS): ok.
+  ListCatAssoc:(TupleI, TupleF, TupleS) => 1;
+List/CatAssoc check: (ListF[+]ListS) [+] ListI [==] ListF [+] (ListS[+]ListI): ok.
+  ListCatAssoc:(TupleF, TupleS, TupleI) => 1;
+List/CatAssoc check: (ListS[+]ListI) [+] ListF [==] ListS [+] (ListI[+]ListF): ok.
+  ListCatAssoc:(TupleS, TupleI, TupleF) => 1;
+  ! ListRepCat:(Count OpndA OpndB) [3] = {
+    f_put:((), "List/RepCat check: ", "(", .Name:OpndA, "[+]", .Name:OpndB, ") [*] ", Count, " [==] ", .Name:OpndA, " [+] ", "(", .Name:OpndB, "[+]", .Name:OpndA, ") [*] ", sub:(Count, 1), " [+] ", .Name:OpndB);
+    .Check:ident:(l_rep:(Count, l_cat:(.List:OpndA, .List:OpndB)), l_cat:(l_cat:(.List:OpndA, l_rep:(sub:(Count, 1), l_cat:(.List:OpndB, .List:OpndA))), .List:OpndB)) } => ListRepCat:;
+List/RepCat check: (ListI[+]ListF) [*] 3 [==] ListI [+] (ListF[+]ListI) [*] 2 [+] ListF: ok.
+  ListRepCat:(3, TupleI, TupleF) => 1;
+List/RepCat check: (ListF[+]ListS) [*] 5 [==] ListF [+] (ListS[+]ListF) [*] 4 [+] ListS: ok.
+  ListRepCat:(5, TupleF, TupleS) => 1;
+List/RepCat check: (ListS[+]ListI) [*] 4 [==] ListS [+] (ListI[+]ListS) [*] 3 [+] ListI: ok.
+  ListRepCat:(4, TupleS, TupleI) => 1;
+  ! ListCatAnti:(OpndA OpndB) [2] = {
+    f_put:((), "List/CatInv check: ", "[~](", .Name:OpndA, " [+] ", .Name:OpndB, ")", " [==] ", "(", "[~]", .Name:OpndB, " [+] ", "[~]", .Name:OpndA, ")");
+    .Check:ident:(l_rev:l_cat:(.List:OpndA, .List:OpndB), l_cat:(l_rev:.List:OpndB, l_rev:.List:OpndA)) } => ListCatAnti:;
+List/CatInv check: [~](ListI [+] ListF) [==] ([~]ListF [+] [~]ListI): ok.
+  ListCatAnti:(TupleI, TupleF) => 1;
+List/CatInv check: [~](ListF [+] ListS) [==] ([~]ListS [+] [~]ListF): ok.
+  ListCatAnti:(TupleF, TupleS) => 1;
+List/CatInv check: [~](ListS [+] ListI) [==] ([~]ListI [+] [~]ListS): ok.
+  ListCatAnti:(TupleS, TupleI) => 1;
+  ! ListRepInv:(Count OpndA) [2] = {
+    f_put:((), "List/RepInv check: ", "[~](", .Name:OpndA, " [*] ", Count, ")", " [==] ", "(", "[~]", .Name:OpndA, ") [*] ", Count);
+    .Check:ident:(l_rev:l_rep:(Count, .List:OpndA), l_rep:(Count, l_rev:.List:OpndA)) } => ListRepInv:;
+List/RepInv check: [~](ListI [*] 4) [==] ([~]ListI) [*] 4: ok.
+  ListRepInv:(4, TupleI) => 1;
+List/RepInv check: [~](ListF [*] 5) [==] ([~]ListF) [*] 5: ok.
+  ListRepInv:(5, TupleF) => 1;
+List/RepInv check: [~](ListS [*] 6) [==] ([~]ListS) [*] 6: ok.
+  ListRepInv:(6, TupleS) => 1;
+  ! ListRangeInv:(From To) [2] = {
+    f_put:((), "List/RangeInv check: ", From, "..", To);
+    .Check:ident:(l_range:((From, To), ), l_rev:l_range_r:((From, To), )) } => ListRangeInv:;
+List/RangeInv check: 1..9: ok.
+  ListRangeInv:(1, 9) => 1;
+List/RangeInv check: 20..40: ok.
+  ListRangeInv:(20, 40) => 1;
+List/RangeInv check: -16..16: ok.
+  ListRangeInv:(neg:16, 16) => 1;
+  ! CheckI:(i test) [2] = {
+    f_put:((), i);
+    .Check:test;
+    } => CheckI:;
+  ! ListRangeCat:(From To) [4] = {
+    f_put:((), "List/RangeCat check: ", From, "..", To, "\n");
+    f_put:((), "++\n");
+    set:(list, l_range:((From, To), ));
+    for_inc:(i, (From, add:(To, 1)), .CheckI:(i, ident:(list, l_cat:(l_range:((From, i), ), l_range:((i, To), )))));
+    f_put:((), "--\n");
+    set:(list, l_range_r:((From, To), ));
+    for_dec:(i, (From, add:(To, 1)), .CheckI:(i, ident:(list, l_cat:(l_range_r:((i, To), ), l_range_r:((From, i), )))));
+    } => ListRangeCat:;
+List/RangeCat check: 10..20
+++
+10: ok.
+11: ok.
+12: ok.
+13: ok.
+14: ok.
+15: ok.
+16: ok.
+17: ok.
+18: ok.
+19: ok.
+20: ok.
+--
+20: ok.
+19: ok.
+18: ok.
+17: ok.
+16: ok.
+15: ok.
+14: ok.
+13: ok.
+12: ok.
+11: ok.
+10: ok.
+  ListRangeCat:(10, 20) => ();
+List/RangeCat check: -5..5
+++
+-5: ok.
+-4: ok.
+-3: ok.
+-2: ok.
+-1: ok.
+0: ok.
+1: ok.
+2: ok.
+3: ok.
+4: ok.
+5: ok.
+--
+5: ok.
+4: ok.
+3: ok.
+2: ok.
+1: ok.
+0: ok.
+-1: ok.
+-2: ok.
+-3: ok.
+-4: ok.
+-5: ok.
+  ListRangeCat:(neg:5, 5) => ();
+List/RangeCat check: -15..-5
+++
+-15: ok.
+-14: ok.
+-13: ok.
+-12: ok.
+-11: ok.
+-10: ok.
+-9: ok.
+-8: ok.
+-7: ok.
+-6: ok.
+-5: ok.
+--
+-5: ok.
+-6: ok.
+-7: ok.
+-8: ok.
+-9: ok.
+-10: ok.
+-11: ok.
+-12: ok.
+-13: ok.
+-14: ok.
+-15: ok.
+  ListRangeCat:(neg:15, neg:5) => ();
+  ! ListRangeScan:(From To) [4] = {
+    f_put:((), "List/RangeScan check: ", From, "..", To, "\n");
+    f_put:((), "++\n");
+    set:(list, l_range:((From, To), ));
+    for_inc:(i, (From, add:(To, 1)), .CheckI:(i, c_and:(eq:(l_while:(! (x) [1] = lt:(x, ListRangeScan.i), list), sub:(i, From)), eq:(l_until_r:(! (y) [1] = lt:(y, ListRangeScan.i), list), sub:(i, From)))));
+    f_put:((), "--\n");
+    set:(list, l_range_r:((From, To), ));
+    for_dec:(i, (From, add:(To, 1)), .CheckI:(i, c_and:(eq:(add:(i, l_while_r:(! (x) [1] = lt:(x, ListRangeScan.i), list)), To), eq:(add:(i, l_until:(! (y) [1] = lt:(y, ListRangeScan.i), list)), To))));
+    } => ListRangeScan:;
+List/RangeScan check: 12..24
+++
+12: ok.
+13: ok.
+14: ok.
+15: ok.
+16: ok.
+17: ok.
+18: ok.
+19: ok.
+20: ok.
+21: ok.
+22: ok.
+23: ok.
+24: ok.
+--
+24: ok.
+23: ok.
+22: ok.
+21: ok.
+20: ok.
+19: ok.
+18: ok.
+17: ok.
+16: ok.
+15: ok.
+14: ok.
+13: ok.
+12: ok.
+  ListRangeScan:(12, 24) => ();
+List/RangeScan check: -10..10
+++
+-10: ok.
+-9: ok.
+-8: ok.
+-7: ok.
+-6: ok.
+-5: ok.
+-4: ok.
+-3: ok.
+-2: ok.
+-1: ok.
+0: ok.
+1: ok.
+2: ok.
+3: ok.
+4: ok.
+5: ok.
+6: ok.
+7: ok.
+8: ok.
+9: ok.
+10: ok.
+--
+10: ok.
+9: ok.
+8: ok.
+7: ok.
+6: ok.
+5: ok.
+4: ok.
+3: ok.
+2: ok.
+1: ok.
+0: ok.
+-1: ok.
+-2: ok.
+-3: ok.
+-4: ok.
+-5: ok.
+-6: ok.
+-7: ok.
+-8: ok.
+-9: ok.
+-10: ok.
+  ListRangeScan:(neg:10, 10) => ();
+  ! ListRangeSplit:(From To) [4] = {
+    f_put:((), "List/RangeSplit check: ", From, "..", To, "\n");
+    for_inc:(i, (From, sub:(To, 1)), {
+      set:(list, l_range:((From, To), ));
+      l_split:(sub:(i, From), list);
+      .CheckI:(i, c_and:(ident:(l_head:list, l_range:((From, add:(i, 1)), )), ident:(l_tail:list, l_range:((add:(i, 1), To), ))));
+      });
+    } => ListRangeSplit:;
+List/RangeSplit check: 15..35
+15: ok.
+16: ok.
+17: ok.
+18: ok.
+19: ok.
+20: ok.
+21: ok.
+22: ok.
+23: ok.
+24: ok.
+25: ok.
+26: ok.
+27: ok.
+28: ok.
+29: ok.
+30: ok.
+31: ok.
+32: ok.
+33: ok.
+  ListRangeSplit:(15, 35) => ();
+List/RangeSplit check: -12..6
+-12: ok.
+-11: ok.
+-10: ok.
+-9: ok.
+-8: ok.
+-7: ok.
+-6: ok.
+-5: ok.
+-4: ok.
+-3: ok.
+-2: ok.
+-1: ok.
+0: ok.
+1: ok.
+2: ok.
+3: ok.
+4: ok.
+  ListRangeSplit:(neg:12, 6) => ();
+  ! ListRangeLoop:(From To) [5] = {
+    f_put:((), "List/RangeLoop check: ", From, "..", To, "\n");
+    set:(list, l_range:((From, To), ));
+    f_put:((), "++\n");
+    set:(i, From);
+    l_loop:(elem, list, .CheckI:(elem, eq:(elem, inc_p:i)));
+    f_put:((), "--\n");
+    set:(i, To);
+    l_loop_r:(elem, list, .CheckI:(elem, eq:(elem, dec:i)));
+    } => ListRangeLoop:;
+List/RangeLoop check: -10..20
+++
+-10: ok.
+-9: ok.
+-8: ok.
+-7: ok.
+-6: ok.
+-5: ok.
+-4: ok.
+-3: ok.
+-2: ok.
+-1: ok.
+0: ok.
+1: ok.
+2: ok.
+3: ok.
+4: ok.
+5: ok.
+6: ok.
+7: ok.
+8: ok.
+9: ok.
+10: ok.
+11: ok.
+12: ok.
+13: ok.
+14: ok.
+15: ok.
+16: ok.
+17: ok.
+18: ok.
+19: ok.
+--
+19: ok.
+18: ok.
+17: ok.
+16: ok.
+15: ok.
+14: ok.
+13: ok.
+12: ok.
+11: ok.
+10: ok.
+9: ok.
+8: ok.
+7: ok.
+6: ok.
+5: ok.
+4: ok.
+3: ok.
+2: ok.
+1: ok.
+0: ok.
+-1: ok.
+-2: ok.
+-3: ok.
+-4: ok.
+-5: ok.
+-6: ok.
+-7: ok.
+-8: ok.
+-9: ok.
+-10: ok.
+  ListRangeLoop:(neg:10, 20) => ();
+List/RangeLoop check: -20..10
+++
+-20: ok.
+-19: ok.
+-18: ok.
+-17: ok.
+-16: ok.
+-15: ok.
+-14: ok.
+-13: ok.
+-12: ok.
+-11: ok.
+-10: ok.
+-9: ok.
+-8: ok.
+-7: ok.
+-6: ok.
+-5: ok.
+-4: ok.
+-3: ok.
+-2: ok.
+-1: ok.
+0: ok.
+1: ok.
+2: ok.
+3: ok.
+4: ok.
+5: ok.
+6: ok.
+7: ok.
+8: ok.
+9: ok.
+--
+9: ok.
+8: ok.
+7: ok.
+6: ok.
+5: ok.
+4: ok.
+3: ok.
+2: ok.
+1: ok.
+0: ok.
+-1: ok.
+-2: ok.
+-3: ok.
+-4: ok.
+-5: ok.
+-6: ok.
+-7: ok.
+-8: ok.
+-9: ok.
+-10: ok.
+-11: ok.
+-12: ok.
+-13: ok.
+-14: ok.
+-15: ok.
+-16: ok.
+-17: ok.
+-18: ok.
+-19: ok.
+-20: ok.
+  ListRangeLoop:(neg:20, 10) => ();
+  ! ListRangeTail:(From To) [4] = {
+    f_put:((), "List/RangeTail check: ", From, "..", To, "\n");
+    f_put:((), "++\n");
+    set:(list, l_range:((From, To), ));
+    for_inc:(i, (From, To), .CheckI:(i, ident:(l_tail_by:(sub:(i, From), list), l_range:((i, To), ))));
+    f_put:((), "--\n");
+    set:(list, l_range_r:((From, To), ));
+    for_dec:(i, (From, To), .CheckI:(i, ident:(l_tail_by:(sub:(i, From), list), l_range_r:((From, add:(sub:(From, i), To)), ))));
+    } => ListRangeTail:;
+List/RangeTail check: -15..5
+++
+-15: ok.
+-14: ok.
+-13: ok.
+-12: ok.
+-11: ok.
+-10: ok.
+-9: ok.
+-8: ok.
+-7: ok.
+-6: ok.
+-5: ok.
+-4: ok.
+-3: ok.
+-2: ok.
+-1: ok.
+0: ok.
+1: ok.
+2: ok.
+3: ok.
+4: ok.
+--
+4: ok.
+3: ok.
+2: ok.
+1: ok.
+0: ok.
+-1: ok.
+-2: ok.
+-3: ok.
+-4: ok.
+-5: ok.
+-6: ok.
+-7: ok.
+-8: ok.
+-9: ok.
+-10: ok.
+-11: ok.
+-12: ok.
+-13: ok.
+-14: ok.
+-15: ok.
+  ListRangeTail:(neg:15, 5) => ();
+List/RangeTail check: -5..15
+++
+-5: ok.
+-4: ok.
+-3: ok.
+-2: ok.
+-1: ok.
+0: ok.
+1: ok.
+2: ok.
+3: ok.
+4: ok.
+5: ok.
+6: ok.
+7: ok.
+8: ok.
+9: ok.
+10: ok.
+11: ok.
+12: ok.
+13: ok.
+14: ok.
+--
+14: ok.
+13: ok.
+12: ok.
+11: ok.
+10: ok.
+9: ok.
+8: ok.
+7: ok.
+6: ok.
+5: ok.
+4: ok.
+3: ok.
+2: ok.
+1: ok.
+0: ok.
+-1: ok.
+-2: ok.
+-3: ok.
+-4: ok.
+-5: ok.
+  ListRangeTail:(neg:5, 15) => ();
+  ! ListRangeFilter:(From To) [4] = {
+    f_put:((), "List/RangeFilter check: ", From, "..", To, "\n");
+    f_put:((), "++\n");
+    set:(list, l_range:((From, To), ));
+    for_inc:(i, (From, To), .CheckI:(i, ident:(l_filter_in:(! (x) [1] = le:(x, ListRangeFilter.i), list), l_range:((From, add:(i, 1)), ))));
+    f_put:((), "--\n");
+    set:(list, l_range_r:((From, To), ));
+    for_dec:(i, (From, To), .CheckI:(i, ident:(l_filter_ex:(! (x) [1] = lt:(x, ListRangeFilter.i), list), l_range_r:((i, To), ))));
+    } => ListRangeFilter:;
+List/RangeFilter check: -16..16
+++
+-16: ok.
+-15: ok.
+-14: ok.
+-13: ok.
+-12: ok.
+-11: ok.
+-10: ok.
+-9: ok.
+-8: ok.
+-7: ok.
+-6: ok.
+-5: ok.
+-4: ok.
+-3: ok.
+-2: ok.
+-1: ok.
+0: ok.
+1: ok.
+2: ok.
+3: ok.
+4: ok.
+5: ok.
+6: ok.
+7: ok.
+8: ok.
+9: ok.
+10: ok.
+11: ok.
+12: ok.
+13: ok.
+14: ok.
+15: ok.
+--
+15: ok.
+14: ok.
+13: ok.
+12: ok.
+11: ok.
+10: ok.
+9: ok.
+8: ok.
+7: ok.
+6: ok.
+5: ok.
+4: ok.
+3: ok.
+2: ok.
+1: ok.
+0: ok.
+-1: ok.
+-2: ok.
+-3: ok.
+-4: ok.
+-5: ok.
+-6: ok.
+-7: ok.
+-8: ok.
+-9: ok.
+-10: ok.
+-11: ok.
+-12: ok.
+-13: ok.
+-14: ok.
+-15: ok.
+-16: ok.
+  ListRangeFilter:(neg:16, 16) => ();
+  ! ListRangeRatio:(N From To) [5] = {
+    f_put:((), "List/RangeRatio check: ", From, "..", To, "\n");
+    f_put:((), "++\n");
+    set:(list, l_range:((From, To), ));
+    for_inc:(n, (1, N), .CheckI:(n, ident:(l_filter_ex:(! (x) [1] = irem:(x, ListRangeRatio.n), list), l_range:((idiv:(From, n), add:(idiv:(sub:(To, 1), n), 1)), ! (x) [1] = mul:(x, ListRangeRatio.n)))));
+    f_put:((), "--\n");
+    set:(list, l_range_r:((From, To), ));
+    for_dec:(n, (1, N), .CheckI:(n, ident:(l_filter_ex:(! (x) [1] = irem:(x, ListRangeRatio.n), list), l_range_r:((idiv:(From, n), add:(idiv:(sub:(To, 1), n), 1)), ! (x) [1] = mul:(x, ListRangeRatio.n)))));
+    } => ListRangeRatio:;
+List/RangeRatio check: -40..40
+++
+1: ok.
+2: ok.
+3: ok.
+4: ok.
+5: ok.
+6: ok.
+7: ok.
+8: ok.
+9: ok.
+--
+9: ok.
+8: ok.
+7: ok.
+6: ok.
+5: ok.
+4: ok.
+3: ok.
+2: ok.
+1: ok.
+  ListRangeRatio:(10, neg:40, 40) => ();
+  ! ListRangeCount:(From To) [4] = {
+    f_put:((), "List/RangeCount check: ", From, "..", To, "\n");
+    f_put:((), "++\n");
+    set:(list, l_range:((From, To), ));
+    for_inc:(i, (From, To), .CheckI:(i, ident:(l_count_in:(! (x) [1] = le:(x, ListRangeCount.i), list), sub:(add:(i, 1), From))));
+    f_put:((), "--\n");
+    set:(list, l_range_r:((From, To), ));
+    for_dec:(i, (From, To), .CheckI:(i, ident:(l_count_ex:(! (x) [1] = lt:(x, ListRangeCount.i), list), sub:(To, i))));
+    } => ListRangeCount:;
+List/RangeCount check: -18..18
+++
+-18: ok.
+-17: ok.
+-16: ok.
+-15: ok.
+-14: ok.
+-13: ok.
+-12: ok.
+-11: ok.
+-10: ok.
+-9: ok.
+-8: ok.
+-7: ok.
+-6: ok.
+-5: ok.
+-4: ok.
+-3: ok.
+-2: ok.
+-1: ok.
+0: ok.
+1: ok.
+2: ok.
+3: ok.
+4: ok.
+5: ok.
+6: ok.
+7: ok.
+8: ok.
+9: ok.
+10: ok.
+11: ok.
+12: ok.
+13: ok.
+14: ok.
+15: ok.
+16: ok.
+17: ok.
+--
+17: ok.
+16: ok.
+15: ok.
+14: ok.
+13: ok.
+12: ok.
+11: ok.
+10: ok.
+9: ok.
+8: ok.
+7: ok.
+6: ok.
+5: ok.
+4: ok.
+3: ok.
+2: ok.
+1: ok.
+0: ok.
+-1: ok.
+-2: ok.
+-3: ok.
+-4: ok.
+-5: ok.
+-6: ok.
+-7: ok.
+-8: ok.
+-9: ok.
+-10: ok.
+-11: ok.
+-12: ok.
+-13: ok.
+-14: ok.
+-15: ok.
+-16: ok.
+-17: ok.
+-18: ok.
+  ListRangeCount:(neg:18, 18) => ();
+
+} <ListOp.awl> #355 / [74]

@@ -1,0 +1,54 @@
+
+`
+	+---+---+---+---+---+---+
+	|	Factorials with unlimited precision.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+` Calculate N factorial, unlimited precision `
+! factorial (N) : [line carry n i] = {
+
+line = (1, );	`result (base 1000, big-endian)`
+
+` (current iteration) `
+n = 1;
+
+(n <= N) ?? {
+
+`( multiply line by n base 1000 )`
+
+carry = 0;
+
+for_dec (i, #line, {
+	v = n * line[i] + carry;
+	line[i] = v %% 1000;
+	carry = v % 1000;
+	});
+
+carry ? (line [<-] carry) :;	`( insert carry, if needed )`
+
+n ++;
+};	`(n <= N)`
+
+` Output result in line `
+
+<: ('\n', N, "! = \n");
+
+
+for_inc (i, #line, {
+	v = line[i ++];
+	<: ((v < 10 ? '00' : v < 100 ? '0' : ''), v, ' ');
+	});
+
+<: '\n\n';
+
+};		` -- factorial `
+
+
+` test it: `
+factorial (100);
+

@@ -1,0 +1,78 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test_7.awl': #7
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+` Block evaluation test `
+
+x_trace();
+
+ta := { [a b] = (a+b-2, b-a+5); ((a+b)*4, (b-a)*3) };
+tb := { [a b] = (a+2, b-3); (a-b, a+b) };
+
+a = 22;
+b = 43;
+
+^tb;
+^tb;
+^tb;
+^tb;
+^tb;
+
+^ta;
+^ta;
+^ta;
+^ta;
+
+xyz = ( "XXXxxx", "YYYyyy", "ZZZzzz" );
+
+xyz[0];
+xyz[1];
+xyz[2];
+
+i = 0; v = 0; n = 0;
+i ++ < #xyz ?? ( n++, v = v + i );
+
+#xyz;
+
+v;
+n;
+
+xyz[0] +$ xyz[1] +$ xyz[2];
+
+sa = sb = '';
+i = 0;
+i ~= #xyz ?? {
+	sa =+$: xyz[i] $[0..3];
+	sb =+$: xyz[i] $[3..6];
+	++ i
+	};
+
+(sa, sb, sa +$ sb);
+
+` ------------------ `
+
+ij := (i, j);
+
+(i, j) = (0, 6);
+
+^ij;
+
+j ?? ( i ++, j -- );
+
+^ij;
+
+(k, l) = (5, 3);
+
+do_while (k, ( k --, l ++ ));
+
+(k, l);
+
+x_vars_ord();

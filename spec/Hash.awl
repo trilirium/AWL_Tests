@@ -1,0 +1,163 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Hash.awl':
+	|	Testing hash operations.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+`
+	CHECKED: hash, h_count, h_elem, h_rehash, h_remove
+`
+
+
+x_trace ();
+
+` Checking hash primitives... `
+
+! h_check (hash) : [res] = {
+	res = h_inspect (hash);
+	<: " = "; x_trace (2, res); <: "\n";
+	[=] + res
+	};
+
+!h_show(@hash) = { <: '\n= '; x_trace (2, hash); x_trace (2+64, ^hash); <: '.\n\n'; };
+
+`
+	Automatical hash tester class
+`
+!! HashTester (hash fn_iterator fn_key fn_value) {
+	` hash initialise `
+	! init =
+		fn_iterator !
+			(! (args) = (h_elem (hash, fn_key ! args) = (fn_value ! args))),
+
+	` hash verify `
+	! verify =
+		fn_iterator !
+			(! (args) =
+				(if (h_elem (hash, fn_key ! args) [<>] (fn_value ! args))::
+					{ <: "Hash verify error (at "; x_trace (2, args); <: ")\n"; }
+				)
+			),
+
+	` drain hash `
+	! drain = 
+		fn_iterator !
+			(! (args) = 
+				(if (h_remove (hash, fn_key ! args) [<>] (fn_value ! args))::
+					{ <: "Hash remove error (at "; x_trace (2, args); <: ")\n"; }
+				)
+			)
+	};		` -- HashTester `
+
+
+H_1 = h_create ();
+
+H1_Test =
+	HashTester (H_1,
+
+	! (body) : [i j] =
+		(for_inc (i, 10..20,
+			for_inc (j, 30..50,
+				body ! (i, j)
+			))),
+
+	! (i j) = [i j],
+	! (i j) = (i * 100 + j)
+	);
+
+H1_Test.HashTester!! init ();
+H1_Test.HashTester!! verify ();
+
+h_count (H_1);
+
+h_check (H_1);
+
+h_rehash (H_1, 25);
+h_check (H_1);
+
+h_rehash (H_1, 8);
+h_check (H_1);
+
+h_rehash (H_1, 4);
+h_check (H_1);
+
+H1_Test.HashTester!! verify ();
+
+h_show (H_1);
+
+H1_Test.HashTester!! drain ();
+h_count (H_1);
+
+H_2 = h_create ();
+
+H2_Test =
+	HashTester (H_2,
+
+	! (body) : [v w] = (
+		l_loop (v, ['aa' 'ee' 'ii' 'oo' 'uu' 'yy'],
+			l_loop (w, ['b' 'c' 'd' 'f' 'g' 'k' 'l' 'm' 'n' 'p' 's' 't' 'x'],
+				body ! (v, w)
+			))),
+
+	! (v w) = [v w],
+	! (v w) = ('{' +$ v +$ '/' +$ w +$ '}')
+	);
+
+H2_Test.HashTester!! init ();
+H2_Test.HashTester!! verify ();
+
+h_count (H_2);
+
+h_check (H_2);
+
+h_rehash (H_2, 12);
+h_check (H_2);
+
+h_rehash (H_2, 5);
+h_check (H_2);
+
+h_rehash (H_2, 18);
+h_check (H_2);
+
+H2_Test.HashTester!! verify ();
+
+h_show (H_2);
+
+H2_Test.HashTester!! drain ();
+h_count (H_2);
+
+H_3 = h_create ();
+
+H3_Test =
+	HashTester (H_3,
+
+	! (body) : [n p] = (
+		l_loop (p, ['abc' 'de' 'fg' 'h' 'ij' 'klmn' 'o' 'p' 'q' 'rst' 'uv' 'xyz'],
+			for_dec (n, 50,
+				body ! (n, p)
+			))),
+
+	! (n p) = (p +$ ':' +$ n),
+	! (n p) = (2*n + 1, '(' +$ p +$ ')', n +$ '::' +$ p)
+	);
+
+H3_Test.HashTester!! init ();
+H3_Test.HashTester!! verify ();
+
+h_count (H_3);
+
+h_check (H_3);
+
+h_show (H_3);
+
+H3_Test.HashTester!! drain ();
+
+h_count (H_3);
+

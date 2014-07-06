@@ -1,0 +1,156 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Array1.awl':
+	|	Testing 1D/2D/3D array insertion/deletion.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: array, a_init_all, a_insert, a_delete
+`
+
+` Dump array `
+! array_dump(arr) = { x_trace (2|64, arr); <: '\n'; };
+
+x_trace ();
+
+` Expect arrays 'a' and 'b' to be structurally equal `
+! expect (a b) =
+	if (a [<>] b):: (<: ["\aFailed: " a "<>" b "\n"]);
+
+`
+	1D array insertion/deletion test
+`
+! array_insdel_1D (n_elem f_elem) : [test1 test2] = {
+	<: ["Testing 1D array insertion/deletion: "
+	    n_elem '^' f_elem ".\n\n"];
+
+	test1 = array (n_elem);
+
+	a_init_all (test1, !(R) = R);
+
+	test2 = a_copy (test1);
+
+	` Insert even elements `
+	for_dec (N, n_elem,
+	    a_insert (test1, 0, N..N+1, f_elem)
+	    );
+
+	array_dump (test1);
+	expect (n_elem*2, a_dims (test1));
+
+	` Delete even elements `
+	for_inc (N, n_elem,
+	    a_delete (test1, 0, N..N+1)
+	    );
+	
+	expect (test1, test2);
+
+	<: "\nDone.\n";	
+	};		` -- array_insdel_1D `
+
+array_insdel_1D (16, 111);
+
+`
+	2D array insertion/deletion test
+`
+! array_insdel_2D (n_row n_col f_row f_col) : [test1 test2] = {
+	<: ["Testing 2D array insertion/deletion: "
+	    n_row '^' f_row " * " n_col '^' f_col ".\n\n"];
+
+	test1 = array (n_row, n_col);
+
+	a_init_all (test1, !(R C) = (R*n_col + C));
+
+	test2 = a_copy (test1);
+
+	` Insert even rows `
+	for_dec (R, n_row,
+	    a_insert (test1, 0, R..R+1, f_row)
+	    );
+
+	` Insert even columns `
+	for_dec (C, n_col,
+	    a_insert (test1, 1, C..C+1, f_col)
+	    );
+
+	array_dump (test1);
+	expect ((n_row*2, n_col*2), a_dims (test1));
+
+	` Delete even rows `
+	for_inc (R, n_row,
+	    a_delete (test1, 0, R..R+1)
+	    );
+	
+	` Delete even columns `
+	for_inc (C, n_col,
+	    a_delete (test1, 1, C..C+1)
+	    );
+
+	expect (test1, test2);
+
+	<: "\nDone.\n";	
+	};		` -- array_insdel_2D `
+
+
+array_insdel_2D (10, 8, 101, 202);
+
+`
+	3D array insertion/deletion test
+`
+! array_insdel_3D (n_row n_col n_pag f_row f_col f_pag):
+	[test1 test2] = {
+	<: ["Testing 3D array insertion/deletion: "
+	    n_pag '^' f_pag " * " n_row '^' f_row " * " n_col '^' f_col ".\n\n"];
+
+	test1 = array (n_pag, n_row, n_col);
+
+	a_init_all (test1, !(P R C) = ((P*n_row + R)*n_col + C));
+
+	test2 = a_copy (test1);
+
+	` Insert even pages `
+	for_dec (P, n_pag,
+	    a_insert (test1, 0, P..P+1, f_pag)
+	    );
+
+	` Insert even rows `
+	for_dec (R, n_row,
+	    a_insert (test1, 1, R..R+1, f_row)
+	    );
+
+	` Insert even columns `
+	for_dec (C, n_col,
+	    a_insert (test1, 2, C..C+1, f_col)
+	    );
+
+	array_dump (test1);
+	expect ((n_pag*2, n_row*2, n_col*2), a_dims (test1));
+
+	` Delete even pages `
+	for_inc (P, n_pag,
+	    a_delete (test1, 0, P..P+1)
+	    );
+
+	` Delete even rows `
+	for_inc (R, n_row,
+	    a_delete (test1, 1, R..R+1)
+	    );
+
+	` Delete even columns `
+	for_inc (C, n_col,
+	    a_delete (test1, 2, C..C+1)
+	    );
+
+	expect (test1, test2);
+
+	<: "\nDone.\n";	
+	};		` -- array_insdel_3D `
+
+array_insdel_3D (5, 3, 4, 110, 220, 330);
+

@@ -1,0 +1,373 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Array2.awl':
+	|	Testing 1D/2D/3D array reshaping.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: array, a_init_all, a_reshape
+`
+
+x_trace ();
+
+` dump array `
+! array_dump(arr) = { x_trace (2+64, arr); <: '\n'; };
+
+! expect_str (S T) =
+    unless (S ==$ T)::
+	(<: ("\aMismatch: ", S, " <> ", T, "!\n"));
+
+! expect_blank (S) =
+    unless (is_undef (S))::
+	(<: ("\aNot empty: ", S, "!\n"));
+
+! verify_2D_array (array range_R off_R range_C off_C pattern) : [R C] =
+    for_inc (R, range_R,
+	for_inc (C, range_C,
+		#pattern ?
+			expect_str ((pattern ! (R + off_R, C + off_C)), array {R, C})
+		:	expect_blank (array {R, C})
+	    )
+	);
+
+! verify_2D_clean (array range_R range_C) =
+	verify_2D_array (array, range_R, 0, range_C, 0, );
+
+` Array resize test `
+do_show = true();
+
+`
+	2D Array Clip (Shrink/Expand) test
+`
+! Test_Array2D_Clip (Rows Cols Pattern) : [R C D] = {
+<: ("\nArray shrink/expand test: [", Pattern ! [0 0], " -> ", Pattern ! [Rows Cols], "].\n\n");
+
+test = array (Rows, Cols);
+
+a_init_all (test, Pattern);
+
+if (do_show):: {
+	<: ("\tSource:\n");
+	array_dump (test);
+	};
+
+verify_2D_array (test, Rows, 0, Cols, 0, Pattern);
+
+` Rows clip loop `
+<: ("- Clip bottom/top (", Rows, ")\n");
+
+for_inc (R, Rows, {
+	` - re-init & bottom area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, R..Rows, Cols, );
+	if (do_show):: {
+		<: ("\tClip (bottom @", R, "):\n");
+		array_dump (test);
+		};
+	verify_2D_array (test, Rows - R, R, Cols, 0, Pattern);
+
+	` - re-init & top area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, Rows-R, Cols, );
+	if (do_show):: {
+		<: ("\tClip (top @", R, "):\n");
+		array_dump (test);
+		};
+	verify_2D_array (test, Rows - R, 0, Cols, 0, Pattern);
+	});
+
+` Cols reshape loop `
+<: ("- Clip right/left (", Cols, ")\n");
+
+for_inc (C, Cols, {
+	` - re-init & right area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, 0..Rows, C..Cols, );
+	if (do_show):: {
+		<: ("\tClip (right @", C, "):\n");
+		array_dump (test);
+		};
+	verify_2D_array (test, Rows, 0, Cols - C, C, Pattern);
+
+	` - re-init & left area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, 0..Rows, Cols-C, );
+	if (do_show):: {
+		<: ("\tClip (left @", C, "):\n");
+		array_dump (test);
+		};
+	verify_2D_array (test, Rows, 0, Cols - C, 0, Pattern);
+	});
+
+` Forward diagonal reshape loop `
+<: ("- Clip forward diag (", Cols ?< Rows, ")\n");
+
+for_inc (D, Cols ?< Rows, {
+	` - re-init & right/bottom area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, D..Rows, D..Cols, );
+	if (do_show):: {
+		<: ("\tClip (left/top @", D, "):\n");
+		array_dump (test);
+		};
+	verify_2D_array (test, Rows-D, D, Cols-D, D, Pattern);
+
+	` - re-init & left/top area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, Rows - D, Cols - D, );
+	if (do_show):: {
+		<: ("\tClip (right/bottom @", D, "):\n");
+		array_dump (test);
+		};
+	verify_2D_array (test, Rows-D, 0, Cols-D, 0, Pattern);
+	});
+
+` Backward diagonal reshape loop `
+<: ("- Clip backward diag (", Cols ?< Rows, ")\n");
+
+for_inc (D, Cols ?< Rows, {
+	` - re-init & left/bottom area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, D..Rows, Cols - D, );
+	if (do_show):: {
+		<: ("\tClip (left/bottom @", D, "):\n");
+		array_dump (test);
+		};
+	verify_2D_array (test, Rows-D, D, Cols-D, 0, Pattern);
+
+	` - re-init & right/top area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, Rows - D, D..Cols, );
+	if (do_show):: {
+		<: ("\tClip (right/top @", D, "):\n");
+		array_dump (test);
+		};
+	verify_2D_array (test, Rows-D, 0, Cols-D, D, Pattern);
+	});
+
+};	` -- Test_Array2D_Clip `
+
+Test_Array2D_Clip (5, 10, !(r c) = ('[' +$ r +$ ':' +$ c +$ ']'));
+
+`
+	2D Array Displace test
+`
+
+! Test_Array2D_Displace (Rows Cols Pattern) : [R C D] = {
+<: ("\nArray displace test: [", Pattern ! [0 0], " -> ", Pattern ! [Rows Cols], "].\n\n");
+
+test = array (Rows, Cols);
+
+a_init_all (test, Pattern);
+
+if (do_show):: {
+	<: ("\tSource:\n");
+	array_dump (test);
+	};
+
+verify_2D_array (test, Rows, 0, Cols, 0, Pattern);
+
+` Rows displace loop `
+<: ("- Displace bottom/top (", Rows, ")\n");
+
+for_inc (R, Rows, {
+	` - re-init & displace down - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, R..Rows+R, Cols, );
+	if (do_show):: {
+		<: ("\tDisplace (bottom @", R, "):\n");
+		array_dump (test);
+		};
+	verify_2D_array (test, Rows - R, R, Cols, 0, Pattern);
+	verify_2D_clean (test, Rows - R..Rows, Cols);
+
+	` - re-init & displace up - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, -R..Rows-R, Cols, );
+	if (do_show):: {
+		<: ("\tDisplace (top @", R, "):\n");
+		array_dump (test);
+		};
+	verify_2D_clean (test, R, Cols);
+	verify_2D_array (test, R..Rows, -R, Cols, 0, Pattern);
+	});
+
+` Cols displace loop `
+<: ("- Displace right/left (", Cols, ")\n");
+
+for_inc (C, Cols, {
+	` - re-init & displace right - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, Rows, C..Cols+C, );
+	if (do_show):: {
+		<: ("\tDisplace (right @", C, "):\n");
+		array_dump (test);
+		};
+	verify_2D_array (test, Rows, 0, Cols - C, C, Pattern);
+	verify_2D_clean (test, Rows, Cols - C..Cols);
+
+	` - re-init & displace left - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, Rows, -C..Cols-C, );
+	if (do_show):: {
+		<: ("\tDisplace (left @", C, "):\n");
+		array_dump (test);
+		};
+	verify_2D_clean (test, Rows, C);
+	verify_2D_array (test, Rows, 0, C..Cols, -C, Pattern);
+	});
+
+` Forward diagonal displace loop `
+<: ("- Displace forward diag (", Cols ?< Rows, ")\n");
+
+for_inc (D, Cols ?< Rows, {
+	` - re-init & right/bottom area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, D..Rows + D, D..Cols + D, );
+	if (do_show):: {
+		<: ("\tDisplace (left/top @", D, "):\n");
+		array_dump (test);
+		};
+	verify_2D_array (test, Rows-D, D, Cols-D, D, Pattern);
+	verify_2D_clean (test, Rows, Cols-D..Cols);
+	verify_2D_clean (test, Rows-D..Rows, Cols);
+
+	` - re-init & left/top area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, -D..Rows - D, -D..Cols - D, );
+	if (do_show):: {
+		<: ("\tDisplace (right/bottom @", D, "):\n");
+		array_dump (test);
+		};
+	verify_2D_clean (test, Rows, D);
+	verify_2D_clean (test, D, Cols);
+	verify_2D_array (test, D..Rows, -D, D..Cols, -D, Pattern);
+	});
+
+` Backward diagonal displace loop `
+<: ("- Displace backward diag (", Cols ?< Rows, ")\n");
+
+for_inc (D, Cols ?< Rows, {
+	` - re-init & left/bottom area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, D..Rows + D, -D..Cols - D, );
+	if (do_show):: {
+		<: ("\tDisplace (left/bottom @", D, "):\n");
+		array_dump (test);
+		};
+	verify_2D_clean (test, Rows, D);
+	verify_2D_array (test, Rows-D, D, D..Cols, -D, Pattern);
+	verify_2D_clean (test, Rows-D..Rows, Cols);
+
+	` - re-init & right/top area reshape - `
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, -D..Rows - D, D..Cols + D, );
+	if (do_show):: {
+		<: ("\tDisplace (right/top @", D, "):\n");
+		array_dump (test);
+		};
+	verify_2D_clean (test, D, Cols);
+	verify_2D_array (test, D..Rows, -D, Cols-D, D, Pattern);
+	verify_2D_clean (test, Rows, Cols-D..Cols);
+	});
+
+};	` -- Test_Array2D_Displace `
+
+Test_Array2D_Displace (6, 8, !(r c) = (r +$ '<>' +$ c));
+
+`
+	2D Array Explode/Implode test
+`
+
+! Test_Array2D_ExpImp (Rows Cols Pattern) : [n N] = {
+<: ("\nArray 2D explode/implode test: [", Pattern ! [0 0], " -> ", Pattern ! [Rows Cols], "].\n\n");
+
+test = array (Rows, Cols);
+
+a_init_all (test, Pattern);
+
+if (do_show):: {
+	<: ("\tSource:\n");
+	array_dump (test);
+	};
+
+verify_2D_array (test, Rows, 0, Cols, 0, Pattern);
+
+N = (Rows % 2) ?< (Cols % 2);
+
+<: ("- Implode (", N + 1, ")\n");
+
+for_inc (n, N + 1, {
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, n..Rows - n, n..Cols - n, );
+	if (do_show):: {
+		<: ("\tImplode (@", n, "):\n");
+		array_dump (test);
+		};
+
+	verify_2D_array (test, Rows - 2*n, n, Cols - 2*n, n, Pattern);
+	});
+
+<: ("- Explode (", N + 1, ")\n");
+
+for_inc (n, N + 1, {
+	test = array (Rows, Cols);
+	a_init_all (test, Pattern);
+
+	a_reshape (test, -n..Rows + n, -n..Cols + n, );
+	if (do_show):: {
+		<: ("\tExplode (@", n, "):\n");
+		array_dump (test);
+		};
+
+	verify_2D_clean (test, Rows, n);
+	verify_2D_clean (test, n, Cols);
+	verify_2D_array (test, n..Rows + n, -n, n..Cols + n, -n, Pattern);
+	verify_2D_clean (test, Rows, range (Cols + n, n));
+	verify_2D_clean (test, range (Rows + n, n), Cols);
+	});
+
+};	` -- Test_Array2D_ExpImp `
+
+Test_Array2D_ExpImp (5, 7, !(r c) = ("{ " +$ r +$ '.' +$ c +$ " }"));
+

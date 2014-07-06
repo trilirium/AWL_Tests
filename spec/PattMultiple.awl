@@ -1,0 +1,229 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'PattMultiple.awl':
+	|	Pattern multiple-match test.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+! dump (message n got expected) =
+	<: (message, ".", n, ": ", got, " <?> ", expected, '\n');
+
+` Expect (string) `
+! expect_s (message n expected got) =
+    unless (got ==$ expected)::
+		(<: ("\aUnexpected (", message, " @", n, "): ", got, " <> ", expected, "\n"));
+
+` Expect (any) `
+! expect_x (where n expected got) =
+	unless (got [==] expected):: {
+		<: ("\aUnexpected (", where, " @", n, ") ");
+		x_trace ((), got);
+		<: " [<>] ";
+		x_trace ((), expected);
+		<: "\n";
+		};
+
+` cut string tail, by n chars `
+! cut_string_tail (string n) = string$[..#$string - n];
+
+` pick 'src_list' head 'n' (forward) `
+! pick_head_n(n src_list) : [list] = {
+	list = l_copy (src_list);
+	l_resize (list, n) };
+
+` pick 'src_list' tail 'n' (reverse) `
+! pick_tail_n(n src_list) : [list] = {
+	list = l_rev (src_list);
+	l_resize (list, n) };
+
+` safe version of above, for list elems `
+! pick_tail_n_safe(n src_list) : [list] = {
+	list = l_rev ('' [+] src_list);
+	l_resize (list, n) };
+
+`
+	Multi match test
+	'src_del': source delimiter
+	'res_del': result delimiter (for rx_replace)
+	'orig_list': test strings list
+`
+
+! multi_match_test (src_del res_del orig_list) : [count source result delim_list n p] = {
+
+<: ("Multi-match test: '", src_del, "' -> '", res_del,
+	"': [", s_join (' ', orig_list), "] (#", #orig_list, ")\n");
+
+count = #orig_list;
+source = s_join (src_del, orig_list);
+result = s_join (res_del, orig_list);
+
+! len_n (n): [i len] = {
+	len = 0;
+	for_inc (i, n, len =+: #$(orig_list[i]));
+	len };
+
+` n elements head of 'str' `
+! head_n (n str del) = str $[len_n(n) + n * #$del];
+
+` n elements tail of 'str' `
+! tail_n (n str del) : [len] = {
+	len = len_n(n) + n * #$del;
+	str $[len .. #$str] };
+
+! source_head_n(n) = head_n(n, source, src_del);
+! source_tail_n(n) = tail_n(n, source, src_del);
+
+! result_head_n(n) = head_n(n, result, res_del);
+! result_tail_n(n) = tail_n(n, result, res_del);
+
+! source_head_nC(n) = cut_string_tail (source_head_n(n), #$src_del);
+
+` construct source delimiters list (manually) `
+delim_list = ((), );
+
+p = 0;
+for_inc (n, count, {
+	p =+: #$(orig_list[n]);
+	delim_list [<-] p;
+	p =+: #$src_del;
+	});
+
+delim_list = l_map (! (v) = (#v ? (v, v + #$src_del) : ()), [~] delim_list [+] [() :]);
+delim_list [->] p;
+l_tail_by (count-1, delim_list) = ();
+
+` ==== tests eval ==== `
+
+for_inc (n, count,
+	expect_s ("source base test", n, source_head_n(n) +$ source_tail_n(n), source));
+
+for_dec (n, count,
+	expect_s ("result base test", n, result_head_n(n) +$ result_tail_n(n), result));
+
+expect_x ("locate: all", 0,
+	delim_list, rx_locate (src_del, source));
+
+expect_x ("split: all", 0,
+	orig_list, rx_split (src_del, source));
+
+for_inc (n, 1..count, {
+	expect_s ("replace: result[..n] + source[n..] (++)", n,
+		result_head_n(n) +$ source_tail_n(n),
+		rx_replace (src_del, source, res_del, n, 0));
+	expect_x ("locate: result[..n] + source[n..] (++)", n,
+		pick_head_n (n, delim_list),
+		rx_locate (src_del, source, n, 0));
+	expect_x ("split: result[..n] + source[n..] (++)", n,
+		pick_head_n (n, orig_list) [+] source_tail_n(n),
+		rx_split (src_del, source, n, 0));
+	});
+
+for_dec (n, count - 1, {
+	expect_s ("replace: source[..n] + result[n..] (--)", n,
+		source_head_n(n) +$ result_tail_n(n),
+		rx_replace (src_del, source, res_del, count - n - 1, 1));
+	expect_x ("locate: source[..n] + result[n..] (--)", n,
+		pick_tail_n_safe (count-n-1, delim_list),
+		rx_locate (src_del, source, count - n - 1, 1));
+	expect_x ("split: source[..n] + result[n..] (--)", n,
+		pick_tail_n (count-n-1, orig_list) [+] source_head_nC(n+1),
+		rx_split (src_del, source, count - n - 1, 1));
+	});
+
+for_inc (n, count, {
+	expect_s ("replace: source[..n] + result[n..] (++)", n,
+		source_head_n(n) +$ result_tail_n(n),
+		rx_replace (src_del, source, res_del, n..count, 0));
+	expect_x ("locate: source[..n] + result[n..] (++)", n,
+		l_tail_by (n, delim_list),
+		rx_locate (src_del, source, n..count, 0));
+	expect_x ("split: source[..n] + result[n..] (++)", n,
+		(n <> count-1) ? [~] (pick_tail_n (count-n-1, orig_list) [+] source_head_nC(n+1)) : source,
+		rx_split (src_del, source, n..count, 0));
+	});
+
+for_dec (n, count, {
+	expect_s ("replace: result[..n] + source[n..] (--)", n,
+		result_head_n(n) +$ source_tail_n(n),
+		rx_replace (src_del, source, res_del, (count-n-1)..count, 1));
+	expect_x ("locate: result[..n] + source[n..] (--)", n,
+		l_tail_by (count-n-1, pick_tail_n_safe (count-1, delim_list)),
+		rx_locate (src_del, source, (count-n-1)..count, 1));
+	expect_x ("split: result[..n] + source[n..] (--)", n,
+		n ? [~] (pick_head_n (n, orig_list) [+] source_tail_n(n)) : source,
+		rx_split (src_del, source, (count-n-1)..count, 1));
+	});
+
+for_inc (n, count-1, {
+	expect_s ("replace: insert [n] (++)", n,
+		source_head_n(n) +$ orig_list[n] +$ res_del +$ source_tail_n(n+1),
+		rx_replace (src_del, source, res_del, n..n+1, 0));
+	expect_x ("locate: insert [n] (++)", n,
+		(delim_list[n], ),
+		rx_locate (src_del, source, n..n+1, 0));
+	expect_x ("split: insert [n] (++)", n,
+		(source_head_nC (n+1), source_tail_n(n+1)),
+		rx_split (src_del, source, n..n+1, 0));
+	});
+
+for_dec (n, count-1, {
+	expect_s ("replace: insert [n] (--)", n,
+		source_head_n(n) +$ orig_list[n] +$ res_del +$ source_tail_n(n+1),
+		rx_replace (src_del, source, res_del, count-n-2..count-n-1, 1));
+	expect_x ("locate: insert [n] (--)", n,
+		(delim_list[n], ),
+		rx_locate (src_del, source, count-n-2..count-n-1, 1));
+	expect_x ("split: insert [n] (--)", n,
+		(source_tail_n(n+1), source_head_nC (n+1)),
+		rx_split (src_del, source, count-n-2..count-n-1, 1));
+	});
+
+};	` multi_match_test `
+
+
+` Testing... `
+
+multi_match_test ('()', '{:}', ['1' '21' '321' '4' '54' '654' '7']);
+multi_match_test ('$', '<>', ['aaa' 'b' 'cccc' 'dd' 'e']);
+multi_match_test ('!', '', ['a' 'aab' 'aaab' 'baaab' 'baa' 'ba' 'b']);
+multi_match_test ('@|@', '*=*', ['xXyY' 'xyXY' 'vVzZ' 'vzVZ' 'aAbB' 'aaBB' 'cCdD' 'ccDD']);
+multi_match_test ('#', '<$$>', ['++++' '----']);
+
+` empty match/anchor test `
+! test_empty (string left mid right) = {
+
+<: ("Empty anchor test: '", string, "' @ '", left, "' : '", mid, "' : '", right, "'\n");
+
+expect_s ("empty replace", 0,
+	s_join (mid, '' [+] l_range (#$string, !(i) = (string$[i..i+1])) [+] ''),
+	rx_replace ('', string, mid));
+
+expect_x ("empty split", 0,
+	'' [+] l_range (#$string, !(i) = (string$[i..i+1])) [+] '',
+	rx_split ('', string));
+
+expect_s ("start replace", 0,
+	left +$ string,
+	rx_replace (rx_at_start (), string, left));
+expect_s ("end replace", 0,
+	string +$ right,
+	rx_replace (rx_at_end (), string, right));
+
+expect_x ("start split", 0,
+	['' string],
+	rx_split (rx_at_start (), string));
+expect_x ("end split", 0,
+	[string ''],
+	rx_split (rx_at_end (), string));
+
+};
+
+test_empty ("0123456789", '[[', '//', ']]');
+test_empty ("qwertyuiopasdfghjklzxcvbnm", '<', '-:-', '>');
+

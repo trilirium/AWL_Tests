@@ -1,0 +1,106 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test16.awl': #16
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+`
+	Hierarchical system of classes
+`
+
+x_trace ();
+
+` Root superclass `
+!! C_root (x y z)
+	= (<: "\nCreated: C_root\n")
+	~ (<: "\nDestroyed: C_root\n")
+
+	{
+	! f_sum = x + y + z,
+
+	! f_prod = x*y*z,
+
+    ! f_sq_sum = x*x + y*y + z*z
+	};
+
+C_a = C_root ([10 25 40]);
+C_b = C_root ([2.2 4.4 6.6]);
+C_c = C_root ([1 2 3]);
+
+C_root!! l_loop (V, [C_c C_b C_a],
+	V. (<: ("Sum = ", f_sum (), ", Prod = ", f_prod (), ", SQP = ", f_sq_sum (), ".\n")));
+
+` Derived >1: C_1 `
+
+!! [C_root] C_1 (a1 b2 c3)
+	= (<: "\n\tCreated: C_1\n")
+	~ (<: "\n\tDestroyed: C_1\n")
+
+	{
+    ! fcA = a1*x + b2*y +c3*z,
+	! fcB = x*y*z - a1*b2*c3,
+	! fcC = (a1*a1, b2*b2, c3*c3)
+    };
+
+C_1_x = C_1([10 20 30], sqr 2, sqr 3, sqr 5);
+C_1_y = C_1([101 202 303], sqr 7, sqr 11, sqr 13);
+
+C_1 !! C_1_y.[[z y x] a1 b2 c3];
+C_1 !! C_1_x.[[x y z] c3 b2 a1];
+
+C_1 !! (C_1_x.fcC () [+] C_1_y.fcC ());
+
+C_1!! l_loop (V, [C_1_x C_1_y],
+	V. (<: ("SQP = ", f_sq_sum (), ", fcA = ", fcA (), ", fcB = ", fcB (), ".\n")));
+
+` Derived >1: C_2 `
+
+!! [C_root] C_2 (Xx Yy Zz)
+	= (<: "\n\tCreated: C_2\n")
+	~ (<: "\n\tDestroyed: C_2\n")
+
+	{
+    ! fcX = (Xx *$ x) +$ ', ' +$ (Yy *$ y) +$ ', ' +$ (Zz *$ z),
+	! fcY = {
+		! fff (Aa a) = '[' +$ Aa +$ '#' +$ a +$ ']';
+		fff(Xx, x) +$ fff(Yy, y) +$ fff(Zz, z)
+		}
+	};
+
+C_2_l = C_2([1 2 3], ['abc' 'def' 'ghi']);
+C_2_m = C_2([6 5 4], ['++' '--' '***']);
+C_2_n = C_2([3 5 7], [3 5 7]);
+
+C_2!! l_loop (V, [C_2_l C_2_m C_2_n],
+	V. (<: ("SQP = ", f_sq_sum (), ", fcX = ", fcX (), ", fcY = ", fcY (), ".\n")));
+
+` Derived >1: C_3 `
+
+!! [C_root] C_3 (SS)
+	= (<: "\n\tCreated: C_3\n")
+	~ (<: "\n\tDestroyed: C_3\n")
+
+	{
+    ! label = '{' +$ x +$ SS +$ y +$ SS +$ z +$ '}'
+	};
+
+C_3_A = C_3([11 44 77], '<.>');
+C_3_B = C_3([60 50 40], '[-]');
+C_3_C = C_3([303 202 101], '^');
+C_3_D = C_3([9 8 7], '//');
+
+C_3!! l_loop (V, [C_3_A C_3_B C_3_C C_3_D],
+	V. (<: ("SQP = ", f_sq_sum (), ", label = ", label(), ".\n")));
+
+l_map (!(obj) = (C_root!!obj.f_sq_sum ()),
+	[C_a C_1_x C_1_y C_b C_2_n C_2_m C_2_l C_c C_3_A C_3_C C_3_B C_3_D]);
+
+x_vars_ord ();
+x_funcs_ord ();
+

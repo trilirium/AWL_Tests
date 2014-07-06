@@ -1,0 +1,31 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Inc_A.awl'
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+x_trace ();
+
+` Include test A `
+
+inc_list;
+
+A_num = 2759;
+
+A_val = 53.22 * 3.71;
+
+A_xl = ['AGTERK' 56 '__+__'];
+
+! A_func (p) = A_num * p + 1;
+
+! A_func2 (x y) = x*A_val - y/sqr(A_val);
+
+inc_list [<-] 'Inc_a';
+
+<: "Inc_A included\n";

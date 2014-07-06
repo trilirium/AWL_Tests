@@ -1,0 +1,108 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'RX_Math.awl':
+	|	Numeric calculations via regexps.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+`
+	Locate prime numbers by backtracking.
+`
+
+` original pattern: /^(oo+?)\1+$/ `
+
+! primes_test (chr range) : [prime_pattern i count] = {
+<: ("Searching primes in range ", range[0], "..", range[1], ":\n");
+
+count = 0;
+
+prime_pattern =
+	rx_cat (
+		rx_cat (
+			rx_store (0, rx_rep (2.., 1, chr)),
+			rx_rep (1.., 0, rx_recall (0))
+			),
+		rx_at_end ());
+
+for_inc (i, range,
+	if (rx_match (prime_pattern, chr *$ i) <> i)::
+		{ <: (i, "\t"); ++ count; }
+	);
+
+<: ("\nTotal primes found: ", count, "\n");
+};	` -- primes_test `
+
+primes_test ('%', 2..400);
+
+`
+	Solve diophant equations by regexp backtracking.
+`
+
+! rep_dioph (index chr count rep_storage) =
+    rx_cat (
+	rx_store (index, rx_rep_count (rep_storage, 0.., 0, chr)),
+	rx_rep (count-1..count-1, 0, rx_recall (index))
+	);
+
+` Solve equation: cX*X + cY*Y + cZ*Z = R for cardinal [X, Y, Z] `
+! dioph3_solve (cX cY cZ R fill='*') : [matcher X Y Z] = {
+
+<: ["\nSolving: " cX "*X + " cY "*Y + " cZ "*Z = " R ": "];
+
+matcher = rx_cat (rx_cat (rx_cat (
+	rep_dioph (0, fill, cX, @X),
+	rep_dioph (1, fill, cY, @Y)),
+	rep_dioph (2, fill, cZ, @Z)),
+		rx_at_end ());
+
+(rx_match (matcher, fill *$ R) >= 0) ? {
+
+<: (cX*X + cY*Y + cZ*Z == R ?
+	("OK [X=", X, ", Y=", Y, ", Z=", Z, "].") : "Fail!");
+
+} :
+
+(<: "No solutions!\n");
+};
+
+` Solve equation: cX*X + cY*Y = R for cardinal [X, Y] `
+! dioph2_solve (cX cY R fill='*') : [matcher X Y] = {
+
+<: ["\nSolving: " cX "*X + " cY "*Y = " R ": "];
+
+matcher = rx_cat (rx_cat (
+	rep_dioph (0, fill, cX, @X),
+	rep_dioph (1, fill, cY, @Y)),
+		rx_at_end ());
+
+(rx_match (matcher, fill *$ R) >= 0) ? {
+
+<: (cX*X + cY*Y == R ?
+	("OK [X=", X, ", Y=", Y, "].") : "Fail!");
+
+} :
+
+(<: "No solutions!\n");
+};
+
+`
+	Testing...
+`
+
+dioph2_solve (6, 15, 273);
+dioph2_solve (7, 13, 531);
+dioph2_solve (3, 19, 337);
+
+dioph3_solve (12, 15, 16, 281);
+dioph3_solve (9, 17, 23, 387);
+dioph3_solve (15, 19, 24, 435);
+
+<: "\n";
+

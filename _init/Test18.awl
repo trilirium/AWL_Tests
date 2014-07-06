@@ -1,0 +1,201 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test18.awl': #18
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+x_trace ();
+
+` Functors family: `
+
+! { ffA ffB ffC } = {
+
+	(x y) = ffB (x) * ffC (y),
+	(x y) = ffC (x) * ffA (y),
+	(x y) = ffA (x) * ffB (y)
+
+	};
+
+! show_object (O) = { x_trace (2, O); <: "\n"; };
+
+`
+	Class hierarchy and virtuals:
+`
+
+` Superclass `
+!! root (A B)
+	# { echo1 echo2 echo3 }
+
+	{
+	
+	! root_content = '(' +$ "A=" +$ A +$ ' ' +$ "B=" +$ B +$ ')',
+
+	! #echo1 (x y z) = <: ["\t" x " <" A "> " y " <" B "> " z ".\n"],
+	! #echo2 (a b c) = <: ["\t" a " [" A "] " b " [" B "] " c ".\n"],
+	! #echo3 (sss) = <: ["\t" '{' A sss B '}' ".\n"]
+
+	};
+
+R1 = root (['alpha' 'beta']);
+R2 = root (['gamma' 'delta']);
+
+root!! {
+	(!echo1, !echo2, !echo3);
+	
+	l_loop (V, [R1 R2],
+		V. {
+		<: "\n";
+		show_object (self(!root));
+		echo1 (['Xx' 'Yy' 'Zz']);
+		echo2 (['Aa' 'Bb' 'Cc']);
+		echo3 (' --- ')
+		});
+
+	};
+
+` Derived: CC1 `
+!! [root] CC1 (s t u)
+	# { CC1_echoX CC1_echoY }
+
+	{
+	! CC1_content = '[' +$ s +$ ',' +$ t +$ ',' +$ u +$ ']',
+	
+	! #echo1 (x y z) = <: ["\t" x ':' s " " y ':' t " " z ':' u "\n"],
+
+	! #CC1_echoX (m n) = <: ["\t" 'CC1::echoX ' A '*' m ', ' B '*' n ' -> ' (CC1_content ()) "\n"],
+	! #CC1_echoY = <: "\n"
+	};
+
+CC1a = CC1 ([['zeta' 'iota'] 'SsS' 'TtT' 'UuU']);
+CC1b = CC1 ([['AA-aaa' 'BB-bbb'] 's-S' 't-T' 'u-U']);
+
+CC1!! {
+	((!echo1, !echo2, !echo3), !CC1_echoX, !CC1_echoY);
+
+	l_loop (V, [CC1a CC1b],
+		V. {
+		<: "\n";
+		show_object (self(!CC1));
+
+		echo1 (['-x' '-y' '-z']);
+		CC1_echoX (['(m)' '(n)']);
+		});
+	};
+
+` Derived: CC11 `
+!! [CC1] CC11 (K L) {
+	! CC11_content = '{' +$ K +$ '/' +$ CC1_content() +$ '/' +$ L +$ '}',
+
+	! #CC1_echoY (count) = <: ("\t", (K *$ count), " ", (L *$ (10-count)), "\n")
+	};
+
+CC11aa = CC11 ([[['#22' '#44'] '@@' '%%' '**'] 3 5]);
+
+` Derived: CC2 `
+!! [root] CC2 (p q)
+	# { CC2_echoA CC2_echoB CC2_echoC CC2_echoD }
+	
+	{
+	! CC2_content = '{' +$ "p = " +$ p +$ ", " +$ "q = " +$ q +$ '}',
+
+	! #echo2 (a b c) = <: ["\t" (CC2_content ()) ': ' a " [" A "] " b " [" B "] " c "\n"],
+	
+	! #CC2_echoA (Aa) = <: ["\t" 'CC2::echoA ' p Aa q ' => ' (CC2_content ()) "\n"],
+	! #CC2_echoC (Cc) = <: ["\t" 'CC2::echoC ' Cc p ':' q ' => ' (CC2_content ()) "\n"],
+
+	! #CC2_echoB = <: "\n",
+	! #CC2_echoD = <: "\n"
+	};
+
+CC2_1 = CC2 ([['Ii Jj' 'Kk Ll'] 20 40]);
+CC2_2 = CC2 ([['<<>>' '{{}}'] 15 75]);
+CC2_3 = CC2 ([['(----)' '[====]'] 65 35]);
+
+CC2!! {
+	((!echo1, !echo2, !echo3),
+	  !CC2_echoA, !CC2_echoB, !CC2_echoC, !CC2_echoD);
+
+	l_loop (V, [CC2_1 CC2_2 CC2_3],
+		V. {
+		<: "\n";
+		show_object (self(!CC2));
+
+		echo2 (['a+' 'b+' 'c+']);
+		CC2_echoA ('**');
+		CC2_echoC ('$$');
+		});
+	};
+
+` Derived: CC21 `
+!! [CC2] CC21 (I J) {
+	! #echo3 (string) = <: ["\t" '<' A string I ':::' B string J '>' ".\n"],
+
+	! #CC2_echoB (bB) = <: ["\t" 'CC21::echoB ' p '&' I ',' q '&' J ' => ' (CC2_content ()) "\n"],
+	! #CC2_echoD (dD) = <: ["\t" 'CC21::echoD ' dD p '()' q ' => ' (CC2_content ()) "\n"]
+	};
+
+CC21bb = CC21 ([[["<i>" "<j>"] 33 66] '->A' '->B']);
+
+{
+<: "\n--- Object listing for 'root' :\n";
+
+root !! l_loop (V, [R1 R2 CC1a CC1b CC11aa CC2_1 CC2_2 CC2_3 CC21bb],
+	V.{
+	show_object (self (!root));
+
+	<: "\t echo1 (['1x' '1y' '1z']): ";
+	echo1 (['1x' '1y' '1z']);
+
+	<: "\t echo2 (['2a' '2b' '2c']): ";
+	echo2 (['2a' '2b' '2c']);
+
+	<: "\t echo3 ('-'): ";
+	echo3 ('-');
+	})
+};
+
+{
+<: "\n--- Object listing for 'CC1' :\n";
+
+CC1 !! l_loop (V, [CC1a CC1b CC11aa],
+	V.{
+	show_object (self (!CC1));
+
+	<: "\t CC1::echoX (['1--M' '1--N']): ";
+	CC1_echoX (['1--M' '1--N']);
+
+	<: "\t CC1::echoY (7): ";
+	CC1_echoY (7);
+	})
+};
+
+{
+<: "\n--- Object listing for 'CC2' :\n";
+
+CC2 !! l_loop (V, [CC2_1 CC2_2 CC2_3 CC21bb],
+	V.{
+	show_object (self (!CC2));
+
+	<: "\t CC2::echoA ('.A-A.'): ";
+	CC2_echoA ('.A-A.');
+
+	<: "\t CC2::echoB ('.B-B.'): ";
+	CC2_echoB ('.B-B.');
+
+	<: "\t CC2::echoC ('.C-C.'): ";
+	CC2_echoC ('.C-C.');
+
+	<: "\t CC2::echoD ('.D-D.'): ";
+	CC2_echoD ('.D-D.');
+	})
+};
+
+x_vars_ord ();
+x_funcs_ord ();
+

@@ -1,0 +1,17 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Inc_C2.awl'
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+[c2_p c2_v c2_s] = (17*7, 218/35, "qwerty");
+
+inc_list [<-] 'Inc_c2';
+
+<: "Inc_C2 included\n";
+

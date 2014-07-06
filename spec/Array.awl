@@ -1,0 +1,119 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Array.awl':
+	|	Testing arrays functional initialization.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: array, a_save, a_init_all, a_copy
+`
+
+x_trace ();
+
+` Arrays functional initialization`
+! check_array (array f_init) = {
+
+	` single dimension check, recursive `
+	! check_dimension (l_index l_dims) : [n] = {
+	(#l_dims) ? {
+		l_dims [->] n;
+		l_index = l_index [+] 0;
+
+		for_inc (^(#l_index > 1? @l_index[#l_index - 1] : @l_index), n,
+			check_dimension (l_index, l_dims))
+		}:
+
+	if (array {l_index} [<>] f_init! (l_index))::
+		{ <: "Failed at: "; x_trace (2, l_index); <: "\n"; };
+	};	` check_dimension `
+
+dims = a_dims (array);
+check_dimension ((), dims);
+};		` -- check_array `
+
+` Init & check: aa with fn_aa `
+aa = array ([3 5]);
+! fn_aa (a b) = a*10 + b;
+
+a_init_all (aa, !fn_aa);
+check_array (aa, !fn_aa);
+
+a_save (aa);
+
+` Init & check: bb with fn_bb `
+bb = array ([4 3 2]);
+! fn_bb (a b c) = a*100 + b*10 + c;
+
+a_init_all (bb, !fn_bb);
+check_array (bb, !fn_bb);
+
+a_save (bb);
+
+` Init & check: cc with fn_cc `
+cc = array ([3 4 5]);
+! fn_cc (s t u) = '{' +$ s +$ ':' +$ t +$ ':' +$ u +$ '}';
+
+a_init_all (cc, !fn_cc);
+check_array (cc, !fn_cc);
+
+a_save (cc);
+
+` Init & check: dd with fn_dd `
+dd = array ([5 4 3]);
+! fn_dd (x y z) = ((x*4) + y)*3 + z;
+
+a_init_all (dd, !fn_dd);
+check_array (dd, !fn_dd);
+
+a_save (dd) [==] l_range (5*4*3, );
+
+` Init & check: ee with fn_ee `
+ee = array (10);
+! fn_ee (n) = n*10;
+
+a_init_all (ee, !fn_ee);
+check_array (ee, !fn_ee);
+
+a_save (ee);
+
+` checking array copy `
+! check_copy (array) : [array1] = {
+<: "Checking: ";
+x_trace (2, array);
+<: "\n";
+
+array1 = a_copy (array);
+
+unless (a_rank(array) == a_rank(array1))::
+    (<: "Copy error: rank!\n");
+
+unless (a_dims(array) [==] a_dims (array1))::
+    (<: "Copy error: dimensions!\n");
+
+unless (a_save(array) [==] a_save (array1))::
+    (<: "Copy error: contents!\n");
+
+unless (array [==] array1)::
+    (<: "Copy error: identity!\n");
+};
+
+check_copy (ee);
+check_copy (dd);
+check_copy (cc);
+check_copy (bb);
+check_copy (aa);
+
+! a_show(@array) = { <: '\n- '; x_trace (2, array); x_trace (2+64, ^array); <: '.\n\n'; };
+
+a_show (aa);
+a_show (bb);
+a_show (cc);
+a_show (dd);
+a_show (ee);
+

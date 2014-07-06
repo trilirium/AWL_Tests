@@ -1,0 +1,54 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Figurate.awl':
+	|	Figurate numbers.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+` Show numbers table `
+
+! table (name limit id func) : [i] = {
+	<: [name " numbers " id "[1.." limit "]:\n"];
+
+	for_inc (i, 1..limit+1, {
+		<: (id, '(', i, ') = ', func ! i, '\t');
+		unless (i %% 4):: (<: '\n');
+		});
+
+	<: "\n\n";
+	};	` table `
+
+
+table ("Linear", 32,
+	'L', !(n) = n);
+table ("Triangular", 32,
+	'T', !(n) = (n*(n+1) % 2));
+table ("Square", 32,
+	'Q', !(n) = (n*n));
+table ("Pentagonal", 32,
+	'P', !(n) = (n*(3*n-1) % 2));
+table ("Hexagonal", 32,
+	'H', !(n) = (n*(2*n-1)));
+table ("Heptagonal", 32,
+	'Hp', !(n) = (n*(5*n-3) % 2));
+table ("Octagonal", 32,
+	'O', !(n) = (n*(3*n-2)));
+
+table ("Square pyramid", 36,
+	'Pq', !(n) = (n*(n+1)*(2*n+1) % 6));
+table ("Tetrahedral", 36,
+	'Th', !(n) = (n*(n+1)*(n+2) % 6));
+table ("Cubic", 36,
+	'Cb', !(n) = (n*n*n));
+table ("Octahedral", 36,
+	'Oh', !(n) = (n*(2*n*n+1) % 3));
+table ("Icosahedral", 36,
+	'Ih', !(n) = (n*(5*n*(n-1) + 2) % 2));
+table ("Dodecahedral", 36,
+	'Dh', !(n) = (n*(3*n-1)*(3*n-2) % 2));
+

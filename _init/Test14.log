@@ -1,0 +1,203 @@
+<Test14.awl> #19 / [1] {
+
+  x_trace:() => 0;
+  ! vect.calc1:(v) [1] = sub:(mul:(add:(vect.X, vect.Z), v), vect.Y) => vect.calc1:;
+  ! vect.calc2:(a b) [2] = add:(mul:(mul:(a, sub:(vect.Z, vect.X)), 2), mul:(mul:(b, sub:(vect.Y, vect.Z)), 3)) => vect.calc2:;
+  ! vect.str3:(s1 s2 s3) [3] = s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:("{", s1), ":"), vect.X), "; "), s2), ":"), vect.Y), "; "), s3), ":"), vect.Z), "}") => vect.str3:;
+  !! vect:(X Y Z) {3} => vect:;
+  set:(Va, vect:(1, 2, 3)) => vect:{1, 2, 3};
+  set:(Vb, vect:(30, 20, 10)) => vect:{30, 20, 10};
+6
+6000
+1 2 3
+30 20 10
+0.1 0.1 0.1
+10 10 10
+  {
+    f_put:((), vect.X, vect.Y, vect.Z);
+    f_put:((), with:(Va, add:(add:(vect.X, vect.Y), vect.Z)), "\n");
+    f_put:((), with:(Vb, mul:(mul:(vect.X, vect.Y), vect.Z)), "\n");
+    f_put:((), with:(Va, vect.X, " ", vect.Y, " ", vect.Z), "\n");
+    f_put:((), with:(Vb, vect.X, " ", vect.Y, " ", vect.Z), "\n");
+    f_put:((), with:(Va, div:(vect.X, with:(Vb, vect.Z)), " ", div:(vect.Y, with:(Vb, vect.Y)), " ", div:(vect.Z, with:(Vb, vect.X))), "\n");
+    f_put:((), with:(Vb, idiv:(vect.X, with:(Va, vect.Z)), " ", idiv:(vect.Y, with:(Va, vect.Y)), " ", idiv:(vect.Z, with:(Va, vect.X))), "\n");
+    } => ();
+  vect: => vect:;
+  set:(VL_1, vect:(22, 77, 44), vect:(15, 35, 75), vect:(3, 5, 9)) => (vect:{22, 77, 44}, vect:{15, 35, 75}, vect:{3, 5, 9});
+  set:(sumXY, 0) => 0;
+  l_loop:(p, VL_1, comb:add:(sumXY, with:(p, add:(vect.X, vect.Y)))) => 157;
+  set:(prodZ, 1) => 1;
+  l_loop:(p, VL_1, comb:mul:(prodZ, with:(p, vect.Z))) => 29700;
+  set:(scatZX, "") => "";
+  l_loop:(p, VL_1, comb:s_cat:(scatZX, s_cat:(with:(p, s_cat:(s_cat:(s_cat:(s_cat:("{", vect.Z), "}["), vect.X), "]")), ", "))) => "{44}[22], {75}[15], {9}[3], ";
+  (with:(Va, vect.calc1:10), with:(Vb, vect.calc1:5)) => (38, 180);
+  (with:(Va, vect.calc2:(neg:3, 5)), with:(Vb, vect.calc2:(7, neg:4))) => (-27, -400);
+  (with:(Va, vect.str3:("x", "y", "z")), with:(Vb, vect.str3:("Xx", "Yy", "Zz"))) => ("{x:1; y:2; z:3}", "{Xx:30; Yy:20; Zz:10}");
+  (class_of:Va, class_of:Vb) => (vect:, vect:);
+  with:(Va, self:vect:, with:(Vb, self:vect:)) => (vect:{1, 2, 3}, vect:{30, 20, 10});
+  with:(Vb, self:vect:, with:(Va, self:vect:)) => (vect:{30, 20, 10}, vect:{1, 2, 3});
+
+    Y;
+    X;
+    Z;
+
+  x_vars:vect: => 3;
+
+    ! vect.calc1:(v) [1] = sub:(mul:(add:(vect.X, vect.Z), v), vect.Y);
+    ! vect.str3:(s1 s2 s3) [3] = s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:("{", s1), ":"), vect.X), "; "), s2), ":"), vect.Y), "; "), s3), ":"), vect.Z), "}");
+    ! vect.calc2:(a b) [2] = add:(mul:(mul:(a, sub:(vect.Z, vect.X)), 2), mul:(mul:(b, sub:(vect.Y, vect.Z)), 3));
+
+  x_funcs:vect: => 3;
+  ! traced.calcA:() [0] = div:(add:(mul:(3, traced.S), mul:(2, traced.D)), 19) => traced.calcA:;
+  ! traced.calcB:() [0] = div:(sub:(mul:(5, traced.S), mul:(3, traced.D)), 19) => traced.calcB:;
+  ! traced.check:() [0] = {
+    f_put:((), "A = ", traced.A, ":", traced.calcA:(), ", ", "B = ", traced.B, ":", traced.calcB:(), "\n") } => traced.check:;
+  !! traced:(A B) {4}
+    = {
+      set:((S, D), add:(mul:(A, 3), mul:(B, 2)), sub:(mul:(A, 5), mul:(B, 3)));
+      f_put:((), "\n[constructor: traced (", A, ",", B, ")]\n") }
+    ~ {
+      f_put:((), "\n[destructor: traced (", A, ",", B, ")]\n") } => traced:;
+
+[constructor: traced (15,25)]
+A = 15:15., B = 25:25.
+
+[destructor: traced (15,25)]
+  with:(traced:(15, 25), traced.check:()) => 10;
+
+[constructor: traced (-21,-17)]
+A = -21:-21., B = -17:-17.
+
+[destructor: traced (-21,-17)]
+  with:(traced:(neg:21, neg:17), traced.check:()) => 10;
+
+[constructor: traced (10,12)]
+
+[constructor: traced (16,5)]
+
+[constructor: traced (24,31)]
+
+[constructor: traced (9,17)]
+  set:(vv, traced:(10, 12), traced:(16, 5), traced:(24, 31), traced:(9, 17)) => (traced:{10, 12, 54, 14}, traced:{16, 5, 58, 65}, traced:{24, 31, 134, 27}, traced:{9, 17, 61, -6});
+A = 10:10., B = 12:12.
+A = 16:16., B = 5:5.
+A = 24:24., B = 31:31.
+A = 9:9., B = 17:17.
+  l_loop:(V, vv, with:(V, traced.check:())) => 10;
+  ! my_test:(vv) [1] = with:(vv, traced.check:()) => my_test:;
+
+[constructor: traced (21,12)]
+A = 21:21., B = 12:12.
+
+[destructor: traced (21,12)]
+  my_test:traced:(21, 12) => 10;
+
+[constructor: traced (301,402)]
+A = 301:301., B = 402:402.
+
+[destructor: traced (301,402)]
+  my_test:traced:(301, 402) => 10;
+A = 10:10., B = 12:12.
+A = 16:16., B = 5:5.
+A = 24:24., B = 31:31.
+A = 9:9., B = 17:17.
+  l_loop:(W, vv, my_test:W) => 10;
+  !! testA:(Aa Ab Ac) {3} => testA:;
+  !! testB:(Bx By Bz) {3} => testB:;
+  ! fA_1:(p r) [2] = add:(add:(mul:(testA.Aa, p), testA.Ab), mul:(testA.Ac, r)) => fA_1:;
+  ! fA_2:(q) [1] = sub:(mul:(sub:(testA.Aa, testA.Ac), q), testA.Ab) => fA_2:;
+  set:(AA_1, testA:(15, 34, 27)) => testA:{15, 34, 27};
+  set:(AA_2, testA:(31, 17, 43)) => testA:{31, 17, 43};
+  with:(AA_1, fA_1:(3, 8)) => 295;
+  with:(AA_1, fA_2:15) => -214;
+  with:(AA_2, fA_1:(11, neg:3)) => 229;
+  with:(AA_2, fA_2:34) => -425;
+  ! fB_1:(z) [1] = mul:(mul:(add:(z, testB.Bx), testB.By), sub:(z, testB.Bz)) => fB_1:;
+  ! fB_2:(x y z) [3] = add:(add:(xor:(x, testB.Bx), xor:(y, testB.By)), xor:(z, testB.Bz)) => fB_2:;
+  set:(BB_1, testB:(3, 9, 11)) => testB:{3, 9, 11};
+  set:(BB_2, testB:(16, 21, 8)) => testB:{16, 21, 8};
+  with:(BB_1, fB_1:31) => 6120;
+  with:(BB_1, fB_2:(3, 5, 9)) => 14;
+  with:(BB_2, fB_1:14) => 3780;
+  with:(BB_2, fB_2:(7, 11, 1)) => 62;
+  ! fAB_1:() [0] = add:(sub:(mul:(testA.Aa, testB.Bx), mul:(testA.Ab, testB.By)), mul:(testA.Ac, testB.Bz)) => fAB_1:;
+  with:(AA_1, with:(BB_1, fAB_1:())) => 36;
+  with:(AA_1, with:(BB_2, fAB_1:())) => -258;
+  with:(AA_2, with:(BB_1, fAB_1:())) => 413;
+  with:(AA_2, with:(BB_2, fAB_1:())) => 483;
+  with:(AA_1, with:(BB_1, fAB_1:()), with:(BB_2, fAB_1:())) => (36, -258);
+  with:(AA_2, with:(BB_1, fAB_1:()), with:(BB_2, fAB_1:())) => (413, 483);
+  with:(BB_1, with:(AA_1, fAB_1:()), with:(AA_2, fAB_1:())) => (36, 413);
+  with:(BB_2, with:(AA_1, fAB_1:()), with:(AA_2, fAB_1:())) => (-258, 483);
+  ! fAB_2:() [0] = add:(sub:(mul:(sub:(testB.Bx, testB.By), add:(testA.Ac, testA.Ab)), mul:(add:(testB.By, testB.Bz), sub:(testA.Ab, testA.Aa))), mul:(sub:(testB.Bz, testB.Bx), add:(testA.Aa, testA.Ac))) => fAB_2:;
+  with:(AA_1, with:(BB_1, fAB_2:())) => -410;
+  with:(AA_1, with:(BB_2, fAB_2:())) => -1192;
+  with:(AA_2, with:(BB_1, fAB_2:())) => 512;
+  with:(AA_2, with:(BB_2, fAB_2:())) => -486;
+  with:(AA_1, with:(BB_1, fAB_2:()), with:(BB_2, fAB_2:())) => (-410, -1192);
+  with:(AA_2, with:(BB_1, fAB_2:()), with:(BB_2, fAB_2:())) => (512, -486);
+  with:(BB_1, with:(AA_1, fAB_2:()), with:(AA_2, fAB_2:())) => (-410, 512);
+  with:(BB_2, with:(AA_1, fAB_2:()), with:(AA_2, fAB_2:())) => (-1192, -486);
+  (class_of:AA_1, class_of:BB_1, class_of:AA_2, class_of:BB_2) => (testA:, testB:, testA:, testB:);
+  with:(AA_1, self:testA:, without:(testA:, self:testA:), self:testA:) => (testA:{15, 34, 27}, (), testA:{15, 34, 27});
+  with:(BB_2, self:testB:, without:(testB:, self:testB:), self:testB:) => (testB:{16, 21, 8}, (), testB:{16, 21, 8});
+  ! PP:() [0] = f_put:((), "testA => ", x_trace:(2, self:.testA:), ", testB => ", x_trace:(2, self:.testB:), "\n") => PP:;
+testA => testA:{15, 34, 27}, testB => testB:{3, 9, 11}
+testA => testA:{15, 34, 27}, testB => testB:{16, 21, 8}
+  with:(AA_1, with:(BB_1, PP:()), with:(BB_2, PP:())) => (3, 3);
+testA => testA:{31, 17, 43}, testB => testB:{3, 9, 11}
+testA => testA:{31, 17, 43}, testB => testB:{16, 21, 8}
+  with:(AA_2, with:(BB_1, PP:()), with:(BB_2, PP:())) => (3, 3);
+testA => testA:{15, 34, 27}, testB => testB:{3, 9, 11}
+testA => testA:{31, 17, 43}, testB => testB:{3, 9, 11}
+  with:(BB_1, with:(AA_1, PP:()), with:(AA_2, PP:())) => (3, 3);
+testA => testA:{15, 34, 27}, testB => testB:{16, 21, 8}
+testA => testA:{31, 17, 43}, testB => testB:{16, 21, 8}
+  with:(BB_2, with:(AA_1, PP:()), with:(AA_2, PP:())) => (3, 3);
+
+    Va = vect:{1, 2, 3};
+    Vb = vect:{30, 20, 10};
+    VL_1 = (vect:{22, 77, 44}, vect:{15, 35, 75}, vect:{3, 5, 9});
+    sumXY = 157;
+    p = vect:{3, 5, 9};
+    prodZ = 29700;
+    scatZX = "{44}[22], {75}[15], {9}[3], ";
+    vv = (traced:{10, 12, 54, 14}, traced:{16, 5, 58, 65}, traced:{24, 31, 134, 27}, traced:{9, 17, 61, -6});
+    V = traced:{9, 17, 61, -6};
+    W = traced:{9, 17, 61, -6};
+    AA_1 = testA:{15, 34, 27};
+    AA_2 = testA:{31, 17, 43};
+    BB_1 = testB:{3, 9, 11};
+    BB_2 = testB:{16, 21, 8};
+
+  x_vars_ord:() => 14;
+
+    !! vect:(X Y Z) {3};
+    !! traced:(A B) {4}
+      = {
+	set:((S, D), add:(mul:(A, 3), mul:(B, 2)), sub:(mul:(A, 5), mul:(B, 3)));
+	f_put:((), "\n[constructor: traced (", A, ",", B, ")]\n") }
+      ~ {
+	f_put:((), "\n[destructor: traced (", A, ",", B, ")]\n") };
+    ! my_test:(vv) [1] = with:(vv, traced.check:());
+    !! testA:(Aa Ab Ac) {3};
+    !! testB:(Bx By Bz) {3};
+    ! fA_1:(p r) [2] = add:(add:(mul:(testA.Aa, p), testA.Ab), mul:(testA.Ac, r));
+    ! fA_2:(q) [1] = sub:(mul:(sub:(testA.Aa, testA.Ac), q), testA.Ab);
+    ! fB_1:(z) [1] = mul:(mul:(add:(z, testB.Bx), testB.By), sub:(z, testB.Bz));
+    ! fB_2:(x y z) [3] = add:(add:(xor:(x, testB.Bx), xor:(y, testB.By)), xor:(z, testB.Bz));
+    ! fAB_1:() [0] = add:(sub:(mul:(testA.Aa, testB.Bx), mul:(testA.Ab, testB.By)), mul:(testA.Ac, testB.Bz));
+    ! fAB_2:() [0] = add:(sub:(mul:(sub:(testB.Bx, testB.By), add:(testA.Ac, testA.Ab)), mul:(add:(testB.By, testB.Bz), sub:(testA.Ab, testA.Aa))), mul:(sub:(testB.Bz, testB.Bx), add:(testA.Aa, testA.Ac)));
+    ! PP:() [0] = f_put:((), "testA => ", x_trace:(2, self:.testA:), ", testB => ", x_trace:(2, self:.testB:), "\n");
+
+  x_funcs_ord:() => 12;
+
+[destructor: traced (10,12)]
+
+[destructor: traced (16,5)]
+
+[destructor: traced (24,31)]
+
+[destructor: traced (9,17)]
+
+} <Test14.awl> #200 / [82]

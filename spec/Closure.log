@@ -1,0 +1,47 @@
+Closure test: Add 10, 10
+0:	closureAdd:<0> => ! (Y) [1] = add:(closureAdd.X, Y)
+1:	closureAdd:<10> => ! (Y) [1] = add:(closureAdd.X, Y)
+2:	closureAdd:<20> => ! (Y) [1] = add:(closureAdd.X, Y)
+3:	closureAdd:<30> => ! (Y) [1] = add:(closureAdd.X, Y)
+4:	closureAdd:<40> => ! (Y) [1] = add:(closureAdd.X, Y)
+5:	closureAdd:<50> => ! (Y) [1] = add:(closureAdd.X, Y)
+6:	closureAdd:<60> => ! (Y) [1] = add:(closureAdd.X, Y)
+7:	closureAdd:<70> => ! (Y) [1] = add:(closureAdd.X, Y)
+8:	closureAdd:<80> => ! (Y) [1] = add:(closureAdd.X, Y)
+9:	closureAdd:<90> => ! (Y) [1] = add:(closureAdd.X, Y)
+
+0:	0	1	2	3	4	5	6	7	8	9
+1:	10	11	12	13	14	15	16	17	18	19
+2:	20	21	22	23	24	25	26	27	28	29
+3:	30	31	32	33	34	35	36	37	38	39
+4:	40	41	42	43	44	45	46	47	48	49
+5:	50	51	52	53	54	55	56	57	58	59
+6:	60	61	62	63	64	65	66	67	68	69
+7:	70	71	72	73	74	75	76	77	78	79
+8:	80	81	82	83	84	85	86	87	88	89
+9:	90	91	92	93	94	95	96	97	98	99
+
+Closure test: SCat Aabb:Cccd:EEff:GghH:IJK, VvVv:WwWw:XxXx:YyYy:ZzZz
+Aabb:	closureSCat:<"Aabb"> => ! (T) [1] = s_cat:(s_cat:(s_cat:(s_cat:("[", closureSCat.S), "->"), T), "]")
+Cccd:	closureSCat:<"Cccd"> => ! (T) [1] = s_cat:(s_cat:(s_cat:(s_cat:("[", closureSCat.S), "->"), T), "]")
+EEff:	closureSCat:<"EEff"> => ! (T) [1] = s_cat:(s_cat:(s_cat:(s_cat:("[", closureSCat.S), "->"), T), "]")
+GghH:	closureSCat:<"GghH"> => ! (T) [1] = s_cat:(s_cat:(s_cat:(s_cat:("[", closureSCat.S), "->"), T), "]")
+IJK:	closureSCat:<"IJK"> => ! (T) [1] = s_cat:(s_cat:(s_cat:(s_cat:("[", closureSCat.S), "->"), T), "]")
+
+VvVv:	[Aabb->VvVv]	[Cccd->VvVv]	[EEff->VvVv]	[GghH->VvVv]	[IJK->VvVv]
+WwWw:	[Aabb->WwWw]	[Cccd->WwWw]	[EEff->WwWw]	[GghH->WwWw]	[IJK->WwWw]
+XxXx:	[Aabb->XxXx]	[Cccd->XxXx]	[EEff->XxXx]	[GghH->XxXx]	[IJK->XxXx]
+YyYy:	[Aabb->YyYy]	[Cccd->YyYy]	[EEff->YyYy]	[GghH->YyYy]	[IJK->YyYy]
+ZzZz:	[Aabb->ZzZz]	[Cccd->ZzZz]	[EEff->ZzZz]	[GghH->ZzZz]	[IJK->ZzZz]
+
+Closure test: Step 9 * 9
+	[0]	[1]	[2]	[3]	[4]	[5]	[6]	[7]	[8]
+0:	0	1	2	3	4	5	6	7	8
+1:	0	2	4	6	8	10	12	14	16
+2:	0	3	6	9	12	15	18	21	24
+3:	0	4	8	12	16	20	24	28	32
+4:	0	5	10	15	20	25	30	35	40
+5:	0	6	12	18	24	30	36	42	48
+6:	0	7	14	21	28	35	42	49	56
+7:	0	8	16	24	32	40	48	56	64
+8:	0	9	18	27	36	45	54	63	72

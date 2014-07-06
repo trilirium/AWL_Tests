@@ -1,0 +1,33 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'MulTab.awl':
+	|	Simple multiplication table (rectangular M*N).
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+` Multiplication table (M * N) `
+! MulTable (M N) : [i j] = {
+
+<: ('\nMultiplication table (', M, '*', N, '):\n\n');
+
+for_inc (i, 1..M+1, {
+	for_inc (j, 1..N+1,
+		<: [i '*' j ' = ' (i * j) '\n']);
+
+	<: '\n'
+	});
+
+}; 	` -- MulTable `
+
+`
+	Testing...
+`
+
+MulTable (10, 10);

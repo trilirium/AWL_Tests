@@ -1,0 +1,165 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test15.awl': #15
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+x_trace();
+
+aa = ['Aa' 'Ee' 'Ii' 'Oo' 'Uu' 'Yy'];
+bb = ['111' '333' '555' '777' '999'];
+
+aa;
+bb;
+
+aa [+] bb;
+bb [+] aa;
+
+{ <: '\n'; for_inc (i, 0..11, <: [((aa [+] bb) [i]) '\n']); <: '\n'; };
+
+{ <: '\n'; for_inc (i, 0..6, <: [((aa [*] 6) [i*7]) '\n']); <: '\n'; };
+
+{ <: '\n'; for_inc (i, 0..5, <: [((bb [*] 5) [i*6]) '\n']); <: '\n'; };
+
+` Monstrous lists... `
+
+ML1 = [[['(111)' '(112)' '(113)'] ['(121)' '(122)'] ['(131)' '(132)' '(133)']]
+	['(21)' ['(221)' '(222)' ['(2231)' '(2232)'] '(224)'] '(23)' '(24)']];
+
+ML2 = [['{11}' '{12}' '{13}' '{14}' '{15}']
+	[['{211}' '{212}' '{213}' '{214}'] ['{221}' '{222}' '{223}']
+		['{231}' '{232}']]
+	['{31}' ['{321}' '{322}' '{323}'] ['{331}' '{332}'] '{34}']];
+
+<: [ML1 '\n' ML2 '\n'];
+
+for_inc (i, 4, <: (l_head_by (i, ML1), '\n'));
+
+for_dec (i, 4, <: (l_head_by (i, ML2), '\n'));
+
+for_dec (i, 5, <: (l_tail_by (i, ML1), '\n'));
+
+for_inc (i, 5, <: (l_tail_by (i, ML2), '\n'));
+
+l_head_by (2, ML1) :=: l_tail_by (3, ML2);
+
+<: [ML1 '\n' ML2 '\n'];
+
+l_head_by (2, ML1) :=: l_tail_by (3, ML2);
+
+
+`
+	Reference to lists
+`
+
+nlist_v = [1.2 2.3 3.4 4.5 5.6 6.7 7.8 8.9];
+
+temp_v = nlist_v;
+
+for_inc (i, 2..5, temp_v[i] ++);
+
+nlist_v;
+
+temp_v = l_ref (nlist_v);
+
+for_inc (i, 3..7, temp_v[i] ++);
+
+nlist_v;
+
+for_dec (i, 3..7, -- nlist_v[i]);
+
+temp_v;
+
+nlist_c = [[1 [2 3] 4] [[5 6] 7] [8 9] 0];
+
+temp_c = (l_ref (nlist_c[1]), [22 33 44],
+	l_ref (nlist_c[2]), 555, l_ref (nlist_c[0]), );
+
+temp_c[2][0] =*: 3;
+temp_c[4][1][1] =*: 4;
+temp_c[0][1] =*: 2;
+
+nlist_c;
+
+nlist_c[0][1][1] =%: 4;
+nlist_c[1][1] =%: 2;
+nlist_c[2][0] =%: 3;
+
+`
+	Testing list loops
+`
+
+ZZ_aa = '';
+l_loop (v_aa, aa, ZZ_aa =+$: '{'+$ v_aa +$ '}');
+ZZ_aa;
+
+YY_aa = '';
+l_loop_r (v_aa, aa, YY_aa =+$: '<'+$ v_aa +$ '>');
+YY_aa;
+
+
+`
+	Test for old bug in combined assignments
+`
+S = 0;
+for_inc (i, 10, i & 1 ? (S =+: i*2): );
+<: ["Odds 0..10: " S "\n"];
+
+S = 0;
+for_inc (i, 10, S =+: i*2);
+<: ["All 0..10: " S "\n"];
+
+`
+	Type check utility
+`
+
+TypeList = (
+
+	(!is_undef,	"undef"),
+	(!is_int,	"integer"),
+	(!is_float,	"float"),
+	(!is_string,	"string"),
+	(!is_var,	"variable"),
+	(!is_list,	"list"),
+	(!is_term,	"term"),
+	(!is_block,	"block"),
+
+	);
+
+! ShowTypeOf (x):[t] = {
+	<: "Type of ";
+	x_trace (2, x);
+	<: ": ";
+
+	l_loop (t, TypeList, t[0]! (x) ? (<: t[1]):);
+	<: "\n";
+	};
+
+
+{
+	<: '\n----\n';
+	ShowTypeOf (NoSuchVariable);
+	ShowTypeOf (22 + 55);
+	ShowTypeOf (sqr(3));
+	ShowTypeOf ('abc' *$ 3);
+	ShowTypeOf ((2*3) [*] 5);
+	ShowTypeOf (@S);
+	ShowTypeOf (@(foo * bar));
+	ShowTypeOf (@{ foo = bar+1; bar = foo-2 });
+	<: '\n----\n';
+};
+
+! l_slice (list indexes) = l_map (!(i) = (list[i]), indexes);
+
+l_slice (nlist_v, [1 3 5 7]);
+l_slice (nlist_v, [2 1 6 5 3 4]);
+
+x_vars ();
+x_funcs ();
+

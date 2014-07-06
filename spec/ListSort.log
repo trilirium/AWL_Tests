@@ -1,0 +1,24 @@
+<ListSort.awl> #13 / [1] {
+
+  x_trace:() => 0;
+  ! list_shuffle:(list) [3] = for_dec:(n, (1, l_len:list), {
+    set:(m, rand:add:(n, 1));
+    swap:(l_item:(m, list), l_item:(n, list));
+    }) => list_shuffle:;
+  randomize:() => 1302764712;
+  ! list_qsort:(list) [2] = if:(lt:(l_len:list, 2), list, if:(eq:(l_len:list, 2), if:(le:(l_item:(0, list), l_item:(1, list)), list, l_rev:list), {
+    set:(pivot, l_item:(idiv:(l_len:list, 2), list));
+    l_cat:(l_cat:(.list_qsort:l_filter_in:(! (elem) [1] = lt:(elem, list_qsort.pivot), list), l_rep:(l_count_in:(! (elem) [1] = eq:(elem, list_qsort.pivot), list), pivot)), .list_qsort:l_filter_in:(! (elem) [1] = gt:(elem, list_qsort.pivot), list)) })) => list_qsort:;
+  set:(aa, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1) => (1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1);
+  list_shuffle:aa => ();
+  aa => (8, 9, 5, 5, 4, 2, 6, 7, 7, 3, 4, 3, 1, 6, 2, 1, 8);
+  list_qsort:aa => (1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9);
+  ! list_qsort_alpha:(list) [2] = if:(lt:(l_len:list, 2), list, if:(eq:(l_len:list, 2), if:(s_le:(l_item:(0, list), l_item:(1, list)), list, l_rev:list), {
+    set:(pivot, l_item:(idiv:(l_len:list, 2), list));
+    l_cat:(l_cat:(.list_qsort_alpha:l_filter_in:(! (elem) [1] = s_lt:(elem, list_qsort_alpha.pivot), list), l_rep:(l_count_in:(! (elem) [1] = s_eq:(elem, list_qsort_alpha.pivot), list), pivot)), .list_qsort_alpha:l_filter_in:(! (elem) [1] = s_gt:(elem, list_qsort_alpha.pivot), list)) })) => list_qsort_alpha:;
+  set:(bb, "aaaa", "abbb", "abcc", "abcd", "eeee", "efff", "efgg", "efgh", "iiii", "ijjj", "ijkk", "ijkl", "mmmm", "mnnn", "mnoo", "mnop") => ("aaaa", "abbb", "abcc", "abcd", "eeee", "efff", "efgg", "efgh", "iiii", "ijjj", "ijkk", "ijkl", "mmmm", "mnnn", "mnoo", "mnop");
+  list_shuffle:bb => ();
+  bb => ("abbb", "efgg", "eeee", "efff", "abcc", "abcd", "iiii", "ijjj", "efgh", "aaaa", "mmmm", "mnoo", "mnop", "ijkk", "mnnn", "ijkl");
+  list_qsort_alpha:bb => ("aaaa", "abbb", "abcc", "abcd", "eeee", "efff", "efgg", "efgh", "iiii", "ijjj", "ijkk", "ijkl", "mmmm", "mnnn", "mnoo", "mnop");
+
+} <ListSort.awl> #69 / [13]

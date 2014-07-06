@@ -1,0 +1,79 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Queens.awl':
+	|	Solve N queens problem (on N*N board).
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+! solve_queens (N) : [i board cols bdiags fdiags div_line solutions] = {
+
+<: ["\nSolving problem for: " N " queens...\n\n"];
+
+` Prepare work arrays `
+
+` state: board (N*N) `
+
+board = 0;	` terminator `
+for_inc (i, N, board [<-] ((0 [*] N), ));
+
+cols = 0 [*] N;			` state: board columns `
+
+` state: board forward/backward diagonals `
+bdiags = 0 [*] (2*N - 1);
+fdiags = l_copy (bdiags);
+
+solutions = 0;
+
+div_line = '>' +$ ('-' *$ (1 + N*2)) +$ '<\n';
+
+` (show found solution) `
+! show_solution () : [R C] = {
+for_inc (R, N, {
+    <: '[';
+    for_inc (C, N, <: (board[R][C] ? " Q" : " ."));
+    <: ' ]\n';
+    });
+
+++ solutions;
+<: div_line
+};
+
+` Recursive: add n remaining queens to board `
+! add_queens (n) : [R C FD BD] =
+n ? {
+	R = n-1;
+	for_inc (C, N, {
+	    FD = R + N-1 - C;
+	    BD = R + C;
+
+	    board[R][C] || cols[C] || fdiags[FD] || bdiags[BD] ~? {
+		board[R][C] ++; cols[C] ++;
+		fdiags[FD] ++; bdiags[BD] ++;
+
+		add_queens (n-1);
+
+		board[R][C] --; cols[C] --;
+		fdiags[FD] --; bdiags[BD] --;
+		}:
+	    })
+    } :
+	` n == 0: solution found! `
+	show_solution ();
+
+<: div_line;
+add_queens(N);
+
+<: ["\n(Total solutions found: " solutions ").\n"]
+};	` -- solve_queens `
+
+` Entry point `
+
+solve_queens (8);
+

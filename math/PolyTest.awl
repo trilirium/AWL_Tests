@@ -1,0 +1,248 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'PolyTest.awl':
+	|	Polynomials test.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "Polynom.awl";
+
+`
+	Testing polynoms
+`
+
+<: "\nImported 'polynom.awl'...\n\n";
+
+<: "Class 'poly' (members):\n";
+x_vars_ord (1, ! poly);
+<: "\n";
+
+<: "Class 'poly' (functors):\n";
+x_funcs_ord (1, ! poly);
+<: "\n";
+
+` Terminal: polynom P with argument X `
+! P_Term (P) = {
+	poly!! P.put ('x');
+	};
+	
+! EvalPoly (@ARG P) = {
+	^ARG;
+	<: " = ";
+	P_Term (P);
+	<: "\n"
+	};
+
+! EvalPoly2 (@ARG Q R) = {
+	^ARG;
+	<: " = ";
+	P_Term (Q);
+	<: " :: ";
+	P_Term (R);
+	<: "\n"
+	};
+
+` Wrapper for unary operation 'op_un' on 'ARG1' `
+! OpUn (op_un @ARG1) = {
+	<: [op_un '('];
+	^ARG1;
+	<: ')'
+	};
+
+` Wrapper for binary operation 'op_bin' on 'ARG1', 'ARG2' `
+! OpBin (@ARG1 op_bin @ARG2) = {
+	<: '(';
+	^ARG1;
+	<: [')' op_bin '('];
+	^ARG2;
+	<: ')'
+	};
+
+p_test1 = poly ([37 95]);
+p_test2 = poly ([12 22 33]);
+p_test3 = poly ([14 61 35 17]);
+
+EvalPoly (<: 'p_test1', p_test1);
+EvalPoly (<: 'p_test2', p_test2);
+EvalPoly (<: 'p_test3', p_test3);
+
+<: "\nTESTING: evaluation...\n\n";
+
+! TestPoly_Eval (P X) = {
+	<: '(';
+	P_Term(P);
+	<: [') [' X '] = '];
+	<: (P.poly!!eval (X), '\n');
+	};
+
+TestPoly_Eval (p_test1, 5);
+TestPoly_Eval (p_test1, -5);
+
+TestPoly_Eval (p_test2, 10);
+TestPoly_Eval (p_test2, -10);
+
+TestPoly_Eval (p_test3, 4);
+TestPoly_Eval (p_test3, -4);
+
+<: "\nTESTING: polynoms negation...\n\n";
+
+! TestPoly_Neg (P) = {
+	EvalPoly (OpUn ('-', P_Term (P)), poly!!neg(P));
+	EvalPoly (OpUn ('-', OpUn ('-', P_Term (P))), poly!!neg(neg(P)));
+	<: '\n';
+	};
+
+TestPoly_Neg (p_test1);
+TestPoly_Neg (p_test2);
+TestPoly_Neg (p_test3);
+
+<: "\nTESTING: polynoms addition commutativity...\n\n";
+
+! TestPoly_AddComm (P Q) = {
+	EvalPoly (OpBin (P_Term (P), ' + ', P_Term (Q)), poly!!add (P, Q));
+	EvalPoly (OpBin (P_Term (Q), ' + ', P_Term (P)), poly!!add (Q, P));
+	<: '\n';
+	};
+
+TestPoly_AddComm ([p_test1 p_test2]);
+TestPoly_AddComm ([p_test2 p_test3]);
+TestPoly_AddComm ([p_test3 p_test1]);
+
+<: "\nTESTING: polynoms subtraction anticommutativity...\n\n";
+
+! TestPoly_SubAComm (P Q) = {
+	EvalPoly (OpBin (P_Term (P), ' - ', P_Term (Q)), poly!!sub (P, Q));
+	EvalPoly (OpUn ('-', OpBin (P_Term (Q), ' - ', P_Term (P))), poly!!neg(sub (Q, P)));
+	<: '\n';
+	};
+
+TestPoly_SubAComm ([p_test1 p_test2]);
+TestPoly_SubAComm ([p_test2 p_test3]);
+TestPoly_SubAComm ([p_test3 p_test1]);
+
+<: "\nTESTING: polynoms addition associativity...\n\n";
+
+! TestPoly_AddAssoc (P Q R) = {
+	EvalPoly (OpBin (OpBin (P_Term (P), ' + ', P_Term (Q)), ' + ', P_Term (R)), poly!!add (add (P, Q), R));
+	EvalPoly (OpBin (P_Term (P), ' + ', OpBin (P_Term (Q), ' + ', P_Term (R))), poly!!add (P, add (Q, R)));
+	<: '\n';
+	};
+
+TestPoly_AddAssoc ([p_test1 p_test2 p_test3]);
+TestPoly_AddAssoc ([p_test3 p_test2 p_test1]);
+
+<: "\nTESTING: polynoms multiplication commutativity...\n\n";
+
+! TestPoly_MulComm (P Q) = {
+	EvalPoly (OpBin (P_Term (P), ' * ', P_Term (Q)), poly!!mul (P, Q));
+	EvalPoly (OpBin (P_Term (Q), ' * ', P_Term (P)), poly!!mul (Q, P));
+	<: '\n';
+	};
+
+TestPoly_MulComm ([p_test1 p_test2]);
+TestPoly_MulComm ([p_test2 p_test3]);
+TestPoly_MulComm ([p_test3 p_test1]);
+
+<: "\nTESTING: polynoms multiplication associativity...\n\n";
+
+! TestPoly_MulAssoc (P Q R) = {
+	EvalPoly (OpBin (OpBin (P_Term (P), ' * ', P_Term (Q)), ' * ', P_Term (R)), poly!!mul (mul (P, Q), R));
+	EvalPoly (OpBin (P_Term (P), ' * ', OpBin (P_Term (Q), ' * ', P_Term (R))), poly!!mul (P, mul (Q, R)));
+	<: '\n';
+	};
+
+TestPoly_MulAssoc ([p_test1 p_test2 p_test3]);
+TestPoly_MulAssoc ([p_test2 p_test3 p_test1]);
+TestPoly_MulAssoc ([p_test3 p_test1 p_test2]);
+
+<: "\nTESTING: polynoms multiplication distributivity...\n\n";
+
+! TestPoly_MulDistr (P Q R) = {
+	EvalPoly (OpBin (OpBin (P_Term (P), ' + ', P_Term (Q)), ' * ', P_Term (R)), poly!!mul (add (P, Q), R));
+	EvalPoly (OpBin (OpBin (P_Term (P), ' * ', P_Term (R)), ' + ', OpBin (P_Term (Q), ' * ', P_Term (R))),
+		poly!!add (mul (P, R), mul (Q, R)));
+
+	EvalPoly (OpBin (OpBin (P_Term (P), ' - ', P_Term (Q)), ' * ', P_Term (R)), poly!!mul (sub (P, Q), R));
+	EvalPoly (OpBin (OpBin (P_Term (P), ' * ', P_Term (R)), ' - ', OpBin (P_Term (Q), ' * ', P_Term (R))),
+		poly!!sub (mul (P, R), mul (Q, R)));
+
+	<: '\n';
+	};
+
+TestPoly_MulDistr ([p_test1 p_test2 p_test3]);
+TestPoly_MulDistr ([p_test2 p_test3 p_test1]);
+TestPoly_MulDistr ([p_test3 p_test1 p_test2]);
+
+<: "\nTESTING: polynoms division...\n\n";
+
+! TestPoly_Div (P Q) : [Quot Rem] = {
+	[Quot Rem] = poly!!div (P, Q);
+
+	EvalPoly2 (OpBin (P_Term (P), ' / ', P_Term (Q)), Quot, Rem);
+
+	EvalPoly (OpBin (OpBin (P_Term (Quot), ' * ', P_Term (Q)), ' + ', P_Term (Rem)),
+		poly!! add (mul (Quot, Q), Rem));
+
+	<: '\n';
+	};
+
+TestPoly_Div (p_test3, p_test2);
+TestPoly_Div (p_test3, p_test1);
+TestPoly_Div (p_test2, p_test1);
+
+! TestPoly_Div1 (P Q) : [Quot Rem] = {
+	[Quot Rem] = poly!!div (poly!!mul (P, Q), P);
+
+	EvalPoly2 (OpBin (OpBin (P_Term (P), ' * ', P_Term (Q)), ' / ', P_Term (P)),
+		Quot, Rem);
+
+	<: '\n';
+	};
+
+TestPoly_Div1 (p_test1, p_test2);
+TestPoly_Div1 (p_test2, p_test1);
+
+TestPoly_Div1 (p_test2, p_test3);
+TestPoly_Div1 (p_test3, p_test2);
+
+TestPoly_Div1 (p_test1, p_test3);
+TestPoly_Div1 (p_test3, p_test1);
+
+<: "\nTESTING: binomial polynoms...\n\n";
+
+for_inc (R, 1..10, {
+    P = poly!!binomial (R);
+    EvalPoly (<: ['binom (' R ')'], P);
+    <: ('[1] = ', P.poly!!eval (1), '\n');
+    });
+
+<: "\nTESTING: combine polynoms...\n\n";
+
+! TestPoly_Comb (P Q):[PxQ i Val] = {
+	PxQ = poly!!combine (P, Q);
+
+	EvalPoly (OpBin (P_Term (P), ' <*> ', P_Term (Q)), PxQ);
+
+	for_inc (i, -10..10, poly!! {
+		Val = PxQ.eval (i);
+		Val <> P.eval (Q.eval (i)) ?
+			(<: 'Error: #', i, '\n') :
+		});
+
+	<: '\n';
+	};
+
+TestPoly_Comb (p_test2, p_test3);
+TestPoly_Comb (p_test3, p_test2);
+
+TestPoly_Comb (p_test1, p_test2);
+TestPoly_Comb (p_test2, p_test1);
+
+TestPoly_Comb (p_test1, p_test3);
+TestPoly_Comb (p_test3, p_test1);
+

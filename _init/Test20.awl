@@ -1,0 +1,51 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test20.awl': #20
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+x_trace ();
+
+` Construction of terms `
+
+x = y = z = 0;
+
+test1 = enterm (!exp, enterm (!add, @x, @y));
+
+test2 = enterm (!add, enterm (!mul, @y, @z), enterm (!min, @x, @y));
+
+test3 = enterm (!sub, enterm (!neg, @z), enterm (!max, @y, @x));
+
+[x y z];
+
+enterm (!min, enterm (!max, @x, @y), @z);
+enterm (!add, enterm (!mul, @z, @y), enterm (!div, @y, @x));
+enterm (!div, enterm (!sub, @x, @z), @y);
+
+determ (test1);
+determ (test2);
+determ (test3);
+
+determ (determ(test2)[1]);
+determ (determ(test2)[2]);
+determ (determ(test3)[2]);
+
+enblock (@ (x = 2*y + z, y = 3*z - x, z = 6*x - 4*y, ));
+enblock (@ (y =+: 2*z+x, x =*: 3, z =-: 3*x + 6*y, ));
+
+v_1 = @{ x = y/12 - 34; z = x/22 + 67; };
+v_2 = @{ z = sin(x) - cos(y); y = exp(log(x)); x = 2*z-3*y };
+v_3 = @{ y = log(x) - 3*tan(z); x = 2*sin(y) + z; z = 2*x - y };
+
+deblock (v_1);
+deblock (v_2);
+deblock (v_3);
+
+x_vars_ord ();
+

@@ -1,0 +1,122 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Boolean.awl':
+	|	Testing conditional evaluation.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+`
+	CHECKED: and, c_and, or, c_or, xor
+`
+
+! op_array (n array op) : [val i] = {
+val = array{0};
+for_inc (i, 1..n, val = op ! (val, array{i}));
+val };
+
+` for all boolean vectors (of N) `
+! bool_vec_iter (N loop_fn) : [set i j k] = {
+set = array (N);
+
+for_inc (i, 1 << N, {
+	k = i;
+	for_inc (j, N, {
+		set{j} = k & 1;
+		k =>>: 1;
+		});
+	
+	loop_fn ! (i, set);
+	});
+
+};	` -- bool_vec_iter `
+
+! cond_cycle_N (N) = {
+<: ['#' ':'];
+<: ['\t' '&'];
+<: ['\t' '&&'];
+<: ['\t' '|'];
+<: ['\t' '||'];
+<: ['\t' '~'];
+<: "\n";
+
+bool_vec_iter (N,
+	! (i set) = {
+		<: [i ':'];
+
+		<: ('\t', op_array (N, set, !and));
+		<: ('\t', op_array (N, set, !c_and));
+		<: ('\t', op_array (N, set, !or));
+		<: ('\t', op_array (N, set, !c_or));
+		<: ('\t', op_array (N, set, !xor));
+
+		<: "\n";
+		});
+};	` -- cond_cycle_N `
+
+cond_cycle_N (5);
+
+` check boolean operations `
+
+! check (argv first second) =
+	<: (first == second ? "" : "\afail!\n");
+
+! do_check_op (name argc op_func_l op_func_r) : [count_OK count_fail] = {
+	count_OK = count_fail = 0;
+	<: [ "Checking: " name " ..." ];
+	bool_vec_iter (argc,
+		!(i vals) = (
+		` check (vals, op_func_l ! (vals), op_func_r ! (vals)) `
+		(op_func_l ! vals == op_func_r ! vals) ? ++ count_OK : ++ count_fail
+		));
+	<: ["done OK= " count_OK " fail=" count_fail ".\n"];
+	};
+
+` Check: binary idempotence (a0 [*] a0 == a0) `
+! check_idem (name bool_bin) = do_check_op (
+	'Idempotence of ' +$ name, 1,
+		!(argv) = (argv{0}), !(argv) = (bool_bin!(argv{0}, argv{0}))
+		);
+
+check_idem ('AND', !and);
+check_idem ('OR',  !or);
+check_idem ('XOR', !xor);
+
+` Check: binary commutativity (a0 [*] a1 == a1 [*] a0) `
+! check_commut (name bool_bin) = do_check_op (
+	'Commutativity of ' +$ name, 2,
+		!(argv) = (bool_bin!(argv{0}, argv{1})),
+		!(argv) = (bool_bin!(argv{1}, argv{0}))
+	);
+
+check_commut ('AND', !and);
+check_commut ('OR',  !or);
+check_commut ('XOR', !xor);
+
+` Check: binary associativity (a0 [*] (a1 [*] a2) == (a0 [*] a1) [*] a2) `
+! check_assoc (name bool_bin) = do_check_op (
+	'Associativity of ' +$ name, 3,
+		!(argv) = (bool_bin!(argv{0}, bool_bin!(argv{1}, argv{2}))),
+		!(argv) = (bool_bin!(bool_bin!(argv{0}, argv{1}), argv{2}))
+	);
+
+check_assoc ('AND', !and);
+check_assoc ('OR',  !or);
+check_assoc ('XOR', !xor);
+
+` Check: de Morgan Laws (~(a0 [*] a1) == (~a0 [~*] ~a1)) `
+! check_demorgan (name bool_bin bool_bin_alt) = do_check_op (
+	'De Morgan Laws for ' +$ name, 2,
+		!(argv) = (c_not(bool_bin!(argv{0}, argv{1}))),
+		!(argv) = (bool_bin_alt!(c_not(argv{0}), c_not(argv{1})))
+	);
+
+check_demorgan ("AND/OR", !and, !or);
+check_demorgan ("OR/AND", !or, !and);
+

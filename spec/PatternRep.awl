@@ -1,0 +1,138 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'PatternRep.awl':
+	|	Pattern repetition/counting test.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+` == Expect equal `
+! expect_eq (where aval xval) =
+	if (aval <> xval)::
+		(<: ('\aError: ', aval, '<>', xval, " in ", where, '.\n'));
+
+` == Make [multiple] alternation `
+! rr_alter (items) =
+	#items > 1 ?
+		rx_alt (l_head(items), rr_alter(l_tail(items)))
+	:	items;
+
+` == Test repeat counter `
+! repcount_test (nmax arglist) : [basepat source count count1] = {
+basepat = rr_alter (arglist);
+source = s_join ('', l_range (0..nmax, !(i) = (arglist[i %% #arglist])));
+
+rx_match (rx_rep_count (@count, 0.., 1, basepat), source);
+expect_eq ('test', count, nmax);
+
+for_inc (i, nmax, {
+	rx_match (rx_cat (
+	rx_rep_count (@count, i, 1, basepat),
+	rx_rep_count (@count1, 0.., 1, basepat)),
+		source);
+
+	expect_eq ('testA0', count, i);
+	expect_eq ('testA1', count1, nmax-i);
+	});
+
+for_inc (i, nmax, {
+	rx_match (rx_cat (
+	rx_rep_count (@count, i..i, 0, basepat),
+	rx_rep_count (@count1, 0.., 1, basepat)),
+		source);
+
+	expect_eq ('testB0', count, i);
+	expect_eq ('testB1', count1, nmax-i);
+	});
+
+for_inc (i, nmax, {
+	rx_match (rx_cat (
+	rx_rep_count (@count, 0.., 1, basepat),
+	rx_rep_count (@count1, i..i, 0, basepat)),
+		source);
+
+	expect_eq ('testC0', count, nmax-i);
+	expect_eq ('testC1', count1, i);
+	});
+};	` -- repcount_test `
+
+repcount_test (9, 'abcdef', 'lmn', 'xyz');
+repcount_test (15, 'abc', 'def', 'gh', 'ijk');
+repcount_test (22, 'vw', 'xyz');
+
+
+`
+	=== Match test ===
+`
+
+
+! expect_match (where iter left right) = {
+	unless (left [==] right):: {
+		<: ("\aFailed: (", where, " @", iter, ") ");
+		x_trace ((), left);
+		<: " [<>] ";
+		x_trace ((), right);
+		<: "\n";
+		}
+	};
+
+match_2f = rx_cat (rx_store (1, rx_rep (1.., 1, rx_any())),
+	rx_cat (rx_rep (0.., 0, rx_any()), rx_recall (1)));
+
+! regtest_2f (source left mid right) : [length i test offset] = {
+
+length = #$source;
+offset = length + #$left + #$mid;
+
+for_inc (i, 1..length, {
+	test = left +$ source +$ mid +$ source $[i] +$ right;
+	expect_match ("round A", i, rx_locate (match_2f, test), ((#$left, offset + i), ))
+	});
+
+offset = #$left + #$mid;
+
+for_inc (i, 1..length, {
+	test = left +$ source$[i] +$ mid +$ source +$ right;
+	expect_match ("round B", i, rx_locate (match_2f, test), ((#$left, offset + 2*i), ))
+	});
+
+offset = 2*length + #$left + #$mid;
+
+for_inc (i, length, {
+	test = left +$ source +$ mid +$ source$[i..] +$ right;
+	expect_match ("round C", i, rx_locate (match_2f, test), ((#$left + i, offset - i), ))
+	});
+
+offset = 2*length + #$left + #$mid;
+
+for_inc (i, length, {
+	test = left +$ source$[i..] +$ mid +$ source +$ right;
+	expect_match ("round D", i, rx_locate (match_2f, test), ((#$left, offset - i), ))
+	});
+
+offset = #$left + #$mid;
+
+for_inc (i, 1..length, {
+	test = left +$ source$[i] +$ mid +$ source$[i] +$ right;
+	expect_match ("round E", i, rx_locate (match_2f, test), ((#$left, offset + 2*i), ))
+	});
+
+offset = 2*length + #$left + #$mid;
+
+for_inc (i, length, {
+	test = left +$ source$[i..] +$ mid +$ source$[i..] +$ right;
+	expect_match ("round F", i, rx_locate (match_2f, test), ((#$left, offset - 2*i), ))
+	});
+
+};		` -- regtest_2f `
+
+regtest_2f ("0123456789", '(', '[:]', ')');
+regtest_2f ("ABCDEFGHIJKLMNOPQRSTUVWXYZ", '<[', '()', ']>');
+regtest_2f ("abcdefghijklm", '<[{', '=', '}');
+regtest_2f ("nopqrstuvwxyz", '{', '=', '}]>');
+

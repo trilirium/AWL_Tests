@@ -1,0 +1,5 @@
+CheckRep: #10: ( << = >> )
+CheckRep: #8: <-  << () >>  ->
+CheckRep: #12: :[ << ** >> ]:
+CheckRep: #15: $< << --- >> >$
+Total failures: 0

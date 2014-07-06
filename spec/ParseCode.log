@@ -1,0 +1,97 @@
+"a + b + c" => add:(add:(a, b), c)
+"3*a + 5*b + 7*c" => add:(add:(mul:(3, a), mul:(5, b)), mul:(7, c))
+"'ab' *$ 8 +$ 'rst' *$ 5 +$ 'ijk'" => s_cat:(s_cat:(s_rep:("ab", 8), s_rep:("rst", 5)), "ijk")
+"(a + 3)*(b - 5) + (b + 7)*(c - 15) - (c - 3)*(a + 11)" => sub:(add:(mul:(add:(a, 3), sub:(b, 5)), mul:(add:(b, 7), sub:(c, 15))), mul:(sub:(c, 3), add:(a, 11)))
+"a <= b + 6*c && b > c - 8*a && c <> 11*a - 13*b" => c_and:(le:(a, add:(b, mul:(6, c))), c_and:(gt:(b, sub:(c, mul:(8, a))), ne:(c, sub:(mul:(11, a), mul:(13, b)))))
+"a + (a*b ?< c)*b - (b*c ?> a)*c + c" => add:(sub:(add:(a, mul:(min:(mul:(a, b), c), b)), mul:(max:(mul:(b, c), a), c)), c)
+"nn < mm ? 2*mm - 13 : 7*nn + 6" => if:(lt:(nn, mm), sub:(mul:(2, mm), 13), add:(mul:(7, nn), 6))
+"inside (a, b..c) ?
+		outside (b, 16) ? (a+1, 2*c) : (c-2, 3*a)
+	:	outside (c, 25) ? (b-3, 6*a) : (a+9, 7*c)" => if:(inside:(a, b, c), if:(outside:(b, 16), (add:(a, 1), mul:(2, c)), sub:(c, 2), mul:(3, a)), if:(outside:(c, 25), (sub:(b, 3), mul:(6, a)), add:(a, 9), mul:(7, c)))
+"(11, 22, 33, 44)" => (11, 22, 33, 44)
+"[24 'aa' 36 'bb' 48 'cc']" => (24, "aa", 36, "bb", 48, "cc")
+"[ [1 1 1] [2 2 2] [3 3 3] :]" => ((1, 1, 1), (2, 2, 2), (3, 3, 3), )
+"[ [15 'a'] [25 'bb'] [35 'cd'] [45 'efg'] :]" => ((15, "a"), (25, "bb"), (35, "cd"), (45, "efg"), )
+"[1.1 [2.2 [3.3 4.4]] [[5.5 6.6] 7.7]]" => (1.1, (2.2, 3.3, 4.4), (5.5, 6.6), 7.7)
+"(
+		(a, (b+1, c*2), 0),
+		(c, (a-2, b*7), 1),
+		(b, (c-9, a*3), 2),
+	 )" => ((a, (add:(b, 1), mul:(c, 2)), 0), (c, (sub:(a, 2), mul:(b, 7)), 1), (b, (sub:(c, 9), mul:(a, 3)), 2), )
+"{ 1; 2; 3; 4 }" => {
+  1;
+  2;
+  3;
+  4 }
+"{ { 'aa'; 'bbb'; }; 'cc'; { 'dd'; 'eee'; }; 'ffff'; }" => {
+  {
+    "aa";
+    "bbb";
+    };
+  "cc";
+  {
+    "dd";
+    "eee";
+    };
+  "ffff";
+  }
+"{
+		<: '-- aaa
+';
+		<: '-- bbb cc ddddd
+';
+		<: '-- eeee ff gggg
+';
+		}" => {
+  f_put:((), "-- aaa\n");
+  f_put:((), "-- bbb cc ddddd\n");
+  f_put:((), "-- eeee ff gggg\n");
+  }
+"aa = [a b c]" => set:(aa, a, b, c)
+"aa[0] =+: b*c" => comb:add:(l_item:(0, aa), mul:(b, c))
+"aa[1] =-: a%%c" => comb:sub:(l_item:(1, aa), irem:(a, c))
+"aa[2] =*: 2.5" => comb:mul:(l_item:(2, aa), 2.5)
+"for_inc (i, 10..20, <: (2*i+3))" => for_inc:(i, (10, 20), f_put:((), add:(mul:(2, i), 3)))
+"for_dec (i, 20..40, <: (7*i-5))" => for_dec:(i, (20, 40), f_put:((), sub:(mul:(7, i), 5)))
+"for_inc (m, 10..20, for_inc (n, 10, <: (m*n-1)))" => for_inc:(m, (10, 20), for_inc:(n, 10, f_put:((), sub:(mul:(m, n), 1))))
+"pp = ! (x y z) = (x*y - y*z, z*x - x*y)" => set:(pp, ! (x y z) [3] = (sub:(mul:(x, y), mul:(y, z)), sub:(mul:(z, x), mul:(x, y))))
+"qq = ! (i j k l) = (i*j - 1, j*k + 1, k*l - 1, l*i + 1)" => set:(qq, ! (i j k l) [4] = (sub:(mul:(i, j), 1), add:(mul:(j, k), 1), sub:(mul:(k, l), 1), add:(mul:(l, i), 1)))
+"list_fn_1 = (
+		!(x) = (sin(x) - cos(x)),
+		!(y) = (2*exp(y) + log(y)),
+		!(z) = (0.5*z*z - 0.75*z + 2.5)
+		)" => set:(list_fn_1, ! (x) [1] = sub:(sin:x, cos:x), ! (y) [1] = add:(mul:(2, exp:y), log:y), ! (z) [1] = add:(sub:(mul:(mul:(0.5, z), z), mul:(0.75, z)), 2.5))
+"list_fn_2 = (
+		!(s) = ('(' +$ ('[' +$ s +$ ']') *$ 5 +$ ')'),
+		!(t) = ('{-- ' +$ t +$ ' --}')
+		)" => set:(list_fn_2, ! (s) [1] = s_cat:(s_cat:("(", s_rep:(s_cat:(s_cat:("[", s), "]"), 5)), ")"), ! (t) [1] = s_cat:(s_cat:("{-- ", t), " --}"))
+"list_fn_3 = (
+		!(a b) = (2*a - b + 1, 3*b + a - 4, 6*b - 5*a + 8),
+		!(p q r) = (p & q ~ r, r | q ~ p, r ~ p ~ q),
+		!(s t u) = (
+			'1: ' +$ s$[1..3] +$ ' : ' +$ t$[5..6] +$ '.',
+			'2: ' +$ t$[0..3] +$ ' | ' +$ u$[7..9] +$ '.',
+			'3: ' +$ u$[0..2] +$ ' / ' +$ s$[6..8] +$ '.',
+			)
+		)" => set:(list_fn_3, ! (a b) [2] = (add:(sub:(mul:(2, a), b), 1), sub:(add:(mul:(3, b), a), 4), add:(sub:(mul:(6, b), mul:(5, a)), 8)), ! (p q r) [3] = (xor:(and:(p, q), r), xor:(or:(r, q), p), xor:(xor:(r, p), q)), ! (s t u) [3] = (s_cat:(s_cat:(s_cat:(s_cat:("1: ", s_slice:((1, 3), s)), " : "), s_slice:((5, 6), t)), "."), s_cat:(s_cat:(s_cat:(s_cat:("2: ", s_slice:((0, 3), t)), " | "), s_slice:((7, 9), u)), "."), s_cat:(s_cat:(s_cat:(s_cat:("3: ", s_slice:((0, 2), u)), " / "), s_slice:((6, 8), s)), "."), ))
+"[10.1 20.2 30.3] [+] ['aaBB' 'ccDD' 'eeFF']" => l_cat:((10.1, 20.2, 30.3), "aaBB", "ccDD", "eeFF")
+"[100.001 200.002 300.003] [*] 5" => l_rep:(5, 100.001, 200.002, 300.003)
+"[~] [11 'xxXxx' 22 'yyYyy' 33 'zzZzz']" => l_rev:(11, "xxXxx", 22, "yyYyy", 33, "zzZzz")
+
+  table;
+  item;
+  a;
+  b;
+  c;
+  nn;
+  mm;
+  aa;
+  i;
+  m;
+  n;
+  pp;
+  qq;
+  list_fn_1;
+  list_fn_2;
+  list_fn_3;
+

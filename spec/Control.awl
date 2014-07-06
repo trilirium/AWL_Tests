@@ -1,0 +1,196 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Control.awl':
+	|	Testing flow control functors.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: if, unless, for_inc, for_dec, while, until, switch
+`
+
+:[];
+
+x_trace (3);
+
+` Expect some value: `
+! expect_val (val test) =
+    if (val <> test)::
+	(<: ["\aUnexpected: " val "<>" test "\n"]);
+
+` Test: pre-conditional loops (while) `
+! test_loops1 (Range) : [i j k] = {
+for_inc (i, Range, {
+	[j k] = Range;
+
+	(j < i) ?? (++ j);
+	(k > i) ?? (-- k);
+
+	expect_val (j, i);
+	expect_val (k, i);
+	});
+
+};	` test_loops1 `
+
+test_loops1 (10..30);
+
+` Tests: parity `
+
+! test_range_even (Range) : [i] = {
+	<: ("even (", Range[1], "->", Range[0], "): [ ");
+	for_dec (i, Range, {
+		if (i %% 2):: (++ i);
+		<: (i, " ");
+		});
+	<: "]\n";
+	};	` -- test_range_even `
+
+! test_range_odd (Range) : [i] = {
+	<: ("odd (", Range[1], "->", Range[0], "): [ ");
+	for_dec (i, Range, {
+		unless (i %% 2):: (++ i);
+		<: (i, " ");
+		});
+	<: "]\n";
+	};	` -- test_range_odd `
+
+test_range_even (5..35);
+test_range_odd (5..35);
+
+`
+	Test switches
+`
+
+! digit_to_name (n) =
+    switch (n):: (
+	0	:: "zero",
+	1	:: "one",
+	2	:: "two",
+	3	:: "three",
+	4	:: "four",
+	5	:: "five",
+	6	:: "six",
+	7	:: "seven",
+	8	:: "eight",
+	9	:: "nine",
+	);
+
+! name_to_digit (s) =
+    switch (s):: (
+	"zero"	:: 0,
+	"one"	:: 1,
+	"two"	:: 2,
+	"three"	:: 3,
+	"four"	:: 4,
+	"five"	:: 5,
+	"six"	:: 6,
+	"seven"	:: 7,
+	"eight" :: 8,
+	"nine"	:: 9,
+	);
+
+! Test_Switch : [i n] = {
+for_inc (i, 10, <: ("\t", i, " -> ", digit_to_name(i), "\n"));
+
+l_loop (n, ['nine' 'eight' 'seven' 'six' 'five' 'four' 'three' 'two' 'one'],
+	<: ("\t", n, " <- ", name_to_digit (n), "\n"));
+};		` -- Test_Switch `
+
+Test_Switch ();
+
+! Test_Squares (N) : [n S i] = {
+for_inc (n, N, {
+    S = n*n;
+    i = 0;
+    while (i*i < S):: (++ i);
+    <: ("\t", i, ":", S, "\n");
+    });
+};	` -- Test_Squares `
+
+Test_Squares (15);
+
+` Square pre/post-condition range check `
+
+! Test_Range_Precond_Inc (N) : [i j] = {
+<: ("\nPrecond range (N = ", N, ")\n");
+
+for_inc (i, N, {
+	<: "[";
+	j = 0;
+	while (j <> i):: (<: (' ', j++));
+
+	<: ['<' i '>'];
+
+	until (++j == N):: (<: (j, ' '));
+
+	<: "]\n";
+	});
+
+<: "\n";
+};	` -- Test_Range_Precond `
+
+! Test_Range_Precond_Dec (N) : [i j] = {
+<: ("\nPostcond range (N = ", N, ")\n");
+
+for_dec (i, N, {
+	<: "[";
+	j = N;
+	until (--j == i):: (<: (' ', j));
+
+	<: ('<', i, '>');
+
+	while (j):: (<: (--j, ' '));
+
+	<: "]\n";
+	});
+
+<: "\n";
+};	` -- Test_Range_Postcond `
+
+Test_Range_Precond_Inc (10);
+Test_Range_Precond_Dec (10);
+
+! Test_Range_Postcond_Inc (N) : [i j] = {
+<: ("\nPostcond range (N = ", N, ")\n");
+
+for_inc (i, N, {
+	<: "[";
+	j = i;
+	while (j <> N):: (<: (' ', j++));
+
+	<: '|';
+	j = 0;
+	until (j == i):: (<: (j++, ' '));
+
+	<: "]\n";
+	});
+
+<: "\n";
+};
+
+! Test_Range_Postcond_Dec (N) : [i j] = {
+<: ("\nPostcond range (N = ", N, ")\n");
+
+for_dec (i, N, {
+	<: "[";
+	j = i;
+	while (j <> N):: (<: (' ', j++));
+
+	<: '|';
+	j = 0;
+	until (j == i):: (<: (j++, ' '));
+
+	<: "]\n";
+	});
+
+<: "\n";
+};
+
+Test_Range_Postcond_Inc (10);
+Test_Range_Postcond_Dec (10);
+

@@ -1,0 +1,115 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'ScalList.awl':
+	|	Testing hybrid list/scalar operations.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: <scalar ops>, l_comb, l_reduce
+`
+
+x_trace ();
+
+ListF = [ 11.2 22.4 33.6 44.8 ];
+
+ListI = [ 1015 2025 3035 ];
+
+ListS1 = [ 'Spring' 'Summer' 'Autumn' 'Winter' ];
+ListS2 = [ 'Aa' 'Ee' 'Ii' 'Oo' 'Uu' ];
+
+ListF;
+add (ListF);
+add (add (ListF));
+add (add (add (ListF)));
+
+ListI;
+add (ListI);
+add (add (ListI));
+
+neg (ListF);
+not (ListI);
+
+s_len (ListS1);
+s_len (ListS2);
+
+ListS1;
+s_cat (ListS1);
+s_cat (s_cat (ListS1));
+s_cat (s_cat (s_cat (ListS1)));
+
+ListS2;
+s_cat (ListS2);
+s_cat (s_cat (ListS2));
+s_cat (s_cat (s_cat (ListS2)));
+s_cat (s_cat (s_cat (s_cat (ListS2))));
+
+s_cat (s_cat (ListI));
+s_cat (s_cat (s_cat (ListF)));
+
+` more scalarizations... `
+add (100, ListI);
+add (100, add (200, add (ListI)));
+
+mul (0.25, ListF);
+mul (3.5, mul (5.0, mul (ListF)));
+
+s_cat ('+', ListS1);
+s_cat ('*', s_cat ('$', s_cat (ListS2)));
+
+
+` combined assignments... `
+
+i = 12;
+i =+: ListI;
+i;
+
+f = 10.1;
+f =*: ListF;
+f;
+
+[s1 s2] = ['XXX' 'YYY'];
+s1 =+$: ListS1;
+s2 =+$: ListS2;
+
+` list <-> list `
+
+ListI + ListF;
+ListF + ListI;
+
+ListI * ListF;
+ListF * ListI;
+
+ListI +$ ListS1;
+ListF +$ ListS2;
+
+` reductions ... `
+
+[=] + ListI;
+[=] * ListF;
+
+[=] +$ ListS1;
+[=] +$ ListS2;
+
+[=] +$ ListI;
+[=] +$ ListF;
+
+[=] + (10*2+1, 12*3+2, 14*7+9);
+[=] +$ ('<', '[' +$ '()' *$ 4 +$ ']', ' == ', '{' +$ '<->' *$ 3 +$ '}', '>');
+
+[=] + ["11aA" "22Cc" "33Ee" "44Gg"];
+[=] * ["1.1aA" "2.2Cc" "3.3Ee" "4.4Gg"];
+1.1 * 2.2 * 3.3 * 4.4;
+
+
+add ([1 2 3]) + add ([4 5 6]);
+add ([4 5 6]) + add ([1 2 3]);
+
+s_cat (['aa' 'bb' 'cc']) +$ s_cat (['Xx' 'Yy' 'Zz']);
+s_cat (['Xx' 'Yy' 'Zz']) +$ s_cat (['aa' 'bb' 'cc']);
+

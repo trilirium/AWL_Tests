@@ -1,0 +1,82 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test_4.awl': #4
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+x_trace();
+
+`( Don't evaluate these )...`
+
+if (0):: {
+
+neg ([[1 2 3 4] 5 6 7 8]);
+not ([[10 15] 55 75 95]);
+
+add ([['dd' 'ee' 'ff'] ['nn' 'mm'] 1 2]);
+add ([12.2 34.5 17.9]);
+
+xor ([['xx' 12.23] ['yy' 33.16] ['zz' 21.55]]);
+xor ([22 45 13]);
+};
+
+ddd = [1 2 3 4];
+
+add(ddd);
+
+add(add(ddd));
+
+add(add(add(ddd)));
+
+ttt = [10 8 6 4 2];
+
+sub(ttt);
+
+add(sub(ttt));
+
+idiv(add(sub(ttt)));
+
+sub(idiv(add(sub(ttt))));
+
+abs(neg(ddd));
+abs(not(ttt));
+
+
+` Lazy assignments `
+
+S := (a + b)*2;
+T := (a*b, b*c, c*a);
+U := ^S*(^(T[0]) + ^(T[2]));
+
+[a b c] = (2, 3, 5);
+
+^S; ^T; ^U;
+
+[a b c] = (6, 10, 13);
+
+^S; ^T; ^U;
+
+[a b c] = [c b a];
+
+^S; ^T; ^U;
+
+` Lists of lazy assignments `
+
+AList_1 = (@(a =+: b*2 - c*3), @(c =-: a + b*4), @(b =+: c*8 - a*3));
+
+AList_1;
+
+[a b c];
+
+^AList_1;
+
+[a b c];
+
+x_vars_ord();
+

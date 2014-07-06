@@ -1,0 +1,38 @@
+
+`
+	"Guess.awl": Guess the number game
+`
+
+` Quickly read integer (from sysin) `
+! read_int : [str] = { :> str; int(str) };
+
+<: "\nMaximum allowed secret number? ";
+
+max = read_int();
+
+randomize ();
+secret = rand (max);
+
+` ... Uncomment it to debug: ... `
+` <: ["Secret number = " secret "\n"]; `
+
+guessed = false();
+
+tries = 0;
+
+until (guessed):: {
+
+    <: "You guess? "; try = read_int();
+    ++ tries;
+
+    try < secret ?
+	(<: [try ": too small!\n"]) :
+
+    try > secret ?
+	(<: [try ": too big!\n"]) :
+
+	{ <: ("\aGuessed it (in ", tries, " attempts)!");
+		guessed = true(); }
+
+    }
+

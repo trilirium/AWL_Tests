@@ -1,0 +1,14 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Hello.awl':
+	|	Greet the world.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+<: "Hello, world!!!\n";
+

@@ -1,0 +1,89 @@
+<Return.awl> #17 / [1] {
+
+  x_trace:() => 0;
+  ! ret_test:(v) [1] = {
+    f_put:((), "=== before\n");
+    return:v;
+    f_put:((), "=== after\n");
+    0 } => ret_test:;
+
+  f_put:((), "\n") => 1;
+=== before
+  ret_test:100 => 100;
+=== before
+  ret_test:200 => 200;
+=== before
+  ret_test:300 => 300;
+=== before
+  ret_test:400 => 400;
+
+  f_put:((), "\n") => 1;
+=== before
+  ret_test:12.21 => 12.21;
+=== before
+  ret_test:43.34 => 43.34;
+=== before
+  ret_test:67.76 => 67.76;
+
+  f_put:((), "\n") => 1;
+=== before
+  ret_test:"aAbBcC" => "aAbBcC";
+=== before
+  ret_test:"XxxYyyZzz" => "XxxYyyZzz";
+=== before
+  ret_test:"[ll-L][mm-M][nn-N]" => "[ll-L][mm-M][nn-N]";
+
+  f_put:((), "\n") => 1;
+=== before
+  ret_test:(101, 202, 303) => (101, 202, 303);
+=== before
+  ret_test:(222, 333, 444) => (222, 333, 444);
+
+  f_put:((), "\n") => 1;
+=== before
+  ret_test:array:25 => [25];
+=== before
+  ret_test:hash:50 => <0 / 50>;
+=== before
+  ret_test:rx_cat:(rx_alt:("aa", "bb"), rx_alt:("cc", "dd")) => <<"aa" | "bb"> & <"cc" | "dd">>;
+  ! ret_test_for:(range search) [3] = for_inc:(i, range, {
+    if:(eq:(i, search), return:i);
+    f_put:((), "\t* ", i, "\n");
+    }) => ret_test_for:;
+
+  f_put:((), "\n") => 1;
+	* 10
+	* 11
+	* 12
+	* 13
+	* 14
+	* 15
+  ret_test_for:((10, 20), 16) => 16;
+	* -20
+	* -19
+	* -18
+	* -17
+	* -16
+	* -15
+	* -14
+	* -13
+	* -12
+	* -11
+	* -10
+	* -9
+  ret_test_for:((neg:20, 10), neg:8) => -8;
+
+  f_put:((), "\n") => 1;
+  ! ret_test_bits:(val) [1] = {
+    if:(and:(val, 1), return:"0");
+    if:(and:(val, 2), return:"1");
+    if:(and:(val, 4), return:"2");
+    if:(and:(val, 8), return:"3");
+    return:"?" } => ret_test_bits:;
+?010201030102010?
+  {
+    for_inc:(i, 17, f_put:((), ret_test_bits:i));
+    f_put:((), "\n");
+    } => ();
+
+} <Return.awl> #85 / [29]

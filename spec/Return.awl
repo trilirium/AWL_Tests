@@ -1,0 +1,84 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Return.awl':
+	|	Testing return from functors.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: return
+`
+
+x_trace ();
+
+` Basic return test `
+
+! ret_test (v) = {
+	<: "=== before\n";
+	return (v);
+	<: "=== after\n";
+	0 };
+
+<: "\n";
+ret_test (100);
+ret_test (200);
+ret_test (300);
+ret_test (400);
+
+<: "\n";
+ret_test (12.21);
+ret_test (43.34);
+ret_test (67.76);
+
+<: "\n";
+ret_test ("aAbBcC");
+ret_test ("XxxYyyZzz");
+ret_test ("[ll-L][mm-M][nn-N]");
+
+<: "\n";
+ret_test (101, 202, 303);
+ret_test (222, 333, 444);
+
+<: "\n";
+
+ret_test (array(25));
+ret_test (hash(50));
+ret_test (rx_cat (rx_alt ('aa','bb'), rx_alt ('cc', 'dd')));
+
+
+` Return test: return from loop `
+
+! ret_test_for (range search) : [i] =
+    for_inc (i, range, {
+	if (i == search):: (return (i));
+
+	<: ('\t* ', i, "\n");
+	});
+
+<: "\n";
+ret_test_for (10..20, 16);
+ret_test_for (-20..10, -8);
+<: "\n";
+
+` Return test: return from condition `
+
+! ret_test_bits (val) = {
+
+if (val & 1):: return '0';
+if (val & 2):: return '1';
+if (val & 4):: return '2';
+if (val & 8):: return '3';
+
+return "?" };
+
+{
+for_inc (i, 17,
+    <: ret_test_bits (i));
+<: "\n";
+};
+

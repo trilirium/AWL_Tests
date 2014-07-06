@@ -1,0 +1,47 @@
+<Test_8.awl> #15 / [1] {
+
+  x_trace:() => 0;
+  ! sum_of:(a b) [2] = add:(a, b) => sum_of:;
+  ! diff_of:(x y) [2] = sub:(x, y) => diff_of:;
+  ! Vlength:(X Y Z) [3] = add:(add:(mul:(X, X), mul:(Y, Y)), mul:(Z, Z)) => Vlength:;
+  Vlength:(10, 20, 30) => 1400;
+  add:(sum_of:(12, 23), diff_of:(16, 55)) => -4;
+  ! join3:(s1 s2 s3) [3] = s_cat:(s_cat:(s_cat:(s_cat:(s1, ":"), s2), ":"), s3) => join3:;
+  join3:("hello", "and", "goodbye") => "hello:and:goodbye";
+  join3:(add:(12, 2), mul:(6, 3), sub:(17, 5)) => "14:18:12";
+  set:(p, 101, 202, 303) => (101, 202, 303);
+  join3:p => "101:202:303";
+  diff_of:(sum_of:(5, 5), sum_of:(4, 6)) => 0;
+  ! join2:(sa sb) [2] = s_cat:(s_cat:(s_cat:(s_cat:("[", sa), "<>"), sb), "]") => join2:;
+  join2:(mul:(22.5, 3), mul:(13.3, 5)) => "[67.5<>66.5]";
+  join3:(join2:("M-m", 1.3), join2:("Z-z", 3.6), join2:("H-h", 5.9)) => "[M-m<>1.3]:[Z-z<>3.6]:[H-h<>5.9]";
+  join2:(join3:(12.2, "_AW_", 41), join3:(51.5, "_MD_", 97)) => "[12.2:_AW_:41<>51.5:_MD_:97]";
+  ! mul_3:(X Y Z) [3] = mul:(mul:(X, Y), Z) => mul_3:;
+  mul_3:(2, 3, 5) => 30;
+  sum_of:(mul_3:(0.5, 4, 3), mul_3:(0.3, 2, 7)) => 10.2;
+  sum_of:(diff_of:(sum_of:(2, 5), diff_of:(10, 6)), 7) => 10;
+  diff_of:(diff_of:(sum_of:(2, 5), diff_of:(10, 6)), 7) => -4;
+  ! xjoin3:(s1 s2 s3) [3] = s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:("[", s1), ":"), s2), ":"), s3), "]") => xjoin3:;
+  xjoin3:("a-a", "e-e", "i-i") => "[a-a:e-e:i-i]";
+  xjoin3:(xjoin3:(11.2, 12.5, 73.9), xjoin3:("SssS", "FffF", "UuuU"), xjoin3:(add:(23, 7), sub:(56, 4), add:(79, 5))) => "[[11.2:12.5:73.9]:[SssS:FffF:UuuU]:[30:52:84]]";
+  xjoin3:(join2:("a-x", "b-z"), add:(add:(12, 56), 41), join2:(div:(123, 2), div:(215, 2))) => "[[a-x<>b-z]:109:[61.5<>107.5]]";
+
+
+
+  f_put:((), "\n\n\n") => 1;
+
+    p = (101, 202, 303);
+
+  x_vars_ord:() => 1;
+
+    ! sum_of:(a b) [2] = add:(a, b);
+    ! diff_of:(x y) [2] = sub:(x, y);
+    ! Vlength:(X Y Z) [3] = add:(add:(mul:(X, X), mul:(Y, Y)), mul:(Z, Z));
+    ! join3:(s1 s2 s3) [3] = s_cat:(s_cat:(s_cat:(s_cat:(s1, ":"), s2), ":"), s3);
+    ! join2:(sa sb) [2] = s_cat:(s_cat:(s_cat:(s_cat:("[", sa), "<>"), sb), "]");
+    ! mul_3:(X Y Z) [3] = mul:(mul:(X, Y), Z);
+    ! xjoin3:(s1 s2 s3) [3] = s_cat:(s_cat:(s_cat:(s_cat:(s_cat:(s_cat:("[", s1), ":"), s2), ":"), s3), "]");
+
+  x_funcs_ord:() => 7;
+
+} <Test_8.awl> #74 / [28]

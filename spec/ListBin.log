@@ -1,0 +1,56 @@
+<ListBin.awl> #17 / [1] {
+
+  x_trace:() => 0;
+  ! make_bintree:(n offset = 0) [2] = if:(dec_p:n, (.make_bintree:(n, offset), .make_bintree:(n, add:(offset, shl:(1, n)))), offset) => make_bintree:;
+  make_bintree:6 => ((((((0, 1), 2, 3), (4, 5), 6, 7), ((8, 9), 10, 11), (12, 13), 14, 15), (((16, 17), 18, 19), (20, 21), 22, 23), ((24, 25), 26, 27), (28, 29), 30, 31), ((((32, 33), 34, 35), (36, 37), 38, 39), ((40, 41), 42, 43), (44, 45), 46, 47), (((48, 49), 50, 51), (52, 53), 54, 55), ((56, 57), 58, 59), (60, 61), 62, 63);
+0: 0
+1: (0, 1)
+2: ((0, 1), 2, 3)
+3: (((0, 1), 2, 3), (4, 5), 6, 7)
+4: ((((0, 1), 2, 3), (4, 5), 6, 7), ((8, 9), 10, 11), (12, 13), 14, 15)
+5: (((((0, 1), 2, 3), (4, 5), 6, 7), ((8, 9), 10, 11), (12, 13), 14, 15), (((16, 17), 18, 19), (20, 21), 22, 23), ((24, 25), 26, 27), (28, 29), 30, 31)
+6: ((((((0, 1), 2, 3), (4, 5), 6, 7), ((8, 9), 10, 11), (12, 13), 14, 15), (((16, 17), 18, 19), (20, 21), 22, 23), ((24, 25), 26, 27), (28, 29), 30, 31), ((((32, 33), 34, 35), (36, 37), 38, 39), ((40, 41), 42, 43), (44, 45), 46, 47), (((48, 49), 50, 51), (52, 53), 54, 55), ((56, 57), 58, 59), (60, 61), 62, 63)
+  for_inc:(i, 7, {
+    f_put:((), i, ": ");
+    x_trace:(2, make_bintree:i);
+    f_put:((), "\n");
+    }) => ();
+  ! flatten_tree:(T) [1] = if:(is_list:T, l_cat:(.flatten_tree:l_head:T, .flatten_tree:l_tail:T), T) => flatten_tree:;
+Check bintree #0: OK
+Check bintree #1: OK
+Check bintree #2: OK
+Check bintree #3: OK
+Check bintree #4: OK
+Check bintree #5: OK
+Check bintree #6: OK
+Check bintree #7: OK
+Check bintree #8: OK
+  for_inc:(i, 9, f_put:((), "Check bintree #", i, ": ", if:(ident:(flatten_tree:make_bintree:i, l_range:shl:(1, i)), "OK", "failed"), "\n")) => 5;
+  ! find_bintree:(v T L) [3] = if:(dec_p:L, {
+    set:((v, T), if:(lt:(v, shl:(1, L)), (v, l_head:T), sub:(v, shl:(1, L)), l_tail:T));
+    .find_bintree:(v, T, L) }, T) => find_bintree:;
+  ! test_bintree_all:(N) [3] = {
+    f_put:((), "Testing tree (N=", N, ") ");
+    set:(Tree, .make_bintree:N);
+    for_inc:(I, shl:(1, N), if:(ne:(.find_bintree:(I, Tree, N), I), f_put:((), "Test bintree error @", I, "\n")));
+    f_put:((), "...done\n");
+    } => test_bintree_all:;
+Testing tree (N=10) ...done
+  test_bintree_all:10 => ();
+  ! sum_tree:(T) [1] = if:(is_list:T, add:(.sum_tree:l_head:T, .sum_tree:l_tail:T), T) => sum_tree:;
+0: Ok
+1: Ok
+2: Ok
+3: Ok
+4: Ok
+5: Ok
+6: Ok
+7: Ok
+8: Ok
+9: Ok
+  for_inc:(i, 10, {
+    set:(expected, shl:(sub:(shl:(1, i), 1), sub:(i, 1)));
+    f_put:((), i, ": ", if:(eq:(sum_tree:make_bintree:i, expected), "Ok", "Fail"), "\n");
+    }) => ();
+
+} <ListBin.awl> #79 / [11]

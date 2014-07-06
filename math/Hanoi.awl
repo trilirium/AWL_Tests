@@ -1,0 +1,33 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Hanoi.awl':
+	|	Solve "Towers of Hanoi".
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+` Solve puzzle for N disks `
+! hanoi_solve (N) = {
+
+! move_disks (n from to via) =
+	n ? {
+	count = move_disks (n-1, [from via to]);
+
+	<: ("\t#", n, ": ", from, " => ", to, "\n");
+	++ count;
+
+	count + move_disks (n-1, [via to from])
+	} : 0;
+
+<: ("\nTowers of Hanoi\n(", N, " disks)...\n\n");
+count = move_disks (N, ['A' 'B' 'C']);
+<: ("\nPuzzle solved for: ", count, " steps.\n");
+};
+
+hanoi_solve (5);
+

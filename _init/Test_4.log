@@ -1,0 +1,56 @@
+<Test_4.awl> #13 / [1] {
+
+  x_trace:() => 0;
+  if:(0, {
+    neg:((1, 2, 3, 4), 5, 6, 7, 8);
+    not:((10, 15), 55, 75, 95);
+    add:(("dd", "ee", "ff"), ("nn", "mm"), 1, 2);
+    add:(12.2, 34.5, 17.9);
+    xor:(("xx", 12.23), ("yy", 33.16), "zz", 21.55);
+    xor:(22, 45, 13);
+    }) => ();
+  set:(ddd, 1, 2, 3, 4) => (1, 2, 3, 4);
+  add:ddd => (3, 3, 4);
+  add:add:ddd => (6, 4);
+  add:add:add:ddd => 10;
+  set:(ttt, 10, 8, 6, 4, 2) => (10, 8, 6, 4, 2);
+  sub:ttt => (2, 6, 4, 2);
+  add:sub:ttt => (8, 4, 2);
+  idiv:add:sub:ttt => (2, 2);
+  sub:idiv:add:sub:ttt => 0;
+  abs:neg:ddd => (1, 2, 3, 4);
+  abs:not:ttt => (11, 8, 6, 4, 2);
+  let:(S, mul:(add:(a, b), 2)) => S;
+  let:(T, mul:(a, b), mul:(b, c), mul:(c, a)) => T;
+  let:(U, mul:(reval:S, add:(reval:l_item:(0, T), reval:l_item:(2, T)))) => U;
+  set:((a, b, c), 2, 3, 5) => (2, 3, 5);
+  reval:S => 10;
+  reval:T => (6, 15, 10);
+  reval:U => 160;
+  set:((a, b, c), 6, 10, 13) => (6, 10, 13);
+  reval:S => 32;
+  reval:T => (60, 130, 78);
+  reval:U => 4416;
+  set:((a, b, c), c, b, a) => (13, 10, 6);
+  reval:S => 46;
+  reval:T => (130, 60, 78);
+  reval:U => 9568;
+  set:(AList_1, deval:comb:add:(a, sub:(mul:(b, 2), mul:(c, 3))), deval:comb:sub:(c, add:(a, mul:(b, 4))), deval:comb:add:(b, sub:(mul:(c, 8), mul:(a, 3)))) => (comb:add:(a, sub:(mul:(b, 2), mul:(c, 3))), comb:sub:(c, add:(a, mul:(b, 4))), comb:add:(b, sub:(mul:(c, 8), mul:(a, 3))));
+  AList_1 => (comb:add:(a, sub:(mul:(b, 2), mul:(c, 3))), comb:sub:(c, add:(a, mul:(b, 4))), comb:add:(b, sub:(mul:(c, 8), mul:(a, 3))));
+  (a, b, c) => (13, 10, 6);
+  reval:AList_1 => (15, -49, -427);
+  (a, b, c) => (15, -427, -49);
+
+    ddd = (1, 2, 3, 4);
+    ttt = (10, 8, 6, 4, 2);
+    S = mul:(add:(a, b), 2);
+    a = 15;
+    b = -427;
+    T = (mul:(a, b), mul:(b, c), mul:(c, a));
+    c = -49;
+    U = mul:(reval:S, add:(reval:l_item:(0, T), reval:l_item:(2, T)));
+    AList_1 = (comb:add:(a, sub:(mul:(b, 2), mul:(c, 3))), comb:sub:(c, add:(a, mul:(b, 4))), comb:add:(b, sub:(mul:(c, 8), mul:(a, 3))));
+
+  x_vars_ord:() => 9;
+
+} <Test_4.awl> #83 / [34]

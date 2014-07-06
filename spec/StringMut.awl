@@ -1,0 +1,201 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'StringMut.awl':
+	|	Testing string mutators.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: s_poke, s_patch
+`
+
+`
+
+	String mutators
+
+`
+
+digits = "0123456789";
+
+! dump (title list) : [i] = {
+    <: ("\n- ", title, ":\n");
+    for_inc (i, #list,
+	<: ('#', i, ": '", list[i], "'\n"));
+    };
+
+! dump_state = {
+<: ["\nSource: " src '\n'];
+<: ("List: ", s_join (':', list), '\n');
+};
+
+src = digits;
+len = #$ src;
+
+list = src [*] len;
+
+dump_state ();
+
+for_inc (i, len,
+    s_poke (list[i], i, s_ord "+"));
+
+dump ("Inc (+)", list);
+
+list = src [*] len;
+
+for_inc (i, len,
+    s_poke (list[i], len - 1 - i, s_ord "-"));
+
+dump ("Dec (-)", list);
+
+list = src [*] len;
+
+for_inc (i, len, {
+    list[i] = src$[0..i+1];
+    for_inc (j, i,
+	s_poke (list[i], j, s_ord "0" + j + 1));
+    });
+
+dump_state ();
+
+dump ("List >>", list);
+
+list = src [*] len;
+
+for_inc (i, len, {
+    list[i] = src$[i..len];
+    for_inc (j, 1..len - i,
+	s_poke (list[i], j, s_ord "0" + j + i - 1));
+    });
+
+dump ("List <<", list);
+
+srcx = src +$ s_rev(src);
+
+list = src [*] len;
+
+for_inc (i, len, {
+	list[i] = srcx$[i .. 2*len - i];
+	s_poke (list[i], 0, s_ord "[");
+	s_poke (list[i], 2*(len - i) - 1, s_ord "]");
+	});
+
+dump_state ();
+
+dump ("List [<< - >>]", list);
+
+srcx = srcx $[#$src .. 2*#$src] +$ srcx $[#$src];
+
+for_inc (i, len, {
+	list[i] = srcx$[i .. 2*len - i];
+	s_poke (list[i], 0, s_ord "]");
+	s_poke (list[i], 2*(len - i) - 1, s_ord "[");
+	});
+
+dump ("List ]>> - <<[", list);
+
+src = '.' *$ len;
+
+list = src [*] len;
+
+for_inc (i, len, {
+	s_poke (src, i, s_ord "0" + i);
+	list[i] = src;
+	});
+
+dump_state ();
+
+dump ("List {+/-}", list);
+
+for_inc (i, len, {
+	list[i] = src;
+	s_poke (src, i, s_ord ".");
+	});
+
+dump ("List {-/+}", list);
+
+src = s_rev(digits);
+
+for_inc (i, len, {
+	list[i] = src;
+	s_poke (src, len - 1 - i, s_ord ".");
+	});
+
+dump ("List {+/+}", list);
+
+for_inc (i, len, {
+	s_poke (src, len - 1 - i, s_ord "0" + i);
+	list[i] = src;
+	});
+
+dump ("List {-/-}", list);
+
+dump_state ();
+
+src = digits;
+
+list = src [*] len;
+
+for_inc (i, len,
+	s_patch (list[i], i..len-1, src$[i+1..len]));
+
+dump ("List <++>", list);
+
+src = s_rev(src);
+list = src [*] len;
+
+for_inc (i, len,
+	s_patch (list[len - i-1], i..len-1, src$[i+1..len]));
+
+dump ("List <-->", list);
+
+src = "*" *$ (#$src);
+
+list = src [*] len;
+
+dump_state ();
+
+for_inc (i, len,
+	for_inc (j, i+1,
+		s_poke (list[j], i, s_ord "0" + i)));
+
+dump ("List [[-/+]]", list);
+
+list = src [*] len;
+
+for_inc (i, len,
+	for_inc (j, i..len,
+		s_poke (list[j], i, s_ord "0" + i)));
+
+dump ("List [[+/-]]", list);
+
+src = ' ' *$ len;
+s_poke (src, 0, s_ord ']');
+s_poke (src, len - 1, s_ord '[');
+
+list = src [*] len;
+
+for_inc (i, len, {
+	s_poke (list[i], i, s_ord '\\');
+	s_poke (list[i], len - 1 - i, s_ord '/');
+	});
+
+dump ("List ]><[", list);
+
+s_poke (src, 0, s_ord '[');
+s_poke (src, len - 1, s_ord ']');
+list = src [*] len;
+
+for_inc (i, len, {
+	s_poke (list[i], (i + len%2) %% len, s_ord '\\');
+	s_poke (list[i], (len + len%2 - 1 - i) %% len, s_ord '/');
+	});
+
+dump ("List [<>]", list);
+
+` End of file `
+

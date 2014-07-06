@@ -1,0 +1,44 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'BitOpcode.awl':
+	|	Testing bit locate/count.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: bitset_hi, bitset_lo, bitset_count
+	CHECKED: bitclr_hi, bitclr_lo, bitclr_count
+`
+
+! expect (mesg i val0 val1) =
+    if (val0 <> val1)::
+	(<: ("Error: ", mesg, " @", i, " ", val0, "<>", val1, "\n"));
+
+for_inc (i, 32, {
+	val = 1 << i;
+
+	expect ('bit_set_hi', i, bitset_hi(val), i);
+	expect ('bit_set_lo', i, bitset_lo(val), i);
+
+	expect ('bit_clr_hi', i, bitclr_hi(val), i == 31 ? 30 : 31);
+	expect ('bit_clr_lo', i, bitclr_lo(val), i == 0 ? 1 : 0);
+
+	expect ('bit_set_count', i, bitset_count(val), 1);
+
+	val = (1 << (i+1)) - 1;
+
+	expect ('bit_set_hi', i, bitset_hi(val), i == 31 ? -1 : i);
+	expect ('bit_set_lo', i, bitset_lo(val), i == 31 ? -1 : 0);
+
+	expect ('bit_clr_hi', i, bitclr_hi(val), 31);
+	expect ('bit_clr_lo', i, bitset_lo(val), i == 31 ? -1 : 0);
+
+	expect ('bit_set_count', i, bitset_count(val), i == 31 ? 0 : i + 1);
+
+	});
+

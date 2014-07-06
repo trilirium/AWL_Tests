@@ -1,0 +1,45 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'NumBase.awl':
+	|	Numbers <-> strings coercion (by any base).
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: n__base, s__base
+`
+
+` Check numbers Range (conversion with Base) `
+! check_range (Base Range) : [n v] =
+    for_inc (n, Range, {
+	` <: n; `
+	unless (n__base (Base, s__base (Base, n)) == n)::
+	    (<: ("Error: ", n, "\n")) }
+	);
+
+
+` Basic test `
+for_inc (Base, 2..26, {
+    <: ["Checking base " Base " ... "];
+    check_range (Base, 1..4096);
+    <: "done.\n";
+    });
+
+
+! i_exp (Base N) = N > 0 ? i_exp(Base, N-1) * Base : 1;
+
+! expect_eq (Base str num) =
+	unless (n__base (Base, str) == num)::
+		(<: ("Unexpected n__base: [", Base, "] '", str, "' <> ", num, "!\n"));
+
+` Test for 1(0)* `
+for_inc (Base, 2..11,
+	for_inc (j, Base,
+		for_inc (k, 8,
+			expect_eq (Base, j +$ ('0' *$ k), j*i_exp (Base, k))))
+	);

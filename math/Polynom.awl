@@ -1,0 +1,187 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Polynom.awl':
+	|	Class 'poly'
+	|	(implements basic polynomial algebra).
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+` Polynom is represented as list of coefficients.
+  Least significant come first; more significant come last.
+  Scalar is treated as is; <undef> is treated as 0
+  Note: 0 is the only scalar with power -1
+  `
+
+!! poly (List) : [Rank]
+	` constructor -- finds 'Rank' `
+	= {	Rank = #List;
+		(Rank && List[Rank - 1] == 0) ?? -- Rank;
+		-- Rank
+	  }
+{
+
+	` Output current polynom `
+	! put (X):[n val] = {
+		n = Rank;
+
+		n < 0 ? (<: 0) :
+
+		?? {
+		val = List[n];
+		n <> Rank ? (
+			` (non-first coefficient) `
+			val > 0 ? (<: (' + ', val)) :
+			val < 0 ? (<: (' - ', -val)) :
+			` (val == 0 -- do nothing) `
+			) :
+			` (first coefficient) `
+			val <> 1 ? (<: val):;
+
+		n > 0 ? {
+			<: X;
+			n > 1 ? (<: ['^' n]) :;
+			} :;
+		} (-- n >= 0);
+		},
+
+	` Evaluate current polynom for X `
+	! eval (X):[n val] = {
+		n = Rank;
+		val = 0;
+
+		n >= 0 ?? {
+			val =+: List[n --];
+			(n >= 0) ? (val =*: X):
+			};
+
+		val
+		},
+
+	` Negation of polynom P `
+	! neg (P):[n Res] = {
+		n = P.Rank;
+		P.(n >= 0 ?? (Res [<-] (- List[n --])));
+		poly (Res)
+		},
+
+	` Addition of polynoms P and Q `
+	! add (P Q):[m n Res] = {
+		[m n] = (P.Rank, Q.Rank);
+
+		` (copy high-order coefficients either from P or from Q) `
+		((m <= n) ? Q : { m :=: n; P }) . 
+			((n > m) ?? (Res [<-] List[n --]));
+
+		` (add matching coefficients) `
+		n >= 0 ?? { Res [<-] (P.List[n] + Q.List[n]); -- n };
+
+		poly (Res)
+		},
+
+	` Subtraction of polynoms P and Q `
+	! sub (P Q):[m n Res] = {
+		[m n] = (P.Rank, Q.Rank);
+
+		(m <= n) ?
+			` (copy high-order coefficients (negated) from Q) `
+			Q.((n > m) ?? (Res [<-] - List[n --])) :
+			` (copy high-order coefficients from P) `
+			P.((m > n) ?? (Res [<-] List[m --]));
+
+		` (subtract matching coefficients) `
+		n >= 0 ?? { Res [<-] (P.List[n] - Q.List[n]); -- n };
+
+		poly (Res)
+		},
+
+	` Compare polynoms P and Q (returns sign) `
+	! cmp (P Q):[m n] = {
+		[m n] = (P.Rank, Q.Rank);
+
+		m <> n ?
+		    m <?> n :
+			{
+			(n >= 0 && P.List[n] == Q.List[n]) ?? -- n;
+			n >= 0? P.List[n] <?> Q.List[n] : 0;
+			}
+		},
+
+	` Multiplication of polynoms P and Q `
+	! mul (P Q):[n nP nQ Res i C] = {
+		[nP nQ] = (P.Rank, Q.Rank);
+		for_dec (n, nP + nQ + 1, {
+		    C = 0;
+		    for_inc (i, n + 1,
+			(i <= nP && n-i <= nQ) ? (C =+: P.List[i]*Q.List[n-i]) :);
+		    Res [<-] C
+		    });
+
+		poly (Res)
+		},
+
+	` Division of polynoms P and Q `
+	` (returns (quotient, remainder) )`
+	! div (P Q):[nP nQ Quot Rem i F D] = {
+		[nP nQ] = (P.Rank, Q.Rank);
+		Rem = l_copy(P.List);
+		D = Q.List[nQ];
+
+		(nP >= nQ) ?? {
+			F = Rem[nP] / D;
+			Rem[nP] = 0;
+			Quot [<-] F;
+			Q.for_inc (i, 1 .. nQ + 1, Rem[nP - i] =-: List[nQ - i] * F);
+			-- nP
+			};
+
+		(poly(Quot), poly(Rem))
+		},
+
+	` Raise polynom to power n (not very efficient...) `
+	! power (P n):[Res] = {
+		n ? {
+			Res = P;
+			-- n ?? (Res = mul (Res, P));
+			
+			Res
+			} :
+
+		poly (1)
+		},
+
+	` Combine polynoms P and Q:
+	  (P <*> Q) (x) = P(Q(x)) `
+	! combine (P Q):[Res V i j nP nQ] = {
+		[nP nQ] = (P.Rank, Q.Rank);
+
+		Res = 0 [*] (nP * nQ + 1);
+
+		P.for_inc (i, nP+1, {
+			V = List[i];
+
+			power (Q, i).for_inc (j, nQ*i + 1, Res[j] =+: List[j] * V)
+			});
+
+		poly (Res)
+		},
+
+	` Calculate binomial of power N `
+	` (x + 1)^N `
+	! binomial (N):[Res p n pN pD] = {
+	    for_inc (p, N+1, {
+
+		pN = pD = 1;
+		for_inc (n, p, { pN =*: N - n; pD =*: n + 1 });
+		Res [<-] pN % pD
+		});
+
+	    poly (Res)
+	    }
+
+	};
+

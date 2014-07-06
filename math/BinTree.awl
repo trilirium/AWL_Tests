@@ -1,0 +1,100 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'BinTree.awl':
+	|	Binary tree sequences sorting.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+x_trace();
+
+` Class: binary tree, sorted by 'Key' with 'Sorter' `
+
+debug_mode = false();
+
+!! BTree (Key Sorter):[Left Right Count]
+	= ( Count = 1 )
+
+	{
+
+	` Insert new node with 'newKey' `
+	! Insert (newKey):[cmp] = {
+		debug_mode ? (<: ['=> ' newKey "\n"]) :;
+
+		cmp = Sorter! (newKey, Key);
+
+		cmp < 0 ?
+		    (#Left ? Left.Insert (newKey) :
+		    (Left = BTree (newKey, Sorter))) :
+
+		cmp > 0 ?
+		    (#Right ? Right.Insert (newKey) :
+		    (Right = BTree (newKey, Sorter))) :
+
+		` cmp == 0: `
+		    ++ Count;
+		},
+
+	` Apply 'do_with_key' to nodes in sorted order `
+	! Apply_Sorted (do_with_key) : [Summary] = {
+		Summary = Count;
+
+		#Left ? (Summary =+: Left.Apply_Sorted (do_with_key)) :;
+		do_with_key ! (Key, Count);
+		#Right ? (Summary =+: Right.Apply_Sorted (do_with_key)) :;
+
+		Summary
+		}
+	};
+
+`
+	Testing of bintree
+`
+
+` Create bintree (with numerically sorted nodes) `
+tree = BTree (0, !(X Y) = (X <?> Y));
+
+` Insert several numeric sequences into binary tree `
+
+BTree!!tree . {
+	for_dec (i, 0..20, Insert ((i-4)/8));
+	for_inc (i, -10..10, Insert (i*2.3));
+	for_dec (i, -15..15, Insert (i/5));
+	for_inc (i, -5..5, Insert ((i*6)/4));
+	};
+
+{
+<: '\n';
+Total = BTree!!tree.
+	Apply_Sorted (!(Key Count) = (<: ['[' Key '] #' Count '\n']));
+<: ['--- Total #: ' Total '\n'];
+
+};
+
+` Create bintree (with alpha sorted nodes) `
+a_tree = BTree ("", !(S T) = (S <?>$ T));
+
+str_list = ['a' 'abb' 'aab' 'acc' 'aacc' 'abc'];
+
+BTree!!a_tree.
+    l_loop (ss, str_list,
+	l_loop (tt, str_list,
+	    { Insert (ss +$ tt); Insert (tt +$ ss); }
+	    )
+	);
+
+
+{
+<: '\n';
+Total = BTree!!a_tree.
+	Apply_Sorted (!(Key Count) = (<: ['[' Key '] #' Count '\n']));
+<: ['--- Total #: ' Total '\n'];
+
+};
+
+<: '\n';
+

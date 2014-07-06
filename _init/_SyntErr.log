@@ -1,0 +1,53 @@
+AWL interpreter
+(version 0.5.8 from May 24 2008; 292 builtins).
+Interactive mode: ^Z to quit session
+
+[1]: sub:(mul:(7, 9), mul:(2, 3)) => 57;
+[2]: s_cat:("aaa", "bb") => "aaabb";
+[3]: !1 <> #9 / [3]:Parser error: syntax error
+s_cat:(s_cat:("ac", s_rep:("d", 4)), "ef") => "acddddef";
+[4]: rad:(3, 4) => 5.;
+[5]: !2 <> #14 / [5]:Parser error: syntax error
+{
+  mul:(22, 79);
+  mul:(69, 55);
+  } => ();
+[6]: !3 <> #15 / [6]:Parser error: syntax error
+!4 <> #15 / [6]:Parser error: syntax error
+!5 <> #15 / [6]:Expecting scalar instead of Undef:() in mul:
+!6 <> #15 / [6]:Expecting scalar instead of Undef:() in mul:
+!7 <> #15 / [6]:Expecting scalar instead of Undef:() in sub:
+{
+  mul:(x, y);
+  sub:(mul:(3, y), mul:(x, 2));
+  } => ();
+[7]: !8 <> #16 / [7]:Parser error: syntax error
+!9 <> #16 / [7]:Parser error: syntax error
+{
+  mul:(5, 7);
+  mul:(22, add:(3, 5));
+  "gghhjj" } => "gghhjj";
+[8]: ! radx:(X Y) [2] = add:(mul:(X, X), mul:(Y, Y)) => radx:;
+[9]: !10 <> #20 / [9]:Parser error: syntax error
+! _erra:(c b a) [3] = () => _erra:;
+[10]: !11 <> #20 / [10]:Parser error: syntax error
+!12 <> #23 / [10]:Parser error: syntax error
+!13 <> #24 / [10]:Parser error: syntax error
+! _errb:(x y z) [3] = {
+  add:(22, mul:(33, 5));
+  add:(x, mul:(y, z));
+  sub:(mul:(2, x), mul:(3, y)) } => _errb:;
+[11]: !14 <> #28 / [11]:Parser error: syntax error
+! _errc:(p q) [2] = (add:(p, q), (), sub:(p, q)) => _errc:;
+[12]: !15 <> #30 / [12]:Parser error: syntax error
+((), 15, 16, 17) => ((), 15, 16, 17);
+[13]: !16 <> #31 / [13]:Parser error: syntax error
+! vclass.xcr:() [0] = add:(add:(mul:(vclass.Xx, vclass.Yy), mul:(vclass.Yy, vclass.Zz)), mul:(vclass.Zz, vclass.Xx)) => vclass.xcr:;
+[14]: !17 <> #36 / [14]:Parser error: syntax error
+! vclass.dca:(p q r) [3] = mul:(mul:(add:(p, vclass.Xx), add:(q, vclass.Yy)), add:(r, vclass.Zz)) => vclass.dca:;
+[15]: ! vclass.pdk:(f g) [2] = add:(sub:(f, vclass.Xx), sub:(g, vclass.Yy)) => vclass.pdk:;
+[16]: !18 <> #42 / [16]:Parser error: syntax error
+!! vclass:(Xx Yy Zz) {3} => vclass:;
+[17]: set:(aa, vclass:(10, 20, 30)) => vclass:{10, 20, 30};
+[18]: set:(gg, vclass:(101, 202, 303)) => vclass:{101, 202, 303};
+[19]: 

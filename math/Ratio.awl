@@ -1,0 +1,96 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Ratio.awl':
+	|	Rational numbers system.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+` Calculate GCD of U and V `
+! GCD (U V) = {
+	V ?? ([U V] = (V, U %% V));
+	U
+	};
+
+` Reduce U and V by their gcd `
+! reduce (U V) : [gcd] = {
+	gcd = GCD (abs(U), abs(V));
+	(U % gcd, V % gcd)
+	};
+
+` Rational number: (Num / Den) `
+!! ratio (Num Den)
+
+	` constructor `
+	= {
+		` if Den == 0, result is +/- Infinity or NAN
+		  (depending from numerator sign) `
+		Den == 0 ?
+			(Num = sgn(Num)) :
+
+		` 0 is always represented as (0/1) `
+		Num == 0 ?
+			(Den = 1) :
+		
+		` both Num <> 0 && Den <> 0: `
+			{
+			` denomiator must be positive: `
+			Den < 0 ? { Num =:- ; Den =:- }:;
+			[Num Den] = reduce (Num, Den);
+			}
+		}
+		
+	{
+
+	` compare rationals R1, R2 for equality `
+	! eq (R1 R2) = R1.Num == R2.Num && R1.Den == R2.Den,
+
+	` compare rationals R1, R2 for inequality `
+	! ne (R1 R2) = R1.Num <> R2.Num || R1.Den <> R2.Den,
+
+	` negation of rational R `
+	! neg (R) = R.ratio (-Num, Den),
+
+	` addition of rationals R1, R2 `
+	! add (R1 R2) : [D1 D2] = {
+		[D1 D2] = (R1.Den, R2.Den);
+
+		ratio ((R1.Num*D2) + (R2.Num*D1), D1*D2)
+		},
+
+	` subtraction of rationals R1, R2 `
+	! sub (R1 R2) : [D1 D2] = {
+		[D1 D2] = (R1.Den, R2.Den);
+
+		ratio ((R1.Num * D2) - (R2.Num * D1), D1*D2)
+		},
+
+	` multiplication of rationals R1, R2 `
+	! mul (R1 R2) =
+		ratio (R1.Num * R2.Num, R1.Den * R2.Den),
+
+	` division of rationals R1, R2 `
+	! div (R1 R2) =
+		ratio (R1.Num * R2.Den, R1.Den * R2.Num),
+
+	` output rational number `
+	! put =
+		Den == 0 ?
+			(<: (Num < 0? "- Inf" : Num > 0? "+ Inf" : "NAN")) :
+		Den == 1 ?
+			(<: Num) :
+	
+		abs(Num) >= Den ?
+			(<: (Num % Den, Num < 0 ? '-' : '+',
+			    abs(Num) %% Den, '/', Den)) :
+
+			(<: [Num '/' Den]),
+
+	` evaluate rational as float `
+	! eval = Num / Den
+	};
+

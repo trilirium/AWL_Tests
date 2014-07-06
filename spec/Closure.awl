@@ -1,0 +1,82 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Closure.awl':
+	|	Check closures.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: closure
+`
+
+! closureAdd (X) = closure (!closureAdd, ! (Y) = (X + Y));
+
+! Test_Add (nX nY) : [cset_Add x y] = {
+
+<: ("Closure test: Add ", nX, ", ", nY, "\n");
+
+cset_Add = array(nX);
+
+for_inc (x, nX, { <: [x ":\t"]; x_trace (2, cset_Add{x} = closureAdd (x*nY)); <: "\n"; });
+<: "\n";
+
+for_inc (y, nY, {
+	<: [y ":"];
+	for_inc (x, nX, <: ("\t", cset_Add{y} ! x));
+	<: "\n";
+	});
+
+<: "\n";
+};		` -- Test_Add `
+
+Test_Add (10, 10);
+
+! closureSCat (S) = closure (!closureSCat, ! (T) = ('[' +$ S +$ "->" +$ T +$ ']'));
+
+! Test_SCat (listS listT) : [cset_SCat s t] = {
+
+<: ("Closure test: SCat ", s_join (':', listS), ", ", s_join (':', listT), "\n");
+
+cset_SCat = array (#listS);
+
+for_inc (s, #listS, {
+	<: (listS[s], ":\t");
+	x_trace (2, cset_SCat{s} = closureSCat (listS[s]));
+	<: "\n"; });
+<: "\n";
+
+l_loop (t, listT, {
+	<: [t ":"];
+	for_inc (s, #listS, <: ("\t", cset_SCat{s} ! t));
+	<: "\n";
+	});
+
+<: "\n";
+};		` -- Test_SCat `
+
+Test_SCat (["Aabb" "Cccd" "EEff" "GghH" "IJK"], ["VvVv" "WwWw" "XxXx" "YyYy" "ZzZz"]);
+
+! closureStep (From By) = closure (!closureStep, ! = ((From =+: By) - By));
+
+! TestStep (nRow nCol) : [c r] = {
+	<: ("Closure test: Step ", nRow, " * ", nCol, "\n");
+
+	counters = array(nCol);
+
+	for_inc (c, nCol, { counters{c} = closureStep (c, c); <: ("\t[", c, "]"); });
+	<: "\n";
+
+	for_inc (r, nRow, {
+		<: (r, ":");
+		for_inc (c, nCol, <: ("\t", counters{c} ! ()));
+		<: "\n";
+		});
+	};
+
+TestStep (9, 9);
+

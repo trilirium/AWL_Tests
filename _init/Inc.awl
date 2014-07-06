@@ -1,0 +1,35 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Inc.awl'
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+` Multi-include test `
+
+x_trace ();
+
+inc_list;
+
+include "inc_a.awl";
+include "inc_b.awl";
+include "inc_c.awl";
+
+B_func (A_func (7));
+
+A_func2 (11.1, 23.7);
+
+B_func2 (2*2, 3*3, 4*4);
+
+[c_S c_V c_T];
+
+A_xl [+] B_xl [+] C_xl;
+
+inc_list;
+
+x_vars_ord ();
+x_funcs_ord ();

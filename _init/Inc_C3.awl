@@ -1,0 +1,18 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Inc_C3.awl'
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+c3_label1 = "-- 11 22 33 --";
+c3_label2 = "aa bb cc dd ee";
+
+inc_list [<-] 'Inc_c3';
+
+<: "Inc_C3 included\n";
+

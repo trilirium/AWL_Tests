@@ -1,0 +1,154 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test_3.awl': #3
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+x_trace();
+
+` Operations with lists `
+
+(12.2, 33.3, 14.8, 16.2);
+((9, 11), (6, 15), (33, 22), 0);
+
+list1 = (1, (21, 22, 23), (31, (321, 322), 33), (41, 42), 5);
+
+#list1;
+
+list1[0];
+list1[1];
+list1[2];
+list1[3];
+list1[4];
+
+list2 = ((61, 62, 63), list1[2], 3, list1[3], (99, 98, 97), 0);
+
+list2;
+
+list2[0];
+list2[1];
+list2[2];
+list2[4];
+list2[5];
+
+(list2[4], list2[1], list2[5], list2[0], list2[3], list2[2]);
+
+list2[0][1];
+list1[2][1][0];
+list2[2];
+list2[4][0] + list2[4][1] + list2[4][2];
+
+slist1 = ('aa1', 'bb2', 'cc3', 'dd4');
+
+slist2 = ('XXaa', 'YYbb', 'ZZcc');
+
+slist1;
+slist2;
+
+(slist1[2] +$ slist2[0], slist1[1] +$ slist2[1], slist1[0] +$ slist2[2]);
+
+tt1 = slist1[>] [+] slist2[>];
+
+(slist1[>][>]) = [30 40 50];		` Note: brackets `
+([<]slist1, [<](slist1[>])) = [10 20];
+
+slist1;
+
+(slist2[>]) [<-] ['-' '--' '---' '----'];
+
+slist2;
+
+meta_list = (eval_x(slist1), eval_x(slist2), [91 82 73]);
+
+for_inc (ii, 0..#slist1, meta_list[0][ii] =%: 5);
+
+slist1;
+
+` (list assignments) `
+
+[a b c] = [22.22 55.55 88.88];
+
+[=] + [a b c];
+[=] * [a b c];
+[=] ?< [a b c];
+[=] ?> [a b c];
+
+[a b c];
+
+[a b] = [b a];
+[b c] = [c b];
+[c a] = [a c];
+
+[a b c];
+
+i = 5;
+i -- ?? ([a b c] = [b c a]);
+
+[a b c];
+
+i = 17;
+i -- ?? ([a b c] = [c a b]);
+
+[=] + [a b c];
+[=] * [a b c];
+
+
+` [building lists] `
+laa = lbb = 0;
+
+i = 12;
+i-- ?? ((laa = (i, laa)), (lbb = (22-i, lbb)));
+
+laa;
+lbb;
+
+` [modifying lists] `
+
+laa [<-] ['a' 'aa' 'aaa' 'aaaa'];
+lbb [<-] ['iii' 'ii' 'i' ''];
+
+[laa lbb];
+
+nl1 = ((), (), (), );
+nl2 = ((), (), (), (), );
+
+i = 0;
+i < 40 ?? {
+	nl1 [i%%3] [<-] i;
+	nl2 [i%%4] [<-] i;
+	i ++
+	};
+
+xll = ('aa' +$ 'bb') [*] 10;
+
+xll;
+
+ull_1 = (22-2) [*] 5;
+ull_2 = (33+2) [*] 5;
+
+ull_1 [+] ull_2;
+
+i = 5;
+i-- ?? { ull_1[i] =-: i; ull_2[i] =+: i*2 };
+
+ull_1;
+ull_2;
+
+for_inc (i, 10, xll[i] = *$: i % 2);
+
+xll;
+
+` Lists with empty nodes `
+[a b c];
+
+[c () b] = [b a c];
+[() b c] = [a c b];
+
+[a b c];
+
+x_vars_ord();

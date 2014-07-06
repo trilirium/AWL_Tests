@@ -1,0 +1,208 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test_9.awl': #9
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+` More functor operations `
+
+x_trace();
+
+! concat_all (L) : [i s] = {
+    i = 0;
+    s = '';
+    i < #L ?? ( s =+$: L[i ++] +$ ' ' );
+    s
+    };
+
+concat_all ('aa', 'bb', 'cc', 'dd');
+
+concat_all (1, 2, 3, 4, 5);
+
+concat_all (sqr(2), sqr(3), sqr(5));
+
+! mklist (N) : [i L] = {
+    i = 0;
+    L = i;
+    ++ i < N ?? (L = (i, L));
+    L
+    };
+
+mklist (10);
+
+! mklistX (N X) : [i L] = {
+    i = 0;
+    L = ();
+    ++ i < N ?? (L = (X, L));
+    L
+    };
+
+mklistX (9, 4) [+] mklistX (6, 6) [+] mklistX (4, 13);
+
+` functors & globals `
+[Ga Gb Gc] = [19 28 37];
+
+!xabc (_a _b _c) = _a*Ga + _b*Gb + _c*Gc;
+
+xabc ([11 12 13]);
+xabc ([3 2 1]);
+
+Ga =-: 5;
+Gb =+: 7;
+Gc =-: 3;
+
+xabc ([3 2 1]);
+xabc ([1 2 3]);
+
+
+`
+ arguments passing: indirect
+`
+
+!sqb (@a) = { <: '['; ^a; <: ']' };
+!rdb (@a) = { <: '('; ^a; <: ')' };
+
+!ssrb (@a) = sqb(sqb(rdb(^a)));
+!rrsb (@a) = rdb(rdb(sqb(^a)));
+
+{ <: '\n'; sqb(sqb(<: 33)); <: '\n'; };
+
+{ <: '\n'; rdb(sqb(rdb(<: 'xxx'))); <: '\n'; };
+
+{ <: '\n'; sqb(rdb(sqb(<: 'yy-yy'))); <: '\n'; };
+
+{ <: '\n'; ssrb (<: '+ + +'); <: '\n'; };
+
+{ <: '\n'; rrsb (<: '* * *'); <: '\n'; };
+
+`
+	References to various functors
+`
+
+aa := ii ? !sin : !cos;
+
+{ ii=0; (^aa)!1 * (^aa)!1 } + { ii=1; (^aa)!1*(^aa)!1 };
+
+fvec = (!add, !sub, !mul, !div);
+
+bb := fvec [ii];
+
+for_inc (ii, 0..4, <: ((^bb)!(10, 20), '\n'));
+
+for_dec (ii, 0..4, <: ((^bb)!(-6, 5), '\n'));
+
+[MM NN] = [1000 1500];
+
+
+! ll_fn (a b):[MM NN] =
+	{ MM = a + b; NN = a - b; (MM + NN, MM - NN) };
+
+
+ll_fn (10, 20);
+ll_fn (900, 700);
+ll_fn (12.3, 61.4);
+
+<: [MM ' ' NN '\n'];
+
+
+` Lambda expressions `
+
+func_vec = (
+	!(x y) = (x*2 + y*3),
+	!(x y) = (y*7 - x*3),
+	!(x y) = (x%2 - y%%3)
+	);
+
+l_loop (p, func_vec, <: (p!(10, 20), "\n"));
+
+l_loop (p, (
+	!(a b c) = (a*2 - b*3 + c),
+	!(x y z) = ((x+2)*(y-3)*z),
+	!(Z Y X) = (X*(Y+Z) <?> Z*(Y-X))
+	),
+	<: (p ! (3, 6, 8), "\n")
+	);
+
+
+` Usage of l_map `
+
+test_vec1 = [ 11.1 22.3 44.5 77.8 99.0 ];
+test_vec2 = [ 'alpha' 'beta' 'gamma' 'delta' 'epsilon' ];
+
+ffr1 = !(x) = (x*10 + 5);
+ffr2 = !(s) = ('{' +$ s +$ '}');
+
+ffr3 = !(x) = (ffr2! (ffr1! (x)));
+
+l_map (ffr1, test_vec1);
+l_map (ffr2, test_vec2);
+l_map (ffr2, test_vec1);
+l_map (ffr1, test_vec2);
+l_map (ffr3, test_vec1);
+
+
+` C-style for statement `
+
+!c_for (@init @cond @iter @body) = { ^init; ^cond ?? { ^body; ^iter } };
+
+{ <: "\n";
+
+c_for (i = 1, i <= 10, ++ i, <: ["i = " i "\n"]);
+
+  <: "\n"; };
+
+{ <: "\n";
+
+c_for (i = 1, i <= 4, ++ i,
+    c_for (j = 1, j <= 4, ++ j,
+	<: [i " * " j " = " (i*j) "\n"]));
+
+  <: "\n"; };
+
+
+` Default arguments `
+
+! v_out (s1="<1>" s2="<2>" s3="<3>") = <: [s1 ' : ' s2 ' : ' s3 '\n'];
+
+{
+<: '\n';
+
+v_out ();
+v_out ('hello');
+v_out ('yes', 'no');
+v_out (['aa' 'bb' 'cc']);
+v_out ((), ['xx' 'yy']);
+v_out ((), (), 1000);
+
+};
+
+
+! fgh (a=10 b=20 c=30) = a*3 + b - c*2;
+
+fgh ();
+fgh (15);
+fgh ([15 40]);
+fgh ([100 80 60]);
+
+` Functor list arguments passing `
+
+! f (X Y Z) =
+    <: ['f: ' 'X = ' X ' Y = ' Y ' Z = ' Z '\n'];
+
+f ([10 20 30]);
+f (['q-q' 'v-v' 'y-y']);
+
+ss = ['xxx' 'y' 'zzz'];
+tt = ['aa' 'bbb' 'c'];
+
+f (ss);
+f (tt);
+
+x_vars_ord();
+x_funcs_ord();
+

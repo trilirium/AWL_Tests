@@ -1,0 +1,211 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Except.awl':
+	|	Exception handling tests.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: throw, try, catch
+`
+
+` interrupts set of IF's... `
+
+! X_V_test (code) = {
+<: (code, ': ');
+
+
+if (code == 1):: throw 'one';
+    <: "[One]... ";
+
+if (code == 2):: throw 'two';
+    <: "[Two]... ";
+
+if (code == 3):: throw 'three';
+    <: "[Three]... ";
+
+if (code == 4):: throw 'four';
+    <: "[Four]... ";
+
+if (code == 5):: throw 'five';
+    <: "[Finished].\n";
+
+};	` -- X_V_test `
+
+
+! try_catch_do (@body @var @do) = {
+    (^var) = ();
+    try_catch (^body, ^var);
+    if (#^var):: (^do);
+    };
+
+for_inc (i, 7,
+    try_catch_do (X_V_test (i), p, <: ("- caught: ", p, '.\n'))
+    );
+
+for_dec (i, 7,
+    try_catch_do (X_V_test (i), p, <: ("- caught: ", p, '.\n'))
+    );
+
+<: '\n---\n\n';
+
+` nested for_[inc|dec]... `
+
+! X_MM_test (N M result) : [i j] =
+for_inc (i, N,
+    for_inc (j, M,
+	if (i*j + 1 == result):: { <: ['(' i ',' j ')\n']; throw (i, j) }
+	)
+    )
+;	` -- X_MM_test `
+
+
+l_loop (pair,
+	[
+	 [3 8]
+	 [5 7]
+	 [4 9]
+	 [6 8]
+	 [1 6]
+	 [2 5]
+	:],
+
+	try_catch_do (X_MM_test (10, 10, pair[0]*pair[1] + 1),
+	    res, unless (pair [==] res):: (<: "\aError!\n"))
+	);
+
+
+<: '\n---\n\n';
+
+` nested for_[inc|dec] (decremental/incremental) `
+
+! X_FFI_test (N) : [i j] =
+for_inc (i, N,
+    try_catch_do (
+    for_inc (j, N + 1, {
+	<: [j ' '];
+	if (j > i):: throw ((i+1) * j);
+	}
+	), v, <: ['[' v ']\n'])
+    );
+
+! X_FFD_test (N) : [i j] =
+for_dec (i, N + 1,
+    try_catch_do (
+    for_dec (j, N + 1, {
+	<: [j ' '];
+	if (j <= i):: throw (i * j);
+	}
+	), v, <: ['[' v ']\n'])
+    );
+
+X_FFI_test (9);
+X_FFD_test (9);
+
+<: '\n---\n\n';
+
+` nested l_loop (forward/reverse) `
+
+! X_LL_test (L) : [l k p] =
+l_loop (l, L,
+    try_catch_do (
+    l_loop_r (k, L, {
+	<: [k ':'];
+	if (k [==] l):: throw (k)
+	}), p, <: ['(' p ')\n'])
+    );
+
+! X_LL_test_R (L) : [l k p] =
+l_loop_r (l, L,
+    try_catch_do (
+    l_loop (k, L, {
+	<: [k ':'];
+	if (k [==] l):: throw (k)
+	}), p, <: ['(' p ')\n'])
+    );
+
+X_LL_test (['abc' 'def' 'h' 'ijk' 'lmn']);
+X_LL_test_R (['abc' 'def' 'h' 'ijk' 'lmn']);
+
+<: '\n---\n\n';
+
+! X_SS_test (S) : [c b q] =
+s_loop (c, S, {
+    <: '"';
+    try_catch_do (
+    s_loop (b, S, {
+	<: (ec_b (b));
+	if (b == c):: throw (b)
+	}
+	), q, <: ('" ', "('", ec_b(q), "': ", q, ')\n'))
+    });
+
+X_SS_test ('aeiouyAEIOUY');
+
+! X_SS_test_r (S) : [c b q] =
+s_loop_r (c, S, {
+    <: '"';
+    try_catch_do (
+    s_loop_r (b, S, {
+	<: (ec_b (b));
+	if (b == c):: throw (b)
+	}
+	), q, <: ('" ', "('", ec_b(q), "': ", q, ')\n'))
+    });
+
+X_SS_test_r ('aeiouyAEIOUY');
+
+<: '\n---\n\n';
+
+! X_F_test (N) : [i j v] = {
+
+! throw_if (x) = if (x == i):: throw (i);
+
+for_inc (i, N,
+    try_catch_do (
+	for_inc (j, N, throw_if (j)), v, <: ('Caught: [', v, ']\n'))
+    );
+
+};	` X_F_test `
+
+X_F_test (10);
+
+<: '\n---\n\n';
+
+! X_SC_test (SL) : [s] = {
+	! cat_until (x) : [t S] = {
+		S = "";
+		try_catch_do (
+		l_loop (t, SL, { if (x ==$ t):: throw(x); S =+$: t; }),
+			t, S =+$: t);
+
+		S
+		};	` -- cat_until `
+
+	l_loop (s, SL, <: (s, ': [', cat_until (s), ']\n'));
+	};	` X_SC_test `
+
+X_SC_test (['aA' 'bB' 'cC' 'dD' 'eE']);
+
+! X_pairs_test (N) : [n i j t] =
+for_inc (n, 2*N, {
+    <: (n, ": ");
+
+    for_inc (i, N,
+        try_catch_do (
+	for_inc (j, N,
+	    if (i + j == n):: throw (i, j)
+	    ), t, <: (t[0], ":", t[1], " "))
+	);
+
+    <: ".\n";
+    });
+
+
+X_pairs_test (10);
+

@@ -1,0 +1,31 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Fib.awl':
+	|	Fibonacci sequence.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+` sequental calculation... `
+! fib(n) : [a b i] = {
+
+<: '\n';
+
+a = b = 1;
+i = 2;
+
+(-- n) ?? { <: [(i++) ':' a ' ']; [a b] = (a + b, a); };
+
+<: '\n'
+
+};
+
+<: "Fibonacci sequence:\n";
+
+fib(40);
+

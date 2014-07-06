@@ -1,0 +1,60 @@
+<Test_1.awl> #16 / [1] {
+
+  x_trace:() => 0;
+  add:(add:(add:(mul:(2, 2), mul:(3, 3)), mul:(5, 5)), mul:(7, 7)) => 87;
+  add:(add:(idiv:(33, 3), idiv:(22, 2)), idiv:(55, 5)) => 33;
+  set:(a, add:(sub:(mul:(22.3, 5), mul:(11.7, 9)), div:(15.2, 7.8))) => 8.1487179;
+  set:(b, div:(mul:(add:(div:(22.7, 5), 13.6), sub:(33.1, div:(12.4, 2))), 4)) => 121.9915;
+  set:(c, sub:(add:(sub:(add:(sub:(1234, div:(56, 14)), div:(21, 17)), div:(45, 13)), div:(22, 73)), div:(61, 39))) => 1226.511;
+  set:(d, add:(div:(mul:(123.142, sub:(17.23, 515.62)), 33.9), mul:(div:(22.903, add:(45.56, 12.98)), 18.7))) => -1803.0892;
+  (a, b, c, d) => (8.1487179, 121.9915, 1226.511, -1803.0892);
+  add:(mul:(a, b), mul:(c, d)) => -2210514.7;
+  add:(div:(a, c), div:(b, d)) => -0.061013121;
+  add:(sub:(add:(mul:(div:(b, d), c), div:(a, add:(c, d))), mul:(div:(d, a), b)), div:(c, add:(b, a))) => 26919.823;
+  div:(add:(mul:(a, 2), div:(c, 3)), sub:(div:(b, 8), mul:(d, 5))) => 0.047076603;
+  mul:(sub:(div:(a, 6.2), mul:(b, 5.9)), add:(mul:(d, 7.1), div:(c, 2.3))) => 8814247.;
+  sub:(mul:(sqr:add:(a, b), sqr:sub:(c, d)), sqr:sub:(sub:(add:(mul:(a, c), mul:(b, c)), mul:(a, d)), mul:(b, d))) => 1.1368684e-13;
+  log:add:(min:(abs:a, abs:d), max:(abs:b, abs:c)) => 7.1185507;
+  exp:min:(a, b) => 3458.9417;
+  exp:max:(a, b) => 9.5551012e+52;
+  let:(sincos_r, add:(mul:(sin:r, sin:r), mul:(cos:r, cos:r))) => sincos_r;
+  sincos_r => add:(mul:(sin:r, sin:r), mul:(cos:r, cos:r));
+  let:(explog_r, exp:log:r) => explog_r;
+  explog_r => exp:log:r;
+  set:(r, a) => 8.1487179;
+  reval:sincos_r => 1.;
+  reval:explog_r => 8.1487179;
+  set:(r, b) => 121.9915;
+  reval:sincos_r => 1.;
+  reval:explog_r => 121.9915;
+  sub:(ceil:b, floor:b) => 1.;
+  set:((e, f), neg:10.1, 20.2) => (-10.1, 20.2);
+  comb:add:(a, add:(c, d)) => -568.42948;
+  comb:mul:(b, div:(e, f)) => -60.99575;
+  (a, b) => (-568.42948, -60.99575);
+  set:((p, q), floor:a, ceil:b) => (-569., -60.);
+  comb:min:(p, and:(ceil:d, floor:c)) => -569.;
+  comb:max:(q, xor:(ceil:c, floor:d)) => -60.;
+  add:(mul:(a, p), mul:(b, q)) => 327096.12;
+  (int:a, int:b, int:c, int:d) => (-568, -60, 1226, -1803);
+  (add:(div:(mul:(a, c), e), div:(mul:(b, d), f)), max:(min:(a, b), f), min:(max:(c, d), e)) => (74472.813, 20.2, -10.1);
+  (p, q) => (-569., -60.);
+  reduce:add:(a, b, c, d, e, f) => -1195.9034;
+  reduce:mul:(a, b, e, f) => -7073737.1;
+  (sub:(add:(mul:(a, 2), b), div:(c, 3)), add:(mul:(e, 4.5), div:(f, 7.8))) => (-1606.6917, -42.860256);
+
+    a = -568.42948;
+    b = -60.99575;
+    c = 1226.511;
+    d = -1803.0892;
+    sincos_r = add:(mul:(sin:r, sin:r), mul:(cos:r, cos:r));
+    r = 121.9915;
+    explog_r = exp:log:r;
+    e = -10.1;
+    f = 20.2;
+    p = -569.;
+    q = -60.;
+
+  x_vars_ord:() => 11;
+
+} <Test_1.awl> #92 / [43]

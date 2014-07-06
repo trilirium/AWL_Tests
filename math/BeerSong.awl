@@ -1,0 +1,43 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'BeerSong.awl':
+	|	Well-known song about beer...
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+! beersong (N):[n] = {
+
+! bottles (n) =
+	n == 0 ?
+		(<: 'No more bottles'):
+	n == 1 ?
+		(<: 'One bottle'):
+
+		(<: [n ' bottles']);
+
+times ((n = N) + 1):: {
+bottles(n); <: ' of beer on the wall,\n';
+bottles(n); <: ' of beer.\n';
+
+(n) ? {
+	-- n;
+	<: 'Take one down and pass it around --\n';
+	} : {
+	n = N;
+	<: 'Go to the store and buy some more --\n';
+	};
+
+bottles(n); <: ' of beer on the wall.\n\n';
+}
+
+};
+
+` 5 bottles is quite enough... ;) `
+beersong (5);
+

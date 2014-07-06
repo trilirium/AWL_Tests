@@ -1,0 +1,39 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Vector3D.awl':
+	|	3D vector base class.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+!! vector3D (x y z) {
+
+	` vector length `
+	! length = sqr (x*x + y*y + z*z),
+
+	` vector negation `
+	! neg = vector3D (-x, -y, -z),
+
+	` add vectors: `
+	! add (V1 V2) = vector3D (V1.x + V2.x, V1.y + V2.y, V1.z + V2.z),
+
+	` subtract vectors: `
+	! sub (V1 V2) = vector3D (V1.x - V2.x, V1.y - V2.y, V1.z - V2.z),
+
+	` vectors product `
+	! prod (V1 V2) =
+	  sqr (V1.x*V2.x + V1.y*V2.y + V1.z*V2.z),
+
+	` vectors cross-product `
+	! cross (V1 V2) = vector3D
+	  (V1.y*V2.z - V2.y*V1.z, V1.z*V2.x - V2.z*V1.x, V1.x*V2.y - V2.x*V1.y),
+	};
+
+x_vars ();
+x_funcs ();
+x_vars (!vector3D);
+x_funcs (!vector3D);

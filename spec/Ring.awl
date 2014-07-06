@@ -1,0 +1,54 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Ring.awl':
+	|	Testing ring operations.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: ring, r_elem, r_ins_before, r_ins_after, r_loop, r_loop_r
+`
+
+
+! expect_elem (where index left right) =
+	if (left [<>] right)::
+		(<: ("\aError: [", where, "] @", index, " - ", left, "[<>]", right, ".\n"));
+
+! ring_test_A (range) : [ringA index off] = {
+
+<: ("Ring test A (", range[0], "..", range[1], ")\n");
+
+ringA = ring ();
+
+for_inc (index, range, r_ins_before (ringA, index));
+
+expect_elem ("r_count", 0, r_count (ringA), 1 + range[1] - range[0]);
+expect_elem ("start", 0, r_elem (ringA), ());
+
+off = 0;
+for_inc (index, range, expect_elem ("for_inc", index, r_elem (ringA, ++ off), index));
+
+off = 0;
+for_dec (index, range, expect_elem ("for_dec", index, r_elem (ringA, -- off), index));
+
+index = -1;
+r_loop (off, ringA, expect_elem ("r_loop", index, off, index < 0 ? void (++ index) : l_head(range) + index++));
+
+index = -1;
+r_loop_r (off, ringA, expect_elem ("r_loop_r", index, off, index < 0 ? void (++ index) : l_tail(range) - ++index));
+
+};
+
+`
+	testing
+`
+
+ring_test_A (-30..30);
+ring_test_A (-120..-100);
+ring_test_A (200..240);
+

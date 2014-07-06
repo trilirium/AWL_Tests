@@ -1,0 +1,53 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Currying.awl':
+	|	Check functor currying.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: f_curry
+`
+
+! Out_3 (argA argB argC) =
+    <: ('[argA->', argA, ' | argB->', argB, ' | argC->', argC, "]\n");
+
+
+Out_3 (10, 20, 30);
+
+! fn_tab_1 (fn N) : [i] = {
+    <: "Table ";
+    x_trace (2, fn);
+    <: (" :[", N, "]\n");
+
+    for_inc (i, N, { <: [i ': ']; fn ! i });
+    };
+
+! fn_tab_2 (fn N M) : [i j] = {
+    <: "Table ";
+    x_trace (2, fn);
+    <: (" :[", N, "*", M, "]\n");
+
+    for_inc (i, N, for_inc (j, M, { <: [i '/' j ': ']; fn ! [i j] }));
+    };
+
+! make_Out_A (valA) = f_curry (!Out_3, valA, (), );
+! make_Out_B (valB) = f_curry (!Out_3, (), valB, );
+! make_Out_C (valC) = f_curry (!Out_3, (), (), valC);
+
+! make_Out_AB (valA valB) = f_curry (!Out_3, valA, valB, );
+! make_Out_AC (valA valC) = f_curry (!Out_3, valA, (), valC);
+! make_Out_BC (valB valC) = f_curry (!Out_3, (), valB, valC);
+
+fn_tab_1 (make_Out_AB ('(a)', '(b)'), 5);
+fn_tab_1 (make_Out_AC ('(a)', '(c)'), 5);
+fn_tab_1 (make_Out_BC ('(b)', '(c)'), 5);
+
+fn_tab_2 (make_Out_A '(a)', 5, 5);
+fn_tab_2 (make_Out_B '(b)', 5, 5);
+fn_tab_2 (make_Out_C '(c)', 5, 5);

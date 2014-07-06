@@ -1,0 +1,124 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Test17.awl': #17
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+x_trace ();
+
+` Returning lazy expression from nested functors `
+
+! func1 (x y z) = {
+	! func2 (a b c) = @(x*a + y*b + z*c);
+
+	func2 (x, y, z)
+	};
+
+p = func1 (10, 20, 30);
+p;
+
+q = func1 (22+7, 16-3, 55+5);
+q;
+
+` More functor tests ... `
+
+! ff (a b c) = {
+	! ffX (x y z) = x*a + y*b + z*c;
+	! ffY (x y z) = y*c + z*a - y*b;
+	! ffZ (x y z) = z*b - x*c + x*a;
+
+	ffX([a b c]) * ffY([b c a]) * ffZ([c a b])
+	};
+
+ff ([5 6 7]);
+
+ff (15*3+2, 22*7+1, 66*4-9);
+
+`
+	don't call it!
+`
+! SS (u v w) = {
+	SS (u, v*2, w*3);
+	SS (- u*3, - v*2, - u);
+	SS (u+2, v-3, w+7);
+	};
+
+` Functor families `
+
+! { func_a func_b func_c } = {
+
+	(x y z) = x + y + z,
+
+	(a b c) = (a+1) * (b+3) * (c-2),
+
+	(s1 c1 s2 c2) = (s1 *$ c1) +$ (s2 *$ c2)
+
+	};
+
+
+func_a (100, 150, 200);
+func_b (-12, 15, 23);
+func_c ('[]', 2, '{}', 4);
+
+` is_odd & is_even, defined mutually-recursively `
+
+! {
+	is_odd
+	is_even
+	} = {
+
+	` define "is_odd" : `
+	(n) = abs(n) <= 1 ? n <> 0 : is_even (n > 0 ? n-1 : n+1),
+
+	` define "is_even" : `
+	(n) = abs(n) <= 1 ? n == 0 : is_odd  (n > 0 ? n-1 : n+1)
+	};
+
+
+{ <: '\n';
+for_inc (i, -10..10,
+    <: (i, ": is_even == ", is_even(i), ", is_odd == ", is_odd(i), ".\n"));
+<: '\n'; };
+
+
+` Delayed evaluation `
+
+LL_conds = (
+	@(aa < 12, <: [aa " < 12\n"]),
+	@(bb > 53, <: [bb " > 53\n"]),
+	@(aa + bb < 45, <: [aa " + " bb " < 45\n"]),
+	);
+
+[aa bb] = [15 60];
+
+{ <: "\n---\n";
+  l_loop (LL, LL_conds, if (LL));
+  <: "---\n";
+  };
+
+{ <: "\n---\n~ :\n";
+  l_loop (LL, LL_conds, unless (LL));
+  <: "---\n";
+  };
+
+
+LL_loops = (
+	@(ii < 20, <: ('\t', (ii =+: 4), '\n')),
+	@(jj > 32, <: ('\t', (jj =-: 3), '\n')),
+	);
+
+[ii jj] = [5 50];
+
+{ <: "\n---\n";
+  l_loop (LL, LL_loops, { while (LL); <: '+++ \n'; });
+  <: "---\n";
+  };
+
+
+x_funcs_ord ();

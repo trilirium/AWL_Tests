@@ -1,0 +1,7 @@
+Multi-match test: '()' -> '{:}': [1 21 321 4 54 654 7] (#7)
+Multi-match test: '$' -> '<>': [aaa b cccc dd e] (#5)
+Multi-match test: '!' -> '': [a aab aaab baaab baa ba b] (#7)
+Multi-match test: '@|@' -> '*=*': [xXyY xyXY vVzZ vzVZ aAbB aaBB cCdD ccDD] (#8)
+Multi-match test: '#' -> '<$$>': [++++ ----] (#2)
+Empty anchor test: '0123456789' @ '[[' : '//' : ']]'
+Empty anchor test: 'qwertyuiopasdfghjklzxcvbnm' @ '<' : '-:-' : '>'

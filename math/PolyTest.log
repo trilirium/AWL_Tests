@@ -1,0 +1,254 @@
+
+Imported 'polynom.awl'...
+
+Class 'poly' (members):
+
+  Rank;
+  List;
+
+
+Class 'poly' (functors):
+
+  ! poly.binomial:(N) [6] = {
+    for_inc:(p, add:(N, 1), {
+      set:(pN, set:(pD, 1));
+      for_inc:(n, p, {
+	comb:mul:(pN, sub:(N, n));
+	comb:mul:(pD, add:(n, 1)) });
+      l_push:(Res, idiv:(pN, pD)) });
+    .poly:Res };
+  ! poly.combine:(P Q) [8] = {
+    set:((nP, nQ), with:(P, poly.Rank), with:(Q, poly.Rank));
+    set:(Res, l_rep:(add:(mul:(nP, nQ), 1), 0));
+    with:(P, for_inc:(i, add:(nP, 1), {
+      set:(V, l_item:(i, poly.List));
+      with:(poly.power:(Q, i), for_inc:(j, add:(mul:(nQ, i), 1), comb:add:(l_item:(j, Res), mul:(l_item:(j, poly.List), V)))) }));
+    .poly:Res };
+  ! poly.power:(P n) [3] = {
+    if:(n, {
+      set:(Res, P);
+      while:(dec:n, set:(Res, poly.mul:(Res, P)));
+      Res }, .poly:1) };
+  ! poly.div:(P Q) [9] = {
+    set:((nP, nQ), with:(P, poly.Rank), with:(Q, poly.Rank));
+    set:(Rem, l_copy:with:(P, poly.List));
+    set:(D, with:(Q, l_item:(nQ, poly.List)));
+    while:(ge:(nP, nQ), {
+      set:(F, div:(l_item:(nP, Rem), D));
+      set:(l_item:(nP, Rem), 0);
+      l_push:(Quot, F);
+      with:(Q, for_inc:(i, (1, add:(nQ, 1)), comb:sub:(l_item:(sub:(nP, i), Rem), mul:(l_item:(sub:(nQ, i), poly.List), F))));
+      dec:nP });
+    (.poly:Quot, .poly:Rem) };
+  ! poly.mul:(P Q) [8] = {
+    set:((nP, nQ), with:(P, poly.Rank), with:(Q, poly.Rank));
+    for_dec:(n, add:(add:(nP, nQ), 1), {
+      set:(C, 0);
+      for_inc:(i, add:(n, 1), if:(c_and:(le:(i, nP), le:(sub:(n, i), nQ)), comb:add:(C, mul:(with:(P, l_item:(i, poly.List)), with:(Q, l_item:(sub:(n, i), poly.List)))), ));
+      l_push:(Res, C) });
+    .poly:Res };
+  ! poly.cmp:(P Q) [4] = {
+    set:((m, n), with:(P, poly.Rank), with:(Q, poly.Rank));
+    if:(ne:(m, n), cmp:(m, n), {
+      while:(c_and:(ge:(n, 0), eq:(with:(P, l_item:(n, poly.List)), with:(Q, l_item:(n, poly.List)))), dec:n);
+      if:(ge:(n, 0), cmp:(with:(P, l_item:(n, poly.List)), with:(Q, l_item:(n, poly.List))), 0);
+      }) };
+  ! poly.sub:(P Q) [5] = {
+    set:((m, n), with:(P, poly.Rank), with:(Q, poly.Rank));
+    if:(le:(m, n), with:(Q, while:(gt:(n, m), l_push:(Res, neg:l_item:(dec_p:n, poly.List)))), with:(P, while:(gt:(m, n), l_push:(Res, l_item:(dec_p:m, poly.List)))));
+    while:(ge:(n, 0), {
+      l_push:(Res, sub:(with:(P, l_item:(n, poly.List)), with:(Q, l_item:(n, poly.List))));
+      dec:n });
+    .poly:Res };
+  ! poly.add:(P Q) [5] = {
+    set:((m, n), with:(P, poly.Rank), with:(Q, poly.Rank));
+    with:(if:(le:(m, n), Q, {
+      swap:(m, n);
+      P }), while:(gt:(n, m), l_push:(Res, l_item:(dec_p:n, poly.List))));
+    while:(ge:(n, 0), {
+      l_push:(Res, add:(with:(P, l_item:(n, poly.List)), with:(Q, l_item:(n, poly.List))));
+      dec:n });
+    .poly:Res };
+  ! poly.neg:(P) [3] = {
+    set:(n, with:(P, poly.Rank));
+    with:(P, while:(ge:(n, 0), l_push:(Res, neg:l_item:(dec_p:n, poly.List))));
+    .poly:Res };
+  ! poly.eval:(X) [3] = {
+    set:(n, poly.Rank);
+    set:(val, 0);
+    while:(ge:(n, 0), {
+      comb:add:(val, l_item:(dec_p:n, poly.List));
+      if:(ge:(n, 0), comb:mul:(val, X), ) });
+    val };
+  ! poly.put:(X) [3] = {
+    set:(n, poly.Rank);
+    if:(lt:(n, 0), f_put:((), 0), do_while:(ge:(dec:n, 0), {
+      set:(val, l_item:(n, poly.List));
+      if:(ne:(n, poly.Rank), if:(gt:(val, 0), f_put:((), " + ", val), if:(lt:(val, 0), f_put:((), " - ", neg:val), )), if:(ne:(val, 1), f_put:((), val), ));
+      if:(gt:(n, 0), {
+	f_put:((), X);
+	if:(gt:(n, 1), f_put:((), "^", n), );
+	}, );
+      }));
+    };
+
+
+p_test1 = 95x + 37
+p_test2 = 33x^2 + 22x + 12
+p_test3 = 17x^3 + 35x^2 + 61x + 14
+
+TESTING: evaluation...
+
+(95x + 37) [5] = 512
+(95x + 37) [-5] = -438
+(33x^2 + 22x + 12) [10] = 3532
+(33x^2 + 22x + 12) [-10] = 3092
+(17x^3 + 35x^2 + 61x + 14) [4] = 1906
+(17x^3 + 35x^2 + 61x + 14) [-4] = -758
+
+TESTING: polynoms negation...
+
+-(95x + 37) = -95x - 37
+-(-(95x + 37)) = 95x + 37
+
+-(33x^2 + 22x + 12) = -33x^2 - 22x - 12
+-(-(33x^2 + 22x + 12)) = 33x^2 + 22x + 12
+
+-(17x^3 + 35x^2 + 61x + 14) = -17x^3 - 35x^2 - 61x - 14
+-(-(17x^3 + 35x^2 + 61x + 14)) = 17x^3 + 35x^2 + 61x + 14
+
+
+TESTING: polynoms addition commutativity...
+
+(95x + 37) + (33x^2 + 22x + 12) = 33x^2 + 117x + 49
+(33x^2 + 22x + 12) + (95x + 37) = 33x^2 + 117x + 49
+
+(33x^2 + 22x + 12) + (17x^3 + 35x^2 + 61x + 14) = 17x^3 + 68x^2 + 83x + 26
+(17x^3 + 35x^2 + 61x + 14) + (33x^2 + 22x + 12) = 17x^3 + 68x^2 + 83x + 26
+
+(17x^3 + 35x^2 + 61x + 14) + (95x + 37) = 17x^3 + 35x^2 + 156x + 51
+(95x + 37) + (17x^3 + 35x^2 + 61x + 14) = 17x^3 + 35x^2 + 156x + 51
+
+
+TESTING: polynoms subtraction anticommutativity...
+
+(95x + 37) - (33x^2 + 22x + 12) = -33x^2 + 73x + 25
+-((33x^2 + 22x + 12) - (95x + 37)) = -33x^2 + 73x + 25
+
+(33x^2 + 22x + 12) - (17x^3 + 35x^2 + 61x + 14) = -17x^3 - 2x^2 - 39x - 2
+-((17x^3 + 35x^2 + 61x + 14) - (33x^2 + 22x + 12)) = -17x^3 - 2x^2 - 39x - 2
+
+(17x^3 + 35x^2 + 61x + 14) - (95x + 37) = 17x^3 + 35x^2 - 34x - 23
+-((95x + 37) - (17x^3 + 35x^2 + 61x + 14)) = 17x^3 + 35x^2 - 34x - 23
+
+
+TESTING: polynoms addition associativity...
+
+((95x + 37) + (33x^2 + 22x + 12)) + (17x^3 + 35x^2 + 61x + 14) = 17x^3 + 68x^2 + 178x + 63
+(95x + 37) + ((33x^2 + 22x + 12) + (17x^3 + 35x^2 + 61x + 14)) = 17x^3 + 68x^2 + 178x + 63
+
+((17x^3 + 35x^2 + 61x + 14) + (33x^2 + 22x + 12)) + (95x + 37) = 17x^3 + 68x^2 + 178x + 63
+(17x^3 + 35x^2 + 61x + 14) + ((33x^2 + 22x + 12) + (95x + 37)) = 17x^3 + 68x^2 + 178x + 63
+
+
+TESTING: polynoms multiplication commutativity...
+
+(95x + 37) * (33x^2 + 22x + 12) = 3135x^3 + 3311x^2 + 1954x + 444
+(33x^2 + 22x + 12) * (95x + 37) = 3135x^3 + 3311x^2 + 1954x + 444
+
+(33x^2 + 22x + 12) * (17x^3 + 35x^2 + 61x + 14) = 561x^5 + 1529x^4 + 2987x^3 + 2224x^2 + 1040x + 168
+(17x^3 + 35x^2 + 61x + 14) * (33x^2 + 22x + 12) = 561x^5 + 1529x^4 + 2987x^3 + 2224x^2 + 1040x + 168
+
+(17x^3 + 35x^2 + 61x + 14) * (95x + 37) = 1615x^4 + 3954x^3 + 7090x^2 + 3587x + 518
+(95x + 37) * (17x^3 + 35x^2 + 61x + 14) = 1615x^4 + 3954x^3 + 7090x^2 + 3587x + 518
+
+
+TESTING: polynoms multiplication associativity...
+
+((95x + 37) * (33x^2 + 22x + 12)) * (17x^3 + 35x^2 + 61x + 14) = 53295x^6 + 166012x^5 + 340338x^4 + 321799x^3 + 181088x^2 + 54440x + 6216
+(95x + 37) * ((33x^2 + 22x + 12) * (17x^3 + 35x^2 + 61x + 14)) = 53295x^6 + 166012x^5 + 340338x^4 + 321799x^3 + 181088x^2 + 54440x + 6216
+
+((33x^2 + 22x + 12) * (17x^3 + 35x^2 + 61x + 14)) * (95x + 37) = 53295x^6 + 166012x^5 + 340338x^4 + 321799x^3 + 181088x^2 + 54440x + 6216
+(33x^2 + 22x + 12) * ((17x^3 + 35x^2 + 61x + 14) * (95x + 37)) = 53295x^6 + 166012x^5 + 340338x^4 + 321799x^3 + 181088x^2 + 54440x + 6216
+
+((17x^3 + 35x^2 + 61x + 14) * (95x + 37)) * (33x^2 + 22x + 12) = 53295x^6 + 166012x^5 + 340338x^4 + 321799x^3 + 181088x^2 + 54440x + 6216
+(17x^3 + 35x^2 + 61x + 14) * ((95x + 37) * (33x^2 + 22x + 12)) = 53295x^6 + 166012x^5 + 340338x^4 + 321799x^3 + 181088x^2 + 54440x + 6216
+
+
+TESTING: polynoms multiplication distributivity...
+
+((95x + 37) + (33x^2 + 22x + 12)) * (17x^3 + 35x^2 + 61x + 14) = 561x^5 + 3144x^4 + 6941x^3 + 9314x^2 + 4627x + 686
+((95x + 37) * (17x^3 + 35x^2 + 61x + 14)) + ((33x^2 + 22x + 12) * (17x^3 + 35x^2 + 61x + 14)) = 561x^5 + 3144x^4 + 6941x^3 + 9314x^2 + 4627x + 686
+((95x + 37) - (33x^2 + 22x + 12)) * (17x^3 + 35x^2 + 61x + 14) = -561x^5 + 86x^4 + 967x^3 + 4866x^2 + 2547x + 350
+((95x + 37) * (17x^3 + 35x^2 + 61x + 14)) - ((33x^2 + 22x + 12) * (17x^3 + 35x^2 + 61x + 14)) = -561x^5 + 86x^4 + 967x^3 + 4866x^2 + 2547x + 350
+
+((33x^2 + 22x + 12) + (17x^3 + 35x^2 + 61x + 14)) * (95x + 37) = 1615x^4 + 7089x^3 + 10401x^2 + 5541x + 962
+((33x^2 + 22x + 12) * (95x + 37)) + ((17x^3 + 35x^2 + 61x + 14) * (95x + 37)) = 1615x^4 + 7089x^3 + 10401x^2 + 5541x + 962
+((33x^2 + 22x + 12) - (17x^3 + 35x^2 + 61x + 14)) * (95x + 37) = -1615x^4 - 819x^3 - 3779x^2 - 1633x - 74
+((33x^2 + 22x + 12) * (95x + 37)) - ((17x^3 + 35x^2 + 61x + 14) * (95x + 37)) = -1615x^4 - 819x^3 - 3779x^2 - 1633x - 74
+
+((17x^3 + 35x^2 + 61x + 14) + (95x + 37)) * (33x^2 + 22x + 12) = 561x^5 + 1529x^4 + 6122x^3 + 5535x^2 + 2994x + 612
+((17x^3 + 35x^2 + 61x + 14) * (33x^2 + 22x + 12)) + ((95x + 37) * (33x^2 + 22x + 12)) = 561x^5 + 1529x^4 + 6122x^3 + 5535x^2 + 2994x + 612
+((17x^3 + 35x^2 + 61x + 14) - (95x + 37)) * (33x^2 + 22x + 12) = 561x^5 + 1529x^4 - 148x^3 - 1087x^2 - 914x - 276
+((17x^3 + 35x^2 + 61x + 14) * (33x^2 + 22x + 12)) - ((95x + 37) * (33x^2 + 22x + 12)) = 561x^5 + 1529x^4 - 148x^3 - 1087x^2 - 914x - 276
+
+
+TESTING: polynoms division...
+
+(17x^3 + 35x^2 + 61x + 14) / (33x^2 + 22x + 12) = 0.51515152x + 0.71717172 :: 39.040404x + 5.3939394
+((0.51515152x + 0.71717172) * (33x^2 + 22x + 12)) + (39.040404x + 5.3939394) = 17.x^3 + 35.x^2 + 61.x + 14.
+
+(17x^3 + 35x^2 + 61x + 14) / (95x + 37) = 0.17894737x^2 + 0.29872576x + 0.52575944 :: -5.4530993
+((0.17894737x^2 + 0.29872576x + 0.52575944) * (95x + 37)) + (-5.4530993) = 17.x^3 + 35.x^2 + 61.x + 14.
+
+(33x^2 + 22x + 12) / (95x + 37) = 0.34736842x + 0.096288089 :: 8.4373407
+((0.34736842x + 0.096288089) * (95x + 37)) + (8.4373407) = 33.x^2 + 22.x + 12.
+
+((95x + 37) * (33x^2 + 22x + 12)) / (95x + 37) = 33.x^2 + 22.x + 12. :: 0
+
+((33x^2 + 22x + 12) * (95x + 37)) / (33x^2 + 22x + 12) = 95.x + 37. :: 0
+
+((33x^2 + 22x + 12) * (17x^3 + 35x^2 + 61x + 14)) / (33x^2 + 22x + 12) = 17.x^3 + 35.x^2 + 61.x + 14. :: 0
+
+((17x^3 + 35x^2 + 61x + 14) * (33x^2 + 22x + 12)) / (17x^3 + 35x^2 + 61x + 14) = 33.x^2 + 22.x + 12. :: 0
+
+((95x + 37) * (17x^3 + 35x^2 + 61x + 14)) / (95x + 37) = 17.x^3 + 35.x^2 + 61.x + 14. :: 0
+
+((17x^3 + 35x^2 + 61x + 14) * (95x + 37)) / (17x^3 + 35x^2 + 61x + 14) = 95.x + 37. :: 0
+
+
+TESTING: binomial polynoms...
+
+binom (1) = x + 1
+[1] = 2
+binom (2) = x^2 + 2x + 1
+[1] = 4
+binom (3) = x^3 + 3x^2 + 3x + 1
+[1] = 8
+binom (4) = x^4 + 4x^3 + 6x^2 + 4x + 1
+[1] = 16
+binom (5) = x^5 + 5x^4 + 10x^3 + 10x^2 + 5x + 1
+[1] = 32
+binom (6) = x^6 + 6x^5 + 15x^4 + 20x^3 + 15x^2 + 6x + 1
+[1] = 64
+binom (7) = x^7 + 7x^6 + 21x^5 + 35x^4 + 35x^3 + 21x^2 + 7x + 1
+[1] = 128
+binom (8) = x^8 + 8x^7 + 28x^6 + 56x^5 + 70x^4 + 56x^3 + 28x^2 + 8x + 1
+[1] = 256
+binom (9) = x^9 + 9x^8 + 36x^7 + 84x^6 + 126x^5 + 126x^4 + 84x^3 + 36x^2 + 9x + 1
+[1] = 512
+
+TESTING: combine polynoms...
+
+(33x^2 + 22x + 12) <*> (17x^3 + 35x^2 + 61x + 14) = 9537x^6 + 39270x^5 + 108867x^4 + 156992x^3 + 155903x^2 + 57706x + 6788
+
+(17x^3 + 35x^2 + 61x + 14) <*> (33x^2 + 22x + 12) = 610929x^6 + 1221858x^5 + 1519155x^4 + 1120460x^3 + 585233x^2 + 181390x + 35162
+
+(95x + 37) <*> (33x^2 + 22x + 12) = 3135x^2 + 2090x + 1177
+
+(33x^2 + 22x + 12) <*> (95x + 37) = 297825x^2 + 234080x + 46003
+
+(95x + 37) <*> (17x^3 + 35x^2 + 61x + 14) = 1615x^3 + 3325x^2 + 5795x + 1367
+
+(17x^3 + 35x^2 + 61x + 14) <*> (95x + 37) = 14575375x^3 + 17346050x^2 + 6884650x + 911287
+

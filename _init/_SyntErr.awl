@@ -1,0 +1,47 @@
+
+` Syntax error checking: `
+
+` top level: `
+
+7*9 - 2*3;
+'aaa' +$ 'bb';
+
+<%>;
+
+'ac' +$ 'd'*$4 +$ 'ef';
+rad (3, 4);
+
+{ 22*79; <%>; 69*55; };
+{ x*y; <%>; 3*y-x*2; <%> };
+{ <%>; 5*7; 22*(3+5); <%>; 'gghhjj' };
+
+! radx(X Y) = X*X + Y*Y;
+
+! _erra (c b a) = <%> + (2 + b)*(3 - a);
+
+! _errb (x y z) = {
+    22+33*5; <%>;
+    x+y*z; <%>;
+    2*x - 3*y
+    };
+
+! _errc (p q) = (p + q, <%>, p - q);
+
+([22 <%> 33], [15 16 17]);
+[34 <%> 45 <%> 78];
+
+!! vclass (Xx Yy Zz) {
+    ! xcr = Xx*Yy + Yy*Zz + Zz*Xx,
+
+    <%>,
+
+    ! dca (p q r) = (p+Xx)*(q+Yy)*(r+Zz),
+
+    ! pdk (f g) = (f-Xx) + (g-Yy),
+
+    <%>
+
+    };
+
+aa = vclass (10, 20, 30);
+gg = vclass (101, 202, 303);

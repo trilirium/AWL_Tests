@@ -1,0 +1,133 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'CodecCheck.awl':
+	|	Check character codecs.
+	|
+	|	AWL libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	CHECKED: codec_UTF8, codec_UTF16, codec_UTF32, codec_SMBC 
+	CHECKED: codec_codepage, codec_hexdump
+`
+
+! codec_check (Codec Title Areas) = {
+
+<: ("Check codec: ", Title, " (blocks: ", Areas, ")...\n");
+
+failures = 0;
+
+for_inc (i, 0..Areas, {
+	crange = (i<<8)..((i+1)<<8);
+	source = s_range (1, crange);
+	encoded = s_encode (Codec, source);
+	result = s_decode (Codec, encoded, 1);
+
+	<: (s_Hex(crange[0]), '..', s_Hex(crange[1]), ": ");
+	(source [==] result) ?
+	    (<: ("\tOK (inout=", #$source, ", enc=", #$encoded, ")")) :
+	    (<: ("\tFail (", ++failures, ")! (in=", #$source,
+		", enc=", #$encoded, ", out=", #$result));
+	<: "\n";
+	});
+
+<: ("(Total failures: ", failures, ").\n\n");
+};	` -- codec_check `
+
+codec_check (codec_UTF8(), "UTF-8", 32);
+codec_check (codec_UTF16(0), "UTF-16/LE", 32);
+codec_check (codec_UTF16(1), "UTF-16/BE", 32);
+codec_check (codec_UTF32(0), "UTF-32/LE", 32);
+codec_check (codec_UTF32(1), "UTF-32/BE", 32);
+codec_check (codec_SMBC(), "SMBC", 32);
+codec_check (codec_hexdump(), "Hexdump", 32);
+
+`
+	Test code pages...
+`
+
+include "_codemaps.awl";
+
+! make_chartab (table) : [title v ss] = {
+table [->] title;
+
+ss = s_range (1, 0, 0..\x100);
+
+l_loop (v, table, {
+	[[from to] ucode] = ^v;
+
+
+	(ucode >= 0) ? {
+		range = s_range (1, 0, ucode..ucode + (to-from));
+		s_patch (ss, from..to, range);
+		}
+	: {
+		range = '\0' *$ (to-from);
+		s_patch (ss, from..to, range);
+		};
+
+	});
+
+[title ss] };
+
+! check_codepage_list (table_list) : [forward_chars backward_chars table codec decoded result counts] = {
+<: ("Testing codepages encode/decode...\n");
+
+counts = array(256);
+
+forward_chars = s_range (0, 0, 0..\x100);
+backward_chars = s_range (0, 1, 0..\x100);
+
+l_loop (table, table_list, {
+	[name charmap] = make_chartab (table);
+	<: ("\tTesting '", name, "': ");
+
+	codec = codec_codepage (name, charmap, \c'?');
+
+	decoded = s_decode (codec, forward_chars, 1);
+
+	<: ("(decode_len=", #$decoded, ") :");
+
+	a_fill (counts, 0);
+	s_loop (ccode, decoded, ++ counts{ccode >> 8});
+
+	result = s_encode (codec, s_rev(decoded));
+
+	(result [==] backward_chars) ?
+		(<: "match OK [1] ")
+	:	(<: "unmatched [1]! ");
+
+	decoded = s_decode (codec, backward_chars, 1);
+	result = s_encode (codec, s_rev(decoded));
+
+	(result [==] forward_chars) ?
+		(<: "match OK [2] ")
+	:	(<: "unmatched [2]! ");
+
+	<: "\n";
+
+	` Dump codepage ranges...`
+	<: "\t{ ";
+	for_inc (i, 256,
+		if (counts{i}):: (<: (s_Hex(i << 8), ":[", counts{i}, "] ")));
+	<: "}\n";
+
+	});
+
+};	` -- check_codepage_list `
+
+` 8859_8 is unmatched... `
+
+check_codepage_list (
+    table_cp1250, table_cp1251, table_cp1252, table_cp1253, table_cp1254,
+    table_cp1255, table_cp1256, table_cp1257, table_cp1258,
+
+    table_8859_1, table_8859_2, table_8859_3, table_8859_4, table_8859_5,
+    table_8859_6, table_8859_7, table_8859_8, table_8859_9, table_8859_10,
+    table_8859_11, table_8859_13, table_8859_14, table_8859_15, table_8859_16,
+    );
+
