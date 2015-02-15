@@ -1,0 +1,17 @@
+
+Various AWL tests:
+
+	Array, Array1, Array2, Array3:
+	array operations
+
+
+	BitOpcode:
+	bit set/clear/check
+
+	Coerce:
+	string/number coercions
+
+
+	Object:
+	object operations
+	
