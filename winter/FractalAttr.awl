@@ -1,0 +1,174 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'FractalAttr.awl':
+	|	Draw various fractal attractors:
+	|	(Lorenz, Clifford, Peter de Long, Ikeda).
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` Abstract attractor definition `
+
+!! Attractor
+	#{
+
+	` virtual: evaluate next point coords [x y] `
+	next_point
+	
+	` virtual: makes exact copy of self `
+	copy
+	
+	` virtual: provide description `
+	description
+
+	};
+
+` Attractor view widget `
+!! [Widget] AttractView (attractor XC XS YC YS NIters Color) : [pt_counter]
+	= (Title = Attractor!!attractor.description ())
+
+	{
+
+	! #on_open = ( pt_counter = 0 ),
+
+	! #on_paint (L_T R_B) : [attr_copy i x y scale] = graphics!! {
+
+		fill_color (Color ! 64):: fill (L_T, R_B);
+		scale = NIters % 256;
+		
+		attr_copy = Attractor!!attractor.copy ();
+
+		attr_copy.for_inc (i, NIters, {
+			[x y] = Attractor!!next_point ();
+			pixel ((x*XS + XC, y*YS + YC), Color! (i % scale));
+			});
+			
+		pt_counter =+: NIters;
+		},		` -- on_paint `
+
+	! #on_close =
+		<: [Title ': total ' pt_counter ' iterations.\n']
+
+	};		` -- AttractView `
+
+`
+	Lorenz attractor logic
+`
+!! [Attractor] Lorenz (x y z A B C delta) {
+
+	! #description =
+		"Lorenz Attractor {" +$
+			"A=" +$ A +$ " B=" +$ B +$ " C=" +$ C +$ "}, delta=" +$ delta,
+
+	! clone = Lorenz ([() x y z A B C delta]),
+	! #copy = clone (),
+
+	! #next_point = {
+		[x y z] = (
+			x + A*(y-x) * delta,
+			y + ((B-z)*x-y) * delta,
+			z + (x*y-C*z) * delta
+			);
+
+		` returns new point: `
+		(y - x/2, z + x/2)
+		}
+
+	};		` -- Lorenz `
+
+`
+	Clifford attractor logic
+`
+!! [Attractor] Clifford (A B C D) : [x y]
+	= (x = y = 0.0)
+
+	{
+
+	! #description =
+		"Clifford Attractor {" +$
+			"A=" +$ A +$ " B=" +$ B +$ " C=" +$ C +$ " D=" +$ D +$ "}",
+
+	! clone = Clifford ([() A B C D]),
+	! #copy = clone (),
+
+	` next point: evaluate and return `
+	! #next_point =
+		[x y] = (sin(A*y) + C*cos(A*x), sin(B*x) + D*cos(B*y))
+
+	};		` -- Clifford `
+
+`
+	Peter de Long attractor logic
+`
+
+!! [Attractor] PeterDeLong (A B C D) : [x y]
+	= (x = y = 0.0)
+
+	{
+
+	! #description =
+		"Peter de Long Attractor {" +$
+			"A=" +$ A +$ " B=" +$ B +$ " C=" +$ C +$ " D=" +$ D +$ "}",
+
+	! clone = PeterDeLong ([() A B C D]),
+	! #copy = clone (),
+
+	` next point: evaluate and return `
+	! #next_point =
+		[x y] = (sin(A*y) - cos(B*x), sin(C*x) - cos(D*y))
+
+	};		` -- PeterDeLong `
+
+`
+	Ikeda attractor logic
+`
+
+!! [Attractor] Ikeda (A B k p) : [x y]
+	= (x = y = 0.0)
+
+	{
+
+	! #description =
+		"Ikeda Attractor {" +$
+			"A=" +$ A +$ " B=" +$ B +$ " k=" +$ k +$ " p=" +$ p +$ "}",
+
+	! clone = Ikeda ([() A B k p]),
+	! #copy = clone (),
+
+	! #next_point : [u v r] = {
+		r = k - p / (1 + rad(x*x - y*y, 2*x*y));
+		[u v] = (sin(r), cos(r));
+
+		` evaluate and return `
+		[x y] = (A + B*(x*v - y*u), B*(x*u + y*v))
+		}
+
+	};		` -- Ikeda `
+
+
+` Session entry point `
+WinSession (
+
+	(AttractView ((), PeterDeLong ((), -2.7, -0.9, -0.86, -2.2),
+		235, 110, 120, 70, 80000, !Magenta),
+			[400 0], [400 300]),
+
+	(AttractView ((), Clifford ((), 1.5, -1.8, 1.6, 0.9),
+		200, 60, 140, 60, 80000, !Yellow),
+			[0 300], [400 300]),
+
+	(AttractView ((), Lorenz ((), [3 1.5 5 5 15 1 0.004]),
+		210, 22, 280, -10, 100000, !Green),
+			[0 0], [400 300]),
+
+	(AttractView ((), Ikeda ((), [0.85 0.9 0.4 7.7]),
+		110, 160, 150, 100, 50000, !Red),
+			[400 300], [400 300]),
+
+	);

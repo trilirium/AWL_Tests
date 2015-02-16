@@ -1,0 +1,102 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'DrawDemo7.awl':
+	|	Screen/image linear transform test.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+:[deb_mode];
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug (^_) : (^_);
+
+!! [Widget] LinearTest (ImageW ImageH Center vecX vecY vecZ createA createB createC) :
+	[imageA imageB imageC] {
+
+	` rectangle `
+	! shape_rect (colorFg colorBg) : [offX offY] = graphics!!{
+		[offX offY] = (ImageW % 6, ImageH % 6);
+		fill_color (colorBg):: fill ([0 0], [ImageW ImageH]);
+		plot_color (colorBg):: fill_color (colorFg):: rect ([offX offY], (ImageW - offX, (ImageH - offY)));
+		fill_color (colorBg):: plot_color (colorFg):: rect ((offX*2, offY*2), (ImageW - offX*2, (ImageH - offY*2)));
+		},	` -- shape_rect `
+
+	` oval `
+	! shape_oval (colorFg colorBg) : [offX offY] = graphics!!{
+		offX = ImageW % 6; offY = ImageH % 6;
+		fill_color (colorBg):: fill ([0 0], [ImageW ImageH]);
+		plot_color (colorBg):: fill_color (colorFg):: oval ([offX offY], (ImageW - offX, (ImageH - offY)));
+		fill_color (colorBg):: plot_color (colorFg):: oval ((offX*2, offY*2), (ImageW - offX*2, (ImageH - offY*2)));
+		},	` -- shape_oval `
+
+	` round rect `
+	! shape_round_rect (colorFg colorBg) : [offX offY] = graphics!!{
+		offX = ImageW % 6; offY = ImageH % 6;
+		fill_color (colorBg)::
+			fill ([0 0], [ImageW ImageH]);
+		plot_color (colorBg):: fill_color (colorFg)::
+			round_rect ([offX offY], (ImageW - offX, (ImageH - offY)), (offX / 6, offY / 6));
+		fill_color (colorBg):: plot_color (colorFg)::
+			round_rect ((offX*2, offY*2), (ImageW - offX*2, (ImageH - offY*2)), (offX / 8, offY / 8));
+		},	` -- shape_round_rect `
+
+	! #on_open = graphics!!with_widget^{
+		imageA = image_create (ImageW, ImageH);
+		with_image (imageA):: (createA ! ());
+
+		imageB = image_create (ImageW, ImageH);
+		with_image (imageB):: (createB ! ());
+		
+		imageC = image_create (ImageW, ImageH);
+		with_image (imageC):: (createC ! ());
+
+		image_scroll (imageA, 0..ImageW, 0..ImageH, (0, ImageH / 2));
+		image_scroll (imageB, 0..ImageW, 0..ImageH, (ImageW / 2, 0));
+		image_scroll (imageC, 0..ImageW, 0..ImageH, (ImageW / 2, ImageH / 2));
+		},
+
+	! #on_paint (L_T R_B) = graphics!! {
+		fill_color (Grey()):: fill ([L_T R_B]);
+
+		image_linxform (imageA, [0 0], [ImageW ImageH], (), Center, vecX, vecY);
+		image_linxform (imageB, [0 0], [ImageW ImageH], (), Center, vecY, vecZ);
+		image_linxform (imageC, [0 0], [ImageW ImageH], (), Center, vecZ, vecX);
+		},
+
+	! #on_close =
+		graphics!!with_widget^ { image_destroy (imageA); image_destroy (imageB); image_destroy (imageC); }
+	};
+
+`
+	Launch windowing session
+`
+
+WinSession (
+
+	(LinearTest ("Linear test #1", 120, 100,
+		[160 180], (-90, 30), (90, 30), (0, -120),
+		! () = (LinearTest!!shape_rect (Red(), Cyan())),
+		! () = (LinearTest!!shape_oval (Green(), Magenta())),
+		! () = (LinearTest!!shape_round_rect (Blue(), Yellow()))
+		),
+			[0 0], [320 320]),
+
+	(LinearTest ("Linear test #2", 120, 100,
+		[160 120], (-90, -30), (90, -30), (0, 120),
+		! () = (LinearTest!!shape_rect (Magenta(), Green())),
+		! () = (LinearTest!!shape_round_rect (Yellow(), Blue())),
+		! () = (LinearTest!!shape_oval (Cyan(), Red()))
+		),
+			[30 30], [320 320]),
+
+	);
+
+<: "Done test (DrawDemo7).\n";

@@ -1,0 +1,98 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'DrawDemo6.awl':
+	|	Screen/image blitting/stretching test.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+:[deb_mode];
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug (^_) : (^_);
+
+` (vector addition) `
+! vec_add (v0 v1) = (v0[0] + v1[0], v0[1] + v1[1]);
+
+` Blit/stretch test
+	Hgt: object height; Wdt: object width;
+	Ins: insets
+`
+!! [Widget] StretchTest (Wdt Hgt Ins Clr00 Clr01 Clr10 Clr11) : [image] 
+
+	= ([Width Height] = (Wdt*2, Hgt*2))
+
+	{
+
+	! #on_open () = graphics!! {
+		image = with_widget^ image_create (Wdt, Hgt);
+		with_widget^ with_image (image):: {
+			plot_color (Grey ())::
+				fill_color (Black ())::
+					rect ([0 0], [Wdt Hgt]);
+
+			plot_color (Clr00)::
+				fill_color (Clr01)::
+					rect ([Ins Ins], (Wdt - Ins, Hgt - Ins));
+			plot_color (Clr10)::
+				fill_color (Clr11)::
+					oval ([Ins Ins], (Wdt - Ins, Hgt - Ins));
+			};
+		},
+
+	! #on_paint (L_T R_B) : [halfway] = x_debug (graphics!! {
+		fill_color (Grey()):: fill ([L_T R_B]);
+
+		` image blitting/stretching: `
+		halfway = (Wdt%2, Hgt%2);
+
+		! BlitTo (X_Y) = image_blit (image, [0 0], (), X_Y, [Wdt Hgt]);
+		! StretchTo (X_Y W_H) = image_stretch (image, [0 0], [Wdt Hgt], (), X_Y, W_H);
+
+		BlitTo ([0 0]);
+			StretchTo ([0 0], halfway);
+			StretchTo (halfway, halfway);
+
+		BlitTo ([0 Hgt]);
+			StretchTo ((0, (Hgt + halfway[1])), halfway);
+			StretchTo ((halfway[0], Hgt), halfway);
+
+		BlitTo ([Wdt 0]);
+			StretchTo ((Wdt + halfway[0], 0), halfway);
+			StretchTo ((Wdt, halfway[1]), halfway);
+
+		BlitTo ([Wdt Hgt]);
+			StretchTo ([Wdt Hgt], halfway);
+			StretchTo (vec_add ([Wdt Hgt], halfway), halfway);
+
+		}),
+
+	! #on_close () =
+		with_widget (graphics!!image_destroy (image))
+	};
+
+`
+	Launch windowing session
+`
+
+WinSession (
+
+	(StretchTest ("Stretch test #1", 120, 80, 20, Red(), Green(), Magenta(), Blue()),
+		[0 0], ),
+
+	(StretchTest ("Stretch test #2", 80, 120, 20, Cyan(), Yellow(), Red(), Green()),
+		[100 100], ),
+
+	(StretchTest ("Stretch test #3", 120, 120, 30, Blue(), Red(), Magenta(), Yellow()),
+		[200 200], ),
+
+	);
+
+<: "Done test (DrawDemo6).\n";

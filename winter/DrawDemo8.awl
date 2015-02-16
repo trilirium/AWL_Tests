@@ -1,0 +1,270 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'DrawDemo8.awl':
+	|	Generated patterns output test.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+:[deb_mode];
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug (^_) : (^_);
+
+` Color string patterns `
+:[ pBlack pRed pGreen pBlue pCyan pMagenta pYellow pWhite ];
+:[color_list];
+
+color_list =
+	[ pBlack pBlue pGreen pCyan pRed pMagenta pYellow pWhite ] = [
+	"\x00\x00\x00"
+	"\xFF\x00\x00"
+	"\x00\xFF\x00"
+	"\xFF\xFF\x00"
+	"\x00\x00\xFF"
+	"\xFF\x00\xFF"
+	"\x00\xFF\xFF"
+	"\xFF\xFF\xFF"
+	];
+
+` Horizontal rainbow pattern `
+! PatternHRainbow (S) = s_join ('',
+	(pBlack		*$ S),
+	(pBlue		*$ S),
+	(pGreen		*$ S),
+	(pCyan		*$ S),
+	(pRed		*$ S),
+	(pMagenta	*$ S),
+	(pYellow	*$ S),
+	(pWhite		*$ S)
+	);
+
+` Vertical rainbow pattern `
+! PatternVRainbow (S) =
+	s_join ('', [pBlack pBlue pGreen pCyan pRed pMagenta pYellow pWhite]) *$ S;
+
+` Box pattern `
+! PatternBox (S BgC FgC) =
+	s_join ('',
+		FgC *$ S,
+		s_join ('', FgC, BgC *$ (S-2), FgC) *$ (S-2),
+		FgC *$ S
+		);
+
+` Cross box pattern `
+! PatternXBox (S BgC FgC) = PatternBox (S, BgC, FgC);
+
+` Diagonal pattern (flag ? backward : forward) `
+! PatternDiag (S D BgC FgC flag) : [s ss y] = {
+	ss = (BgC +$ (FgC *$ (D-1))) *$ (1 + S % D);
+	s = '';
+	for_inc (y, S, {
+		if (flag):: (y = S-y);
+		s =+$: ss $[y*3 .. S*3] +$ ss $[.. y*3];
+		});
+	s };
+
+` Diagonal top/bottom fill pattern
+  (flag ? rhomb : xshape) `
+! PatternXFill (S BgC FgC flag) : [s ss y] = {
+	s = '';
+	(flag ? !for_dec : !for_inc) !
+	(y, S % 2, {
+		ss = (BgC *$ y) +$ (FgC *$ (S - 2*y)) +$ (BgC *$ y);
+		s = ss +$ s +$ ss;
+		});
+	s };
+
+` Draw grayscale grid `
+! draw_grid (W H) : [x y] = graphics!! {
+	fill_color (Grey (\x80))::
+		fill ([0 0], [W H]);
+
+	plot_color (Grey (\x40))::
+		for_inc (x, W >> 2, line ((x << 2, 0), (x << 2, H)));
+	plot_color (Grey (\xC0))::
+		for_inc (y, H >> 2, line ((0, y << 2), (W, y << 2)));
+	};	` -- draw_grid `
+
+` Pattern test
+	H: object height; W: object width
+`
+!! [Widget] PatternTest (W H) : [image] 
+
+	= ([Width Height] = [W H])
+
+	{
+
+	! show_area (X_range Y_range) =
+		<: (' (', X_range[0], ':', Y_range[0], ') -> (', X_range[1], ':', Y_range[1], ') '),
+
+	! show_dir (Y_dir) = <: (Y_dir ? '++' : '--'),
+
+	! show_result (result) = <: (': ', result ? "OK.\n" : "\aFailed!\n"),
+
+	! show_color (color) : [i v] = {
+		<: '#';
+		for_inc (i, 3, <: ((v = s_ord(color, i)) < 16 ? ('0', s_Hex(v)) : s_Hex(v)));
+		<: ' ';
+		},
+
+	! pattern_RGB_check (X_range Y_dir Y_range pattern): [readback] = graphics!! {
+		image_data_load (image, X_range, Y_dir, Y_range, (), pattern);
+		readback = image_data_save (image, X_range, Y_dir, Y_range, ());
+
+		<: "\tImage [RGB]:";
+		show_area (X_range, Y_range);
+		show_dir (Y_dir);
+		show_result (pattern [==] readback);
+		},		` -- pattern_RGB_check `
+
+	! pattern_BPP1_check (X_range Y_range pattern color_bg color_fg): [readback] = graphics!! {
+		image_data_load (image, X_range, 0, Y_range, (1, color_bg +$ color_fg), pattern);
+		readback = image_data_save (image, X_range, 0, Y_range, (1, color_bg +$ color_fg));
+
+		<: "\tImage [1 bpp]:";
+		show_area (X_range, Y_range);
+		show_color (color_bg);
+		show_color (color_fg);
+		show_result (pattern [==] readback);
+		},		` -- pattern_BPP1_check `
+
+	! pattern_BPP2_check (X_range Y_range pattern colors_4): [readback c] = graphics!! {
+		image_data_load (image, X_range, 0, Y_range, (2, colors_4), pattern);
+		readback = image_data_save (image, X_range, 0, Y_range, (2, colors_4));
+
+		<: "\tImage [2 bpp]:";
+		show_area (X_range, Y_range);
+		for_inc (c, 4, show_color (colors_4$[range(c*3, 3)]));
+		show_result (pattern [==] readback);
+		},
+
+	! #on_open () : [s x y P0 P1] = graphics!! {
+		image = with_widget^ image_create (W, H);
+
+		with_widget^with_image (image):: {
+		
+		draw_grid (W, H);
+
+		`
+			RGB patterns test
+		`
+
+		s = PatternHRainbow (64);
+		pattern_RGB_check (32, 0, range (8*4, 16), s);
+		pattern_RGB_check (32, 1, range (12*4, 16), s);
+
+		s = PatternVRainbow (64);
+		pattern_RGB_check (32, 0, range (20*4, 16), s);
+		pattern_RGB_check (32, 0, range (24*4, 16), ~$ s);
+
+		for_inc (x, 4, {
+			pattern_RGB_check (range (48 + x*16, 16), 0, range (80, 16),
+				PatternBox (16, color_list [x], color_list [7-x]));
+			pattern_RGB_check (range (48 + x*16, 16), 0, range (80 + 16, 16),
+				PatternBox (16, color_list [7-x], color_list [x]));
+			});
+
+		for_dec (x, 8,
+			for_inc (y, 8, {
+				pattern_RGB_check (range (48 + x*5, 5), 0, range (32 + y*5, 5),
+					PatternBox (5, color_list [x], color_list [y]));
+				pattern_RGB_check (range (96 + x*5, 5), 0, range (32 + y*5, 5),
+					PatternBox (5, color_list [y], color_list [x]));
+				})
+			);
+
+		for_dec (x, 8,
+			for_inc (y, 8, {
+				pattern_RGB_check (range (152 + x*3, 3), 0, range (64 + y*3, 3),
+					PatternBox (3, color_list [x], color_list [y]));
+				pattern_RGB_check (range (152 + x*3, 3), 0, range (96 + y*3, 3),
+					PatternBox (3, color_list [y], color_list [x]));
+				})
+			);
+
+		for_inc (x, 4, {
+			pattern_RGB_check (range (32 + x*16, 16), 0, range (128, 16),
+				PatternDiag (16, 4, color_list [x], color_list [7-x], 0));
+			pattern_RGB_check (range (32 + x*16, 16), 0, range (144, 16),
+				PatternDiag (16, 4, color_list [7-x], color_list [x], 1));
+			});
+
+		for_inc (x, 4, {
+			pattern_RGB_check (range (112 + x*16, 16), 0, range (128, 16),
+				PatternXFill (16, color_list [x], color_list [7-x], 1));
+			pattern_RGB_check (range (112 + x*16, 16), 0, range (144, 16),
+				PatternXFill (16, color_list [x], color_list [7-x], 0));
+			});
+
+		`
+			1 BPP patterns test
+		`
+
+		for_inc (x, 8, {
+			pattern_BPP1_check (range(4 + x*12, 8), range(4, 8),
+				"\x0F\x0F\x0F\x0F\xF0\xF0\xF0\xF0", color_list[x], color_list[7-x]);
+			pattern_BPP1_check (range(4 + x*12, 8), range(16, 8),
+				"\x0F\x1E\x3C\x78\xF0\xE1\xC3\x87", color_list[7-x], color_list[x]);
+
+			pattern_BPP1_check (range(112 + x*12, 8), range(4, 8),
+				"\x99\x42\x24\x99\x99\x24\x42\x99", color_list[7-x], color_list[x]);
+			pattern_BPP1_check (range(112 + x*12, 8), range(16, 8),
+				"\xFF\x81\x81\x99\x99\x81\x81\xFF", color_list[x], color_list[7-x]);
+			});
+
+		`
+			2 BPP patterns test
+		`
+
+		P0 = s_join ('', color_list[0], color_list[2], color_list[4], color_list[6]);
+		P1 = s_join ('', color_list[1], color_list[3], color_list[5], color_list[7]);
+
+		s = s_join ('', "\x05\xAF" *$ 4, "\x5A\xF0" *$ 4, "\xAF\x05" *$ 4, "\xF0\x5A" *$ 4) *$ 2;
+		pattern_BPP2_check (range(8, 16),  range (168, 16), s, P0);
+		pattern_BPP2_check (range(56, 16), range (168, 16), s, P1);
+
+		s = s_join ('',
+			"\x00\x55\xAA\xFF" *$ 4, "\x55\xAA\xFF\x00" *$ 4, "\xAA\xFF\x00\x55" *$ 4, "\xFF\x00\x55\xAA" *$ 4);
+		pattern_BPP2_check (range(32, 16), range (168, 16), s, P0);
+		pattern_BPP2_check (range(80, 16), range (168, 16), s, P1);
+
+		s = ("\x05\x05" *$ 4 +$ "\xAF\xAF" *$ 4) *$ 4;
+		pattern_BPP2_check (range(112, 16), range (168, 16), s, P0);
+		pattern_BPP2_check (range(160, 16), range (168, 16), s, P1);
+
+		s = (("\x00\x55" *$ 8) +$ ("\xAA\xFF" *$ 8)) *$ 2;
+		pattern_BPP2_check (range(136, 16), range (168, 16), s, P0);
+		pattern_BPP2_check (range(184, 16), range (168, 16), s, P1);
+		};		` -- with widget & image `
+
+		},
+
+	! #on_paint (L_T R_B) : [s] = x_debug (graphics!! {
+		fill_color (White()):: fill ([L_T R_B]);
+
+		image_blit (image, [0 0], (), [0 0], [W H]);
+		}),
+
+	! #on_close () =
+		with_widget (graphics!!image_destroy (image))
+	};
+
+`
+	Launch windowing session
+`
+
+WinSession (
+
+	(PatternTest ("Pattern load/save test", 360, 192)),
+
+	);
+
+<: "Done test (DrawDemo8).\n";

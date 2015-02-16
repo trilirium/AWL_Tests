@@ -1,0 +1,183 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'DrawDemo2.awl':
+	|	Basic objects drawing
+	|	(tests nested 'plot_color'/'fill_color' calls).
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+:[deb_mode];
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug (^_) : (^_);
+
+` Draw orthogonal grid of regular color objects
+  (using "object_draw ! region" to draw odject) `
+!! [Widget] ColorObjectsGrid (object_draw S CT LT RB)
+
+	= (Width = Height = 8 * S)
+
+	{
+
+	! #on_paint (L_T R_B) : [R C] = x_debug (graphics!! {
+		` (draw horizontal line at 'y') `
+		! h_line(y) = line ((L_T[0], y), (R_B[0], y));
+
+		` (draw vertical line at 'x') `
+		! v_line(x) = line ((x, L_T[1]), (x, R_B[1]));
+
+		` (paint widget area) `
+		fill_color (Grey(Normal)):: fill (L_T, R_B);
+
+		` (horizontal gridlines) `
+		for_inc (C, 8,
+			plot_color (RGB8(C)):: h_line (C*S + CT)
+			);
+
+		for_inc (R, 8,
+			plot_color (RGB8(R)):: {
+				` (vertical gridlines) `
+				v_line ((R =*: S) + CT);
+
+				` (objects grid) `
+				for_inc (C, 8,
+					fill_color (RGB8(C)):: {
+						C =*: S;
+						object_draw ! ((C+LT, R+LT), (C+RB, R+RB))
+						})	` -- for_inc (C) `
+				})	` -- for_inc (R) `
+		})		` -- on_paint `
+
+	};		` -- ColorObjectsGrid `
+
+` Draw "staircase" of colored boxes
+  (with step S / inset P).
+  Tests nested recursive calls to 'plot_color'/'fill_color' `
+!! [Widget] ColorStaircase (S P)
+	= (Width = 2 * (Height = S * 8))
+
+	{
+	! #on_paint (L_T R_B) : [X Y] = x_debug (graphics!! {
+		` (paint widget area) `
+		fill_color (Grey(Dark)):: fill (L_T, R_B);
+
+		` step of stairs: `
+		! step (X Y dir) = {
+			rect ([X Y], (X+S, dir? Y-S : Y+S));
+			oval ((X+P, dir? Y-P : Y+P), (X+S-P, dir? Y-S+P : Y+S-P))
+			};
+
+		` Recursion: draw background "steps" (up -> down) `
+		! D_step (N) =
+			N ? plot_color (RGB8(N-1))::
+				{
+				fill_color (Black()):: step ([X Y 0]);
+				X =+: S; Y =+: S;
+
+				D_step (N-1);
+
+				fill_color (White()):: step ([X Y 1]);
+				X =+: S; Y =-: S;
+				} :;
+
+		X = Y = 0;
+		D_step (8);
+
+		` Recursion: draw foreground "steps" (down -> up) `
+		! U_step (N) =
+			N ? fill_color (RGB8(8-N))::
+				{
+				plot_color (Black()):: step ([X Y 1]);
+				X =+: S; Y =-: S;
+
+				U_step (N-1);
+
+				plot_color (White()):: step ([X Y 0]);
+				X =+: S; Y =+: S;
+				} :;
+
+		X = 0; Y = S*8;
+		U_step (8);
+		})		` -- on_paint `
+
+	};` -- ColorStaircase `
+
+` Draw color bars
+  (tests nested recursion in 'plot_color'/'fill_color' ) `
+!! [Widget] ColorBars
+	= (Width = Height = 130)
+
+	{
+	! #on_paint (L_T R_B) = x_debug (graphics!! {
+		` (paint widget area) `
+		fill_color (Black()):: fill (L_T, R_B);
+
+		fill_color (Red()):: plot_color (Cyan())::
+		{
+			rect ([10 50], [20 80]);
+
+			fill_color (Green()):: plot_color (Magenta())::
+			{
+				rect ([30 30], [40 100]);
+
+				fill_color (Blue()):: plot_color (Yellow())::
+					{
+					rect ([50 10], [60 120]);
+
+					rect ([70 10], [80 120]);
+					};
+
+				rect ([90 30], [100 100]);
+			};
+
+			rect ([110 50], [120 80]);
+		};
+		})		` -- on_paint `
+
+	};` -- ColorBars `
+
+`
+	Launch windowing session
+`
+
+WinSession (
+	(ColorObjectsGrid ("Color circles grid",
+		!(A) = (graphics!!oval (A)), [45 20 5 35]),
+		[100 50], ),
+
+	(ColorObjectsGrid ("Color squares grid",
+		!(A) = (graphics!!rect(A)), [45 20 5 35]),
+		[140 50], ),
+
+	(ColorObjectsGrid ("Color rhombs grid",
+		!(A) : [T L B R CX CY] = {
+			[[L T] [R B]] = A;
+			[CX CY] = ((L + R) % 2, (T + B) % 2);
+
+			` draw rhomb (centred at CX, CY) `
+			graphics!!polygon (
+				[CX T],
+				[L CY],
+				[CX B],
+				[R CY],
+				)
+			}, [45 20 5 35]),
+		[180 50], ),
+
+	(ColorStaircase ("Color FG/BG 'staircase'", 24, 3),
+		[100 100], ),
+
+	(ColorBars ("Simple color bars"),
+		[500 100], ),
+
+	);
+
+<: "Done test (DrawDemo2).\n";

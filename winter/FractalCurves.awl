@@ -1,0 +1,292 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'FractalCurves.awl':
+	|	Draw families of fractal curves:
+	|	Hilbert, Sierpinski, Dragon.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+:[L UL U UR R DR D DL];
+
+` Very basic turtle-type plotter.
+  Initialisers: origin (X, Y), scale S `
+
+` List of plotting directions `
+[L UL U UR R DR D DL] = [0 1 2 3 4 5 6 7];
+
+` Turn direction D by A * 45 degrees (clockwise) `
+! Turn45 (D A) = 
+	A > 0 ? ((D =+: A) < 8 ? D : D - 8) :
+	A < 0 ? ((D =+: A) < 0 ? D + 8 : D) :
+	D;
+
+` Turn direction D by A * 90 degrees (clockwise) `
+! Turn90 (D A) = 
+	A > 0 ? ((D =+: A*2) < 8 ? D : D - 8) :
+	A < 0 ? ((D =+: A*2) < 0 ? D + 8 : D) :
+	D;
+
+!! Plotter (X Y S) {
+	` Plot line in Direction by Steps `
+	! Plot (Direction Step) : [pX pY] = {
+		[pX pY] = [X Y];
+		Step =*: S;		` (scale by S) `
+
+		` (Adjust current point in Direction) `
+			^(
+			` L:  `	@( X =-: Step ),
+			` UL: `	@{ X =-: Step; Y =-: Step },
+			` U:  `	@( Y =-: Step ),
+			` UR: `	@{ X =+: Step; Y =-: Step },
+			` R:  `	@( X =+: Step ),
+			` DR: `	@{ X =+: Step; Y =+: Step },
+			` D:  `	@( Y =+: Step ),
+			` DL: `	@{ X =-: Step; Y =+: Step }
+			) [Direction];
+
+		` Draw vector from old point to new `
+		graphics!!line ([pX pY], [X Y])
+		}
+	};		` end of class Plotter `
+
+`
+	Plot Sierpinski curve
+`
+
+! SierpCurve (N XC YC S): [offset] = {
+
+` Plot in direction Dir by step `
+	! plot (Dir) = Plotter!!Plot (Dir, 1);
+` Plot in direction Dir by 2 steps `
+	! plot2 (Dir) = Plotter!!Plot (Dir, 2);
+
+ ` Drawing functors family `
+ !	{ plot_L plot_D plot_R plot_U } = {
+
+	` plot_L: plot downward sector (right to left) `
+	(n) = n-- ?
+		{
+		plot_L (n);
+		  plot (DL);
+		plot_D (n);
+		  plot2 (L);
+		plot_U (n);
+		  plot (UL);
+		plot_L (n);
+		}: ,		` -- plot_L `
+
+	` plot_D: plot rightward sector (up to down) `
+	(n) = n-- ?
+		{
+		plot_D (n);
+		  plot (DR);
+		plot_R (n);
+		  plot2 (D);
+		plot_L (n);
+		  plot (DL);
+		plot_D (n);
+		}: ,		` -- plot_D `
+
+	` plot_R: plot upward sector (left to right) `
+	(n) = n-- ?
+		{
+		plot_R (n);
+		  plot (UR);
+		plot_U (n);
+		  plot2 (R);
+		plot_D (n);
+		  plot (DR);
+		plot_R (n);
+		}: ,		` -- plot_R `
+
+	` plot_U: plot leftward sector (down to up) `
+	(n) = n-- ?
+		{
+		plot_U (n);
+		  plot (UL);
+		plot_L (n);
+		  plot2 (U);
+		plot_R (n);
+		  plot (UR);
+		plot_U (n);
+		}:			` -- plot_U `
+
+	};		` -- (plot_L, plot_D, plot_R, plot_U) `
+
+` plot entire curve `
+! plot_curve (N) = {
+
+	plot_D (N);
+	  plot (DR);
+	plot_R (N);
+	  plot (UR);
+	plot_U (N);
+	  plot (UL);
+	plot_L (N);
+	  plot (DL);
+
+	};
+
+offset = S * ((1 << (N + 1)) - 1);
+
+` bounding box: (XC-offset, YC-offset, 2*offset, 2*offset) `
+Plotter (XC-offset, YC-offset + S, S).plot_curve (N);
+};		` -- SierpCurve `
+
+`
+	Plot Hilbert curve
+`
+
+! HilbertCurve (N XC YC S): [offset] = {
+
+! plot(Dir) = Plotter!!Plot (Dir, 2);
+
+` Functors family `
+! { plot_D plot_R plot_U plot_L } = {
+
+	` plot_D `
+	(n) = n-- ?
+		{	plot_R (n);
+				plot (D);
+			plot_D (n);
+				plot (R);
+			plot_D (n);
+				plot (U);
+			plot_L (n);
+		} : ,		` -- plot_D `
+
+	` plot_R `
+	(n) = n-- ?
+		{	plot_D (n);
+				plot (R);
+			plot_R (n);
+				plot (D);
+			plot_R (n);
+				plot (L);
+			plot_U (n);
+		} : ,		` -- plot_R `
+
+	` plot_U `
+	(n) = n-- ?
+		{	plot_L (n);
+				plot (U);
+			plot_U (n);
+				plot (L);
+			plot_U (n);
+				plot (D);
+			plot_R (n);
+		} : ,		` -- plot_U `
+
+	` -- plot_L `
+	(n) = n-- ?
+		{	plot_U (n);
+				plot (L);
+			plot_L (n);
+				plot (U);
+			plot_L (n);
+				plot (R);
+			plot_D (n);
+		} :			` -- plot_L `
+
+	};		` -- { plot_D plot_R plot_U plot_L } `
+
+offset = S * (((1 << N)) - 1);
+
+` Draw entire curve `
+Plotter (XC - offset, YC - offset, S).plot_D (N);
+};		` -- HilbertCurve `
+
+`
+	Dragon curves
+`
+
+` Draw 4 Dragon curves of order N;
+  starting at (XC, YC) with orientation Dir and step S `
+
+! QuadDragon (N XC YC S Dir): [i] = {
+
+! turn_at(n) = {
+	(n & 1) == 0 ?? (n = n >> 1);
+	n & 2 ? 1 : -1
+	};
+
+Plotter (XC, YC, S).
+	times (4):: {
+		`( draw dragon curve... )`
+		for_inc (i, 1 << N, {
+			Plotter!!Plot (Dir, 1);
+			Dir = Turn90 (Dir, turn_at(i+1));
+			});
+
+		`( next dragon is 90 degrees clockwise... )`
+		Dir = Turn90 (Dir, 1);
+		};
+};  ` -- QuadDragon `
+
+` Curve drawing widget:
+  Draw curve (using 'drawer') centered at (XC, YC) `
+!! [Widget] CurveDraw (drawer XC YC) {
+
+	! #on_paint (L_T R_B) = {
+		` (paint widget area) `
+		graphics!!fill_color (Grey(64), fill (L_T, R_B));
+
+		` (show central point) `
+		graphics!!pixel ([XC YC], Grey(248));
+
+		` (draw curve) `
+		drawer ! ([XC YC])
+		}			` -- #on_paint `
+
+	};	` -- CurveDraw `
+
+` Launch windowing session `
+
+WinSession (
+
+	(CurveDraw ("Sierpinski Curves (N = 1..6)",
+		! (XC YC): [i] = (
+			for_dec (i, 1..6,
+				graphics!!plot_color (RGB8(i))::
+					SierpCurve (i, XC, YC, 1 << (7-i)))
+				), [275 275]),
+			[0 0], [550 580]),
+
+	(CurveDraw ("Hilbert Curves (N = 1..6)",
+		! (XC YC): [i] = (
+			for_dec (i, 1..6,
+				graphics!!plot_color (RGB8(i))::
+					HilbertCurve (i, XC, YC, 1 << (8-i)))
+				), [275 275]),
+			[30 30], [550 580]),
+
+	(CurveDraw ("QuadDragon Curves (N = {6,8,10,12})",
+		! (XC YC): [S] = (graphics !! {
+
+			S = 3;
+			plot_color (Blue())::
+				QuadDragon (12, XC - S*32, YC - S*32, S, U);
+
+			S = 5;
+			plot_color (Green())::
+				QuadDragon (10, XC + S*16, YC - S*16, S, U);
+
+			S = 7;
+			plot_color (Yellow())::
+				QuadDragon (8, XC + S*8, YC + S*8, S, U);
+
+			S = 9;
+			plot_color (Red())::
+				QuadDragon (6, XC - S*4, YC + S*4, S, U);
+
+			}), [275 275]),
+		[60 60], [550 580]),
+
+	);

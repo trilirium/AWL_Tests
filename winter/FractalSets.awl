@@ -1,0 +1,174 @@
+
+`
+	"FractalSets.awl"
+	Draw fractal sets
+	(Mandelbrot, Julia, Newton)
+`
+
+include "winter.awl";
+
+`
+	Calculator class for fractal sets
+`
+!! FractalSet
+	# {
+
+		` virtual: provide some description `
+		description
+
+		` virtual: calculate color intensity of point, 0..255 `
+		calc_point
+
+	  }
+
+	{
+	! #description = "(Fractal set)",
+
+	! #calc_point (x y) = 0
+	};
+
+`
+	Plotter superclass for all fractal sets
+	[xC yC]: central point; [xS yS]: scale; BaseColor: color
+`
+
+new_style = 1;
+
+!! [Widget] FractalView (fractal xC yC xS yS BaseColor) : [pt_counter]
+	= (Title = FractalSet!!fractal.description ())
+
+	{
+
+	! #on_open = ( pt_counter = 0 ),
+
+	! #on_paint (L_T R_B) : [L T R B x y] = graphics!! {
+		[L T] = L_T; [R B] = R_B;
+		fill_color (BaseColor * 128):: fill (L_T, R_B);
+
+		FractalSet!!fractal.
+		if (new_style):: {
+		` new style: using pixel_fill: `
+		pixel_fill (L_T, R_B,
+		  !(x y) = (BaseColor * calc_point ((x-xC) * xS, (y-yC) * yS)));
+		}::
+		` old style: looping through pixels: `
+		for_inc (y, T..B,
+			for_inc (x, L..R,
+				pixel ([x y],
+					BaseColor * calc_point ((x-xC) * xS, (y-yC) * yS))
+				)
+			);
+
+		pt_counter =+: (R - L)*(B - T);
+		},		` -- #on_paint `
+
+	! #on_close =
+		<: [Title ': total ' pt_counter ' points calculated.\n']
+	};
+
+`
+	Mandelbrot set
+`
+!! [FractalSet] MandelbrotSet (Radius MaxIters Factor) {
+
+	` Report full name `
+	! #description =
+		"Mandelbrot set (R=" +$ Radius +$ ", #" +$ MaxIters +$ ")",
+
+	` Calculate point for Mandelbrot set.
+	  Algorythm (with complex Z = zX+zYi):
+	  iterate Z[n+1] = Z[n]^2 + (X+Yi)
+	  until either |Z[n]| > Radius or n == MaxIters.
+	  Returns: factored # of iterations. `
+
+	! #calc_point (X Y) : [zX zY Iter] = {
+		Iter = -1;
+		zX = zY = 0;
+		(++Iter <> MaxIters && rad(zX, zY) <= Radius) ??
+			([zX zY] = (X + (zX*zX - zY*zY), Y + 2*zX*zY));
+
+		Iter * Factor
+		}		` -- calc_point `
+
+	};
+
+`
+	Julia set
+`
+!! [FractalSet] JuliaSet (Radius MaxIters Factor DeltaX DeltaY) {
+
+	` Report full name `
+	! #description =
+		"Julia set (R=" +$ Radius +$ ", #" +$ MaxIters +$
+		", Delta = [" +$ DeltaX +$ ',' +$ DeltaY +$ "])",
+
+	` Calculate point for Julia set.
+	  Algorythm (with complex Z = zX+zYi and Delta = DeltaX+DeltaYi):
+	  iterate Z[n+1] = Z[n]^2 + Delta
+	  until either |Z[n]| > Radius or n == MaxIters.
+	  Returns: factored number of iterations. `
+
+	! #calc_point (X Y) : [zX zY Iter] = {
+		Iter = -1;
+		[zX zY] = [X Y];
+		(++Iter <> MaxIters && rad(zX, zY) <= Radius) ??
+			([zX zY] = (DeltaX + (zX*zX - zY*zY), DeltaY + 2*zX*zY));
+
+		Iter * Factor
+		}		` -- calc_point `
+
+	};
+
+`
+	Newton set
+`
+!! [FractalSet] NewtonSet (MaxRad MinRad MaxIters Factor) {
+
+	` Report full name `
+	! #description =
+		"Newton set (R=" +$ MinRad +$ '..' +$ MaxRad +$ ", #" +$ MaxIters +$ ")",
+
+	` Calculate point for Newton set.
+	  Algorythm (with Z = zX+zYi):
+	  iterate Z[n+1] = (2*Z[n]^3 + 1) / (3*Z[n]^2)
+	  until either |Z[n]| > MaxRad or |Z[n+1] - Z[n]| < MinRad or n == MaxIters.
+	  Returns: factored number of iterations. `
+
+	! #calc_point (X Y) : [zX zY tX tY Iter] = {
+		[zX zY] = [X Y];
+		tX = tY = 0;			` previous iteration... `
+		Iter = -1;
+		(++Iter <> MaxIters &&
+			(P = zX*zX + zY*zY) <= MaxRad &&
+			rad(tX - zX, tY - zY) >= MinRad) ?? {
+
+			[tX tY] = [zX zY];
+			P =*: P;
+			[zX zY] =
+				(2/3*tX + (tX*tX - tY*tY) / (3*P), 2/3*tY * (1 - tX/P));
+			};
+
+		Iter * Factor
+		}		` -- calc_point `
+
+		};
+
+`
+	Session entry point
+`
+WinSession (
+
+	(FractalView ((), NewtonSet ((), 1000, 1/100, 16, 16),
+		180, 180, 1/150, 1/150, Green(1)),
+			[400 0], [350 350]),
+
+	(FractalView ((), MandelbrotSet ((), 1.8, 16, 16),
+		260, 150, 1/120, 1/120, Cyan(1)),
+			[0 0], [400 320]),
+
+	(FractalView ((), JuliaSet ((), 4.0, 16, 16, [0.5 0.5]),
+		100, 100, 1/120, 1/120, Yellow(1)),
+			[0 320], [220 230]),
+
+	);
+

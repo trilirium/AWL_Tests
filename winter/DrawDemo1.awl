@@ -1,0 +1,128 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'DrawDemo1.awl':
+	|	Very basic line drawing + area filling demo.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+:[deb_mode];
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug (^_) : (^_);
+
+` Draw vertical line across current widget (at 'x') `
+! V_Line(x) = Widget!! graphics!! line ([x 0], [x Height]);
+
+` Draw horizontal line across current widget (at 'y') `
+! H_Line(y) = Widget!! graphics!! line ([0 y], [Width y]);
+
+` Fill area with background color 'BgColor' `
+!! [Widget] BlankFill (BgColor) {
+
+	! #on_paint (L_T R_B) =
+		` (clear widget area) `
+		x_debug (graphics!! fill_color (BgColor):: fill (L_T, R_B))
+
+	};		` -- BlankFill `
+
+` Fill area with horizontal lines
+  (with horizontal interval 'VStep' / color 'FgColor') `
+!! [Widget] HLinesFill (BgColor FgColor VStep) {
+
+	! #on_paint (L_T R_B) : [Y] = x_debug (graphics!! {
+		` (clear widget area) `
+		fill_color (BgColor):: fill (L_T, R_B);
+
+		` (draw horizontal lines with step 'VStep') `
+		plot_color (FgColor)::
+			for_inc (Y, Height % VStep + 1, H_Line(Y * VStep))
+		})		` -- on_paint `
+
+	};		` -- HLinesFill `
+
+` Fill area with vertical lines
+  (with vertical interval 'HStep' / color 'FgColor') `
+!! [Widget] VLinesFill (BgColor FgColor HStep) {
+
+	! #on_paint (L_T R_B) : [X] = x_debug (graphics!! {
+		` (clear widget area) `
+		fill_color (BgColor):: fill (L_T, R_B);
+
+		` (draw vertical lines with step 'HStep') `
+		plot_color (FgColor)::
+			for_inc (X, Width % HStep + 1, V_Line(X * HStep))
+		})		` -- on_paint `
+
+	};		` -- VLinesFill `
+
+` Fill area with horizontal/vertical lines
+  (with vertical interval 'HStep' / horizontal interval 'VStep' / color 'FgColor') `
+!! [Widget] RLinesFill (BgColor FgColor HStep VStep) {
+
+	! #on_paint (L_T R_B) : [X Y] = x_debug (graphics!! {
+		` (clear widget area) `
+		fill_color (BgColor):: fill (L_T, R_B);
+
+		plot_color (FgColor):: {
+			` (draw vertical lines with step 'HStep') `
+			for_inc (X, Width % HStep + 1, V_Line(X * HStep));
+			` (draw horizontal lines with step 'VStep') `
+			for_inc (Y, Height % VStep + 1, H_Line(Y * VStep))
+			}
+		})
+
+	};		` -- RLinesFill `
+
+` Fill area with points grid
+  (with vertical interval 'HStep' / horizontal interval 'VStep' / color 'FgColor') `
+!! [Widget] RPointsFill (BgColor FgColor HStep VStep) {
+
+	! #on_paint (L_T R_B) : [X Y] = x_debug (graphics!! {
+		` (clear widget area) `
+		fill_color (BgColor):: fill (L_T, R_B);
+
+		` (draw point grid with step 'HStep'/'Vstep') `
+		plot_color (FgColor)::
+			for_inc (X, Width % HStep + 1,
+				for_inc (Y, Height % VStep + 1,
+					plot(X * HStep, Y * VStep)
+					)
+				);
+		})
+
+	};		` -- RPointsFill `
+
+`
+	Launch windowing session
+`
+
+WinSession (
+	(RPointsFill ("Points grid (Black/White, HS=15, VS=10)",
+		White(), Black(), 15, 10),
+			[100 100], [600 400]),
+
+	(BlankFill ("Blank [Red]", Red()), [100 100], [200 200]),
+	(BlankFill ("Blank [Green]", Green()), [200 200], [200 200]),
+	(BlankFill ("Blank [Blue]", Blue()), [300 300], [200 200]),
+
+	(HLinesFill ("H-Lines [Blue/Yellow, VS=15]",
+		Yellow(), Blue(), 15),
+			[300 100], [200 200]),
+	(VLinesFill ("V-Lines [Green/Magenta, HS=25]",
+		Magenta(), Green(), 25),
+			[400 200], [200 200]),
+	(RLinesFill ("H/V-Lines [Red/Cyan, HS=20/VS=30]",
+		Cyan(), Red(), 20, 30),
+			[500 300], [200 200]),
+
+	);
+
+<: "Done test (DrawDemo1).\n";

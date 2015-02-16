@@ -1,0 +1,117 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'DrawDemo3.awl':
+	|	Draw filled shapes
+	|	(rectangles/ellipses/roundrects).
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+:[deb_mode];
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug (^_) : (^_);
+
+` Draw nested color objects (using object_draw ! region) `
+!! [Widget] RainbowObjects (object_draw count x_step y_step)
+
+	= ([Width Height] = (count * x_step*2, count * y_step*2))
+
+	{
+
+	! #on_paint (L_T R_B) : [i] =
+
+		` Full widget paint `
+		with_widget (x_debug (graphics!! {
+
+		` (paint widget area) `
+		fill_color (Grey(Normal)):: fill ([0 0], [Width Height]);
+
+		` (draw nested objects) `
+		for_inc (i, count,
+			fill_color (RGB8(i))::
+				(object_draw !
+				((i*x_step, i*y_step), (Width - i*x_step, Height - i*y_step)))
+			);
+		})),			` -- on_paint `
+
+	! #on_resize (Area) = on_paint (Area)
+
+	};
+
+` Draw objects with gradient color ramp (using object_draw ! region) `
+!! [Widget] GradientObjects (object_draw n_steps calc_color)
+
+	{
+
+	! #on_paint (L_T R_B) : [i x_step y_step ix iy ic] =
+		with_widget (x_debug (graphics!! {
+		` (paint widget area) `
+		fill_color (0):: fill ([0 0], [Width Height]);
+
+		[x_step y_step] = (Width % (n_steps*2), Height % (n_steps*2));
+
+		` (draw nested objects) `
+		for_inc (i, n_steps, {
+			[ix iy] = (i*x_step, i*y_step);
+			ic = calc_color ! ((i << 8) % n_steps);
+			fill_color (ic):: plot_color (ic)::
+				(object_draw !
+				([ix iy], (Width - ix, Height - iy)))
+			});
+		})),		` -- on_paint `
+
+	! #on_resize (Area) = on_paint (Area)
+
+	};
+
+`
+	Launch windowing session
+`
+
+WinSession (
+
+	(RainbowObjects ("Rainbow: rectangles",
+		!(A) = (graphics!!rect (A)), 8, 18, 8),
+		[100 50], ),
+
+	(RainbowObjects ("Rainbow: ellipses",
+		!(A) = (graphics!!oval (A)), 8, 18, 8),
+		[100 210], ),
+
+	(RainbowObjects ("Rainbow: roundrects",
+		!(A) : [T L B R] = {
+			[[L T] [R B]] = A;
+			graphics!!round_rect ([L T], [R B], ((R - L)%2, (B - T)%2))
+			}, 8, 18, 8),
+		[100 370], ),
+
+	(GradientObjects ("Gradient: rectangles",
+		!(A) = (graphics!!rect (A)), 24, !Magenta),
+			[400 50], [250 150]),
+
+	(GradientObjects ("Gradient: rhombs",
+		!(A) : [T L B R CX CY] = {
+			[[L T] [R B]] = A;
+			[CX CY] = ((L + R) % 2, (T + B) % 2);
+
+			graphics!!polygon (
+				[CX T], [L CY], [CX B], [R CY],
+				)
+			}, 20, !Yellow),
+			[400 200], [250 150]),
+
+	(GradientObjects ("Gradient: ellipses",
+		!(A) = (graphics!!oval (A)), 32, !Cyan),
+			[400 350], [250 150]),
+
+	);
+
+<: "Done test (DrawDemo3).\n";

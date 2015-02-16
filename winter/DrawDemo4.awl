@@ -1,0 +1,94 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'DrawDemo4.awl':
+	|	Draw rainbow shapes (arcs/chords/wedges).
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+:[deb_mode];
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug (^_) : (^_);
+
+` Set sector angles `
+:[sector_angle];
+sector_angle = array(8);
+
+a_load (sector_angle,
+	(0, 1),
+	(1, 1),
+	(1, 0),
+	(1, -1),
+	(0, -1),
+	(-1, -1),
+	(-1, 0),
+	(-1, 1),
+	);
+
+` Offset 'point' by 'vector' scaled by 'factor' `
+! offset (point vector factor) =
+	` old version ... `
+	` (point[0] + factor*vector[0], point[1] + factor*vector[1]) `
+	
+	` new version: `
+	graphics!!vec_add (point, vec_scale (factor, vector));
+
+` Draw circle of colored arc objects `
+!! [Widget] ColorArcs (Start End Shift Object)
+
+	` constructor `
+	= {
+		End = offset (End, Start, -1);
+		Start = offset ([0 0], Shift, 2);
+		End = offset (End, Start, 1);
+		[Width Height] = offset (End, Start, 1);
+		}
+
+	{
+
+	! #on_paint (L_T R_B) : [i a_start a_end a_center args] = x_debug (graphics!! {
+		` (paint widget area) `
+		fill_color (Grey(Normal)):: fill (L_T, R_B);
+
+		! dir_vector =
+			( Shift[0]*(a_start[0] + a_end[0]),
+			  Shift[1]*(a_start[1] + a_end[1]) );
+
+		for_inc (i, 8,
+			fill_color (RGB8 (i)):: {
+				a_start = ^sector_angle{i ? i - 1 : 7};
+				a_end = ^sector_angle{i};
+
+				a_center = dir_vector ();
+				args = (offset([Start a_center 1]), offset([End a_center 1]),
+					a_start, a_end);
+				Object ! args;
+				});
+		
+		})		` -- on_paint `
+
+	};		` -- ColorArcs `
+
+`
+	Launch windowing session
+`
+
+WinSession (
+
+	(ColorArcs ("Color sectors (R=100)", [0 0], [200 200], [8 8], graphics!!(! wedge)),
+		[100 100], ),
+
+	(ColorArcs ("Color chords (R=100)", [0 0], [200 200], [8 8], graphics!!(! chord)),
+		[360 100], ),
+
+	);
+
+<: "Done test (DrawDemo4).\n";

@@ -1,0 +1,70 @@
+
+`
+	Apollonian.awl: Apollonian circles
+`
+
+include "winter.awl";
+
+:[];
+
+` draw centered circle: `
+! c_circle (X Y R) = graphics!! oval ((X-R, Y-R), (1 + X+R, 1 + Y+R));
+
+! apollony (XC YC R Count) : [x y r S a] = graphics!!{
+	r = sqr 3;
+
+	c_circle (XC, YC, R * (2+r));
+	fill_color (0):: plot_disable (1):: c_circle (XC, YC, 4);
+
+	XC =-: R*(r+1);
+
+	[x y] = (rand(R) / R, rand(R) / R);
+
+	times (Count):: {
+	x = 1 + r - x;
+	plot (XC + x*R, YC + y*R);
+
+	if (S = x*x + y*y):: {
+		[x y] = (3*x/S - (1+r)/(2+r), 3*y/S);
+
+		if ((a = rand(3)) && (S = x*x + y*y)):: {
+			x =/: S; y =/: S;
+			[x y] = 
+				(a == 1) ?
+					((-x + y*r) / 2, (y + x*r) / 2):
+					((-x - y*r) / 2, (y - x*r) / 2);
+			};
+		};
+	}	` times(Count) `
+	};
+
+!! [Widget] Apollony (XC YC R FgC BgC Iters)
+	= (	[Height Width] = (
+			2*(XC = 8 + R*(2 + sqr 3)),
+			2*(YC = 8 + R*(2 + sqr 3))
+			)
+		)
+
+	{
+
+	! #on_paint (L_T R_B) = graphics!! {
+		fill_color (0):: fill (L_T, R_B);
+
+		plot_color(BgC):: fill_color(FgC):: apollony ([XC YC R Iters]);
+		}
+
+	};
+
+randomize ();
+
+WinSession (
+
+	(Apollony ("Apollonian ¹1 (R=60)", 250, 250, 60, Green(), Blue(), 60000),
+		[0 0], ),
+	(Apollony ("Apollonian ¹2 (R=40)", 180, 180, 40, Red(), Yellow(), 40000),
+		[100 100], ),
+	(Apollony ("Apollonian ¹3 (R=24)", 180, 180, 24, Magenta(), Cyan(), 20000),
+		[200 200], ),
+
+	);
+

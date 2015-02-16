@@ -1,0 +1,113 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'DrawDemo5.awl':
+	|	Screen/image blitting test.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+:[deb_mode];
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug (^_) : (^_);
+
+` Draw circle of colored arc objects `
+!! [Widget] BlitTest (Count Shape StepH StepW OffScreen)
+	= ([Height Width] = (StepH * (2*Count + 1), StepW * (2*Count + 1)))
+
+	{
+	! #on_paint (L_T R_B) : [org offset image i] = x_debug (graphics!! {
+		fill_color (Grey(Lite)):: fill (L_T, R_B);
+
+		org = (StepW*Count, StepH*Count);
+		OffScreen ? {
+			` (draw shape in memory image) `
+			image = image_create (StepW, StepH);
+			with_image (image):: (Shape ! ([0 0], (StepW, StepH)));
+			}
+			:
+			` (draw shape on screen surface) `
+			Shape ! (org, (org[0] + StepW, org[1] + StepH));
+
+		` Make copy of shape: `
+		! copy_shape(to) = 
+		OffScreen ?
+			` image -> screen copy: `
+			image_blit(image, [0 0], (), to, [StepW StepH]) :
+			` screen -> screen copy: `
+			image_blit((), org, (), to, [StepW StepH]);
+
+		for_inc (i, Count, {
+			offset = (StepW*i, StepH*i);
+
+				` (top/left): `
+			copy_shape (offset);
+				` (top): `
+			copy_shape (org[0], offset[1]);
+				` (top/right): `
+			copy_shape (org[0]*2 - offset[0], offset[1]);
+				` (right): `
+			copy_shape (org[0]*2 - offset[0], org[1]);
+				` (bottom/right): `
+			copy_shape (org[0]*2 - offset[0], org[1]*2 - offset[1]);
+				` (bottom): `
+			copy_shape (org[0], org[1]*2 - offset[1]);
+				` (bottom/left): `
+			copy_shape (offset[0], org[1]*2 - offset[1]);
+				` (left): `
+			copy_shape (offset[0], org[1]);
+			});
+
+		if (OffScreen):: {
+			` (center): `
+			copy_shape (org);
+
+			image_destroy (image);
+			}
+		})
+	};	` -- BlitTest `
+
+`
+	Launch windowing session
+`
+
+WinSession (
+
+	(BlitTest ("BlitTest #1 (offscreen)", 5,
+		!(l_t r_b) =
+			(graphics!!plot_color (Cyan()):: {
+			fill_color (Magenta()):: rect (l_t, r_b);
+			fill_color (Grey (Dark))::
+				rect ((l_t[0] + 3, l_t[1] + 3), (r_b[0] - 3, r_b[1] - 3))
+			}), 20, 15, 1),
+		[100 200], ),
+
+	(BlitTest ("BlitTest #2 (offscreen)", 3,
+		!(l_t r_b) =
+			(graphics!!plot_color (Red()):: {
+			fill_color (Blue(Dark)):: oval (l_t, r_b);
+			fill_color (Blue(Lite))::
+				oval ((l_t[0] + 5, l_t[1] + 5), (r_b[0] - 5, r_b[1] - 5))
+			}), 36, 25, 1),
+		[280 200], ),
+
+	(BlitTest ("BlitTest #3", 6,
+		!(extent) =	(graphics!!plot_color (Blue()):: fill_color (Green())::
+			rect (extent)), 18, 24, 0),
+		[50 50], ),
+
+	(BlitTest ("BlitTest #4", 4,
+		!(extent) = (graphics!!plot_color (Yellow()):: fill_color (Red())::
+			oval (extent)), 25, 30, 0),
+		[240 50], ),
+
+	);
+
+<: "Done test (DrawDemo5).\n";

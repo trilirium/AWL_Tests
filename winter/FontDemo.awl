@@ -1,0 +1,162 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'FontDemo.awl':
+	|	Text output: changing font styles/attributes,
+	|	calculating text metrics.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug(^_) : (^_);
+
+show_baseline = true();
+
+` Form and output 'Content' at point 'Origin' `
+! form_line (Origin @Content) : [x y cMetrics cWidth cAscent cDescent cLeading] =
+	graphics !! {
+
+	` first, measure Content: `
+	text_metrics (cMetrics, 1, ^Content);
+	[cWidth cAscent cDescent cLeading] = cMetrics;
+
+	[x y] = Origin;
+	y =+: cAscent;
+
+	` (background) `
+	fill ((x, y - cAscent), (cWidth, cAscent + cDescent + cLeading));
+
+	` output Content at baseline: `
+	text_org ([x y]);
+	^Content;
+
+	` show baseline? `
+	show_baseline ? plot_color (Blue(192)) :: line ([x y], (x + cWidth, y)) :;
+
+	` return new origin: `
+	(x + cWidth, y + cDescent + cLeading) };		` -- form_line `
+
+`
+	Fonts demonstration widget
+`
+!! [Widget] FontsDemo (FontFaces FontSizes FontWidths) {
+
+	! #on_paint (L_T R_B) : [x y r face size] = x_debug (graphics!! {
+		fill_color (Grey(Normal)) :: fill (L_T, R_B);
+
+		x = y = 8;
+
+		` Main font loop: for each font `
+		l_loop (face, FontFaces, font_face (face):: {
+
+		` Line #1 ... `
+		[r y] = form_line ([x y])::
+			{
+			font_weight 1:: text (face);
+			text ": ";
+			text "0123456789 AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
+			};
+
+		` Line #2 ... `
+		[r y] = form_line ([x y])::
+			{
+			font_weight 1:: text "Size: ";
+			l_loop (size, FontSizes,
+			    font_size (size):: text ('(' +$ size +$ ')'));
+
+			text (" || ");
+
+			font_weight 1:: text "Width: ";
+			l_loop (width, FontWidths,
+			    font_width (width):: text ('{' +$ width +$ '}'));
+			};
+
+		` Line #3 ... `
+		[r y] = form_line ([x y])::
+			{
+			font_weight 1:: text "Style: ";
+			text "[Normal] ";
+			font_weight 1:: text "[Bold] ";
+
+			font_italic 1:: {
+				text "[Italic] ";
+				font_weight 1:: text "[Bold Italic] ";
+				};
+
+			font_underline 1:: text "[Under] ";
+			font_overstrike 1:: text "[Over] ";
+			};
+
+		` Line #4 ... `
+		[r y] = form_line ([x y])::
+		{
+		font_weight 1:: text "Color: ";
+
+		font_weight 1::
+			font_fgcolor (Magenta())::
+				font_bgcolor (Green())::
+					text "[Magenta/Green]";
+
+		text ' | ';
+
+		font_weight 1::
+			font_fgcolor (Blue())::
+				font_bgcolor (Yellow())::
+					text "[Blue/Yellow]";
+
+		text ' | ';
+
+		font_weight 1::
+			font_fgcolor (Red())::
+				font_bgcolor (Cyan())::
+					text "[Red/Cyan]";
+
+		text ' | ';
+
+		font_weight 1::
+			font_fgcolor (White())::
+				font_bgcolor (Black())::
+					text "[White/Black]";
+		};
+
+		` divider line `
+		y =+: 4;
+		plot_color (Grey(Lite))::
+			line ([x y], (x + R_B[0], y));
+		y =+: 4;
+
+		});		` -- font loop `
+	})		` -- on_paint `
+
+};	` -- FontsDemo `
+
+`
+	Launch windowing session
+`
+
+WinSession (
+
+	(FontsDemo ("Fonts demonstration",
+
+		` (font faces to demonstrate...) `
+		['Arial' 'Courier' 'Times New Roman' 'Verdana'],
+
+		` (font sizes to demonstrate...) `
+		[14 16 18 24 32 36],
+
+		` (font widths to demonstrate...) `
+		[6 8 10 12 15]
+
+		), [0 0], [760 500]),
+
+	);
+
+<: "Done test (FontDemo.awl).\n";

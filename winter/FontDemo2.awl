@@ -1,0 +1,78 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'FontDemo2.awl':
+	|	Text output: text box alignment.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug(^_) : (^_);
+
+!! [Widget] TextBoxDemo
+	(Labels
+	 BoxH BoxW GapH GapW
+	 DColor NColor LColor)
+
+	= ([Height Width] = (3*(2*GapH + BoxH), 3*(2*GapW + BoxW)))
+
+	{
+
+	! text_box_at (flags row col) : [label] = graphics!! {
+	label = Labels[row][col];
+
+	row =*: (2*GapH + BoxH);
+	col =*: (2*GapW + BoxW);
+
+	frame3D ([col row], (col + 2*GapW + BoxW, row + 2*GapH + BoxH),
+	    [GapW GapH], NColor, LColor, DColor);
+
+	col =+: GapW;
+	row =+: GapH;
+
+	text_box (flags, [col row], (col + BoxW, row + BoxH), text (label));
+	},
+
+	! #on_paint (L_T R_B) : [r c] = graphics!! {
+
+	fill_color (Grey(\x80)):: fill (L_T, R_B);
+
+	align_list = [1 3 2];
+
+	font_size 16:: font_weight 1::
+	fill_color (NColor):: font_bgcolor (NColor):: font_fgcolor (White ())::
+	for_inc (r, 3,
+	    for_inc (c, 3,
+		text_box_at ((align_list[r] << 4) | align_list[c], r, c)
+		)
+	    );
+
+	}
+	
+	};	` -- TextBoxDemo `
+
+`
+	Launch windowing session
+`
+
+WinSession (
+	(TextBoxDemo ("Text alignment demo",
+	    (
+		["[Top + Left]"		"[Top]"		"[Top + Right]"],
+		["[Left]"			"[Center]"	"[Right]"],
+		["[Bottom + Left]"	"[Bottom]"	"[Bottom + Right]"],
+	    ),
+		40, 120, 8, 12,
+		Grey \x40, Grey \x80, Grey \xC0), [0 0], ),
+
+	);
+
+<: "Done test (FontDemo2.awl).\n";

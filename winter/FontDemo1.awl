@@ -1,0 +1,126 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'FontDemo1.awl':
+	|	Text output: Unicode character ranges
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+! show_text (@Body) : [cMetrics cWidth cAscent cDescent] = graphics!!{
+
+	text_metrics (cMetrics, 1, ^Body);
+	[cWidth cAscent cDescent cLeading] = cMetrics;
+	[x y] = get_text_org ();
+	rect ((x - 1, y - 1 - cAscent),
+		(x + cWidth + 2, y + cDescent + 2));
+	^Body;
+	};
+
+! cc_range (from to) = s_ord(from) .. s_ord(to)+1;
+
+! example (Label Range) = graphics!!{
+	text (Label); text (": [");
+	font_weight 1:: text (s_range (1, 0, Range));
+	text "] = {";
+	font_italic 1:: text (s_Hex(Range[0]));
+	text " .. ";
+	font_italic 1:: text (s_Hex(Range[1]));
+	text "}";
+
+	text_org (8, row =+: 22);
+	};
+
+!! [Widget] ExtFonts {
+
+	! #on_paint (L_T R_B) = graphics!!{
+	fill_color (White()) :: fill (L_T, R_B);
+	
+	text_org (8, row = 18);
+	
+	font_face "Times New Roman":: font_size (18):: {
+
+	example ("Decimal digits", cc_range ('0'..'9'));
+
+	example ("Latin lower", cc_range ('a'..'z'));
+	example ("Latin upper", cc_range ('A'..'Z'));
+
+	example ("Latin-1 lower", \x0E0..\x100);
+	example ("Latin-1 upper", \x0C0..\x0E0);
+
+	example ("Cyrillic lower", \x430..\x450);
+	example ("Cyrillic upper", \x410..\x430);
+
+	example ("Greek lower", \x3B1..\x3CA);
+	example ("Greek upper", \x391..\x3AA);
+
+	example ("Armenian upper", \x531..\x557);
+	example ("Hebrew", \x5D0..\x5EB);
+	example ("Arabic", \x627..\x64B);
+	}
+	}
+	
+	};	` -- ExtFonts `
+
+` special characters... `
+! example1 (Label Text) = graphics!!{
+	text (Label); text ": ( ";
+	font_weight 1:: text (Text);
+	text " ).";
+
+	text_org (8, row =+: 22);
+	};
+
+!! [Widget] ExtFonts1 {
+
+	! #on_paint (L_T R_B) = graphics!!{
+	fill_color (White()) :: fill (L_T, R_B);
+	
+	text_org (8, row = 18);
+
+	font_face "Arial":: font_size (18):: {
+
+	example1 ("A-letters",
+		\U "A|a: { \['A]|\['a] \[`A]|\[`a] \[^A]|\[^a] \[~A]|\[~a] \[-A]|\[-a] \[:A]|\[:a] }");
+	example1 ("E-letters",
+		\U "E|e: { \['E]|\['e] \[`E]|\[`e] \[^E]|\[^e] \[-E]|\[-e] \[:E]|\[:e] }");
+	example1 ("I-letters",
+		\U "I|i: { \['I]|\['i] \[`I]|\[`i] \[^I]|\[^i] \[-I]|\[-i] \[:I]|\[:i] }");
+	example1 ("O-letters",
+		\U "O|o: { \['O]|\['o] \[`O]|\[`o] \[^O]|\[^o] \[~O]|\[~o] \[-O]|\[-o] \[:O]|\[:o] }");
+	example1 ("U-letters",
+		\U "U|u: { \['U]|\['u] \[`U]|\[`u] \[^U]|\[^u] \[~U]|\[~u] \[-U]|\[-u] \[:U]|\[:u] }");
+	example1 ("Ligatures",
+		\U "{ \[AE]|\[ae] \[sz] }");
+	example1 ("Punctuation",
+		\U " \[??] \[!!] \[-] \[--] \[...] \[<<] \[>>] ");
+	example1 ("Trademarks",
+		\U " \[(C)] \[(R)] \[(tm)] ");
+	example1 ("Fractions",
+		\U " \[1/4] \[1/2] \[3/4] 360\[_%] ");
+	example1 ("Currency",
+		\U " \[_crcy] \[_pound] \[_euro] ");
+
+	}
+	}
+	
+	};	` -- ExtFonts1 `
+
+`
+	Launch windowing session
+`
+
+WinSession (
+
+	(ExtFonts ("Character sets demo", ), [0 0], [760 500]),
+
+	(ExtFonts1 ("Special characters demo", ), [0 100], [760 500]),
+
+	);
+
+<: "Done test (FontDemo1.awl).\n";

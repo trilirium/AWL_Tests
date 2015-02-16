@@ -1,0 +1,104 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'DrawDemo9.awl':
+	|	Scroll pattern.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+:[deb_mode];
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug (^_) : (^_);
+
+` Draw flower image `
+! DrawFlower (Center Radius Total Step) :
+	[X Y i j points] = graphics!! {
+[X Y] = Center;
+
+points = array (Total);
+for_inc (i, Total, {
+	j = pi (2*i / Total);
+	points{i} = (X + Radius*sin(j), Y + Radius*cos(j));
+	});
+
+i = 0;
+plot (Center);
+
+do_while (i):: {
+	j = (i + Step) %% Total;			` cycle modulo Total `
+	line (points{i}, points{j});
+	i = j;
+	};
+};		` -- DrawFlower `
+
+!! [Widget] ScrollDemo (W H Radius Total Step FgColor BgColor) : [image]
+
+	= ([Width Height] = [W H])
+
+	{
+
+	! #on_open = graphics!! {
+		image = with_widget^ image_create (W, H);
+		with_widget^with_image (image):: {
+			fill_color (BgColor):: fill ([[0 0] [W H]]);
+			plot_color (FgColor):: DrawFlower ((W % 2, H % 2), Radius, Total, Step);
+			}
+		},
+
+	! #on_paint (L_T R_B) = graphics!! {
+		fill_color (Black()):: fill ([L_T R_B]);
+
+		image_blit (image, [0 0], (), [0 0], [W H]);
+		},
+
+	! do_scroll (dX dY) = graphics!! with_widget^ {
+		image_scroll (image, 0..W, 0..H, [dX dY]);
+		image_blit (image, [0 0], (), [0 0], [W H]);
+		},
+
+	! #on_key (action key) : [plane angle flags] =
+		if (action > 0):: {
+
+			switch (key):: (
+				KB_Left::		do_scroll (-8, 0),
+				KB_Right::		do_scroll ( 8, 0),
+
+				KB_Up::			do_scroll (0, -8),
+				KB_Down::		do_scroll (0,  8),
+
+				KB_Home::		do_scroll (-8, -8),
+				KB_End::		do_scroll (-8,  8),
+
+				KB_PgUp::		do_scroll ( 8, -8),
+				KB_PgDn::		do_scroll ( 8,  8),
+				)},
+
+	! #on_mouse_move (State From To) =
+		if ((State & (MB_Right << 16)) && #From && #To)::
+			do_scroll (To[0] - From[0], To[1] - From[1]),
+
+	! #on_close = with_widget (graphics!!image_destroy (image)),
+
+	};
+
+`
+	Launch windowing session
+`
+
+WinSession (
+
+	(ScrollDemo ("Scroll test - A", 200, 200, 80, 47, 29, Cyan(), Red()), [20 20], ),
+	(ScrollDemo ("Scroll test - B", 200, 200, 88, 53, 17, Green(), Magenta()), [50 50], ),
+	(ScrollDemo ("Scroll test - C", 200, 200, 76, 61, 15, Blue(), Yellow()), [80 80], ),
+
+	);
+
+<: "Done test (DrawDemo9).\n";

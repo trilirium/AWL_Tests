@@ -1,0 +1,342 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'AnimDemo.awl':
+	|	Simple sprite animation demo.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+` (Optional) Debug wrapper `
+:[deb_mode];
+deb_mode = false();
+
+! x_debug(@_) = deb_mode ? graphics!!with_debug (^_) : (^_);
+
+` Color string patterns `
+:[ pBlack pRed pGreen pBlue pCyan pMagenta pYellow pWhite ];
+:[color_list];
+
+color_list =
+	[ pBlack pBlue pGreen pCyan pRed pMagenta pYellow pWhite ] = [
+	"\x00\x00\x00"
+	"\xFF\x00\x00"
+	"\x00\xFF\x00"
+	"\xFF\xFF\x00"
+	"\x00\x00\xFF"
+	"\xFF\x00\xFF"
+	"\x00\xFF\xFF"
+	"\xFF\xFF\xFF"
+	];
+
+` Find color in list `
+! color_index (pColor) = l_until (!(col) = (pColor [==] col), color_list);
+
+` Cycle previous color `
+! color_prev (pColor) : [index] =
+	#(index = color_index (pColor)) ?
+		color_list [(index ? index : #color_list) - 1] : pColor;
+
+` Cycle next color `
+! color_next (pColor) : [index] =
+	#(index = color_index (pColor)) ?
+		color_list [(index == #color_list - 1) ? 0 : index + 1] : pColor;
+
+`
+	To decode hex data
+`
+
+! HexDecode (source_str) : [src_list i len result] = {
+	src_list = rx_split (rx_any_in (!cc_blank), source_str);
+	source_str = s_join ('', src_list);
+	len = #$source_str % 2;
+	result = "\0" *$ len;
+
+	for_inc (i, len, s_poke (result, i, n_hex (source_str $[range (i*2, 2)])));
+	result };
+
+` Draw greyscale grid `
+! draw_grid (W H) : [x y] = graphics!! {
+	fill_color (Grey \x80)::
+		fill ([0 0], [W H]);
+
+	plot_color (Grey \x40)::
+		for_inc (x, W >> 2, line ((x << 2, 0), (x << 2, W)));
+	plot_color (Grey \xC0)::
+		for_inc (y, H >> 2, line ((0, y << 2), (H, y << 2)));
+	};	` -- draw_grid `
+
+`
+	Actual Animator class
+`
+
+!! Animator (source offset blockW blockH frames fgColor bgColor scrX scrY) :
+	[image phase speed]
+	{
+
+	` open animator: must be called in widget context! `
+	! open = {
+		image = Widget!!with_widget^(graphics!!image_create (blockW*8, blockH*8));
+		phase = 0;
+		speed = 0;
+		},
+
+	` get animator area `
+	! get_area = ([scrX scrY], (scrX + blockW*16, scrY + blockH*16)),
+
+	` show animator image (in active visual) `
+	! show : [palette] = graphics!! {
+		palette = [1 (fgColor +$ bgColor)];
+		image_data_load (image, blockW*8, 0, blockH*8, palette, source$[offset + phase*(blockW*blockH*8) ..]);
+
+		image_stretch (image, [0 0], (blockW*8, blockH*8), (), [scrX scrY], (blockW*16, blockH*16));
+		},
+
+	` change frame (by delta) `
+	! animate (delta) = {
+		phase =+: delta;
+
+		if (delta > 0)::
+			(while (phase >= frames):: (phase =-: frames))
+		::
+		if (delta < 0)::
+			(while (phase < 0):: (phase =+: frames));
+		},
+
+	` cycle color: fg_bg ? foreground : background, next_prev ? forward : backward `
+	! cycle_color (fg_bg next_prev) : [color_op] = {
+		color_op = next_prev ? !color_next : !color_prev;
+		fg_bg ? (fgColor = color_op ! fgColor) : (bgColor = color_op ! bgColor);
+		show ();
+		},
+
+	` close animator: must be called in widget context! `
+	! close = Widget!!with_widget^(graphics!!image_destroy (image)),
+
+	` print info... `
+	! print_info (no) =
+		<: ("Animation: #", no, " @[", scrX, ",", scrY, "] [", blockW, "*", blockH, "] ",
+			"{FG: ", color_index(fgColor), " BG: ", color_index(bgColor), "} speed: ", speed, "\n"),
+
+	};	` -- Animator `
+
+! show_area (color L_T R_B) =
+	graphics!!plot_color(color):: fill_disable (1)::
+		rect ((L_T[0] - 2, L_T[1] - 2), (R_B[0] + 2), (R_B[1] + 2));
+
+! point_inside (point L_T R_B) =
+	inside (point[0], L_T[0]..R_B[0]) && inside (point[1], L_T[1]..R_B[1]);
+
+`
+	Animator test widget
+`
+
+!! [Widget] PatternAnimatorTest (W H anim_list) : [image current timerID ticks]
+
+	= ([Width Height] = [W H])
+
+	{
+
+	! set_timer (freq) = {
+		restart_timer (timerID, freq);
+		ticks = 0;
+		},		` -- set_timer `
+
+	! image_check (X_range Y_dir Y_range pattern): [readback] = graphics!! {
+		image_data_load (image, X_range, Y_dir, Y_range, (), pattern);
+		readback = image_data_save (image, X_range, Y_dir, Y_range, ());
+
+		unless (pattern [==] readback):: (<: "\aImage check error!\n");
+		},
+
+	! #on_open : [anim] = graphics!! {
+		image = with_widget^ image_create (W, H);
+
+		l_loop (anim, anim_list, Animator!!anim.open ());
+		
+		current = 0;
+		
+		set_timer (100);			` 10 Hz base rate `
+		},
+
+	! show_current (on_off) : [area] = {
+		area = anim_list[current]. Animator!!get_area ();
+		show_area ((on_off ? White \xFF : White \x80), area);
+		},
+
+	! #on_paint (L_T R_B) : [anim] = x_debug (graphics!! {
+		fill_color (White \x80):: fill ([L_T R_B]);
+
+		l_loop (anim, anim_list, Animator!!anim.show());
+
+		show_current (1);
+		}),
+
+	! animate_current (direction) =
+		anim_list[current].Animator!! {
+			animate (direction);
+			with_widget (show());
+			},
+
+	! cycle_current_color (fg_bg next_prev) =
+		with_widget (anim_list[current].Animator!!cycle_color (fg_bg, next_prev)),
+
+	! set_current_speed (new_speed) =
+		inside (new_speed, 0..10) ?
+			anim_list[current]. Animator!!(speed = new_speed) : ,
+
+	! #on_key (action key) : [] =
+		if (action > 0):: {
+
+			switch (key):: (
+
+			` select previous animation in list `
+			KB_Left::
+			  with_widget^ {
+				show_current (0);
+
+				if (current == 0):: (current = #anim_list);
+				-- current;
+
+				show_current (1);
+				},
+
+			` select next animation in list `
+			KB_Right::
+			  with_widget^ {
+				show_current (0);
+
+				if (++ current == #anim_list):: (current = 0);
+
+				show_current (1);
+				},
+
+			` select first animation in list `
+			KB_Home::
+			  with_widget^
+				if (current <> 0):: {
+					show_current (0);
+					current = 0;
+					show_current (1);
+					},
+
+			` select last animation in list `
+			KB_End::
+			  with_widget^
+				if (current <> #anim_list - 1):: {
+					show_current (0);
+					current = #anim_list - 1;
+					show_current (1);
+					},
+
+			KB_Up::
+				animate_current (-1),
+
+			KB_Down::
+				animate_current (1),
+
+			KB_F5::
+				cycle_current_color (0, 0),
+
+			KB_F6::
+				cycle_current_color (0, 1),
+
+			KB_F7::
+				cycle_current_color (1, 0),
+
+			KB_F8::
+				cycle_current_color (1, 1),
+
+			` default `
+			(
+			inside (key, \c'0'..\c'9'+1) ?
+				set_current_speed (key - \c'0') :
+			(key == CH_Return) ?
+				(anim_list[current]. Animator!!print_info (current)) :
+			)
+			)
+		},
+
+	! #on_mouse_click (Event Buttons At) : [anim new] = {
+		new = 0;
+		l_loop (anim, anim_list, {
+			point_inside (At, Animator!!anim.get_area ()) ?
+				with_widget^ { show_current (0); current = new; show_current (1); } : ;
+			++ new;
+			});
+		},
+
+	! #on_mouse_wheel (State Wheel At) =
+		if (MB_State(State) == MB_Left || MB_State(State) == MB_Right)::
+			animate_current (Wheel < 0 ? -1 : 1),
+
+	! #on_timer : [anim] = {
+		++ ticks;
+		
+		with_widget (
+			l_loop (anim, anim_list, Animator!!anim.
+				(if (speed && (ticks %% speed == 0))::
+					{ animate (1); with_widget (show()); })
+				)
+			)
+		},
+
+	! #on_close : [anim] = {
+		l_loop (anim, anim_list, Animator!!anim.close ());
+		with_widget (graphics!!image_destroy (image))
+		}
+
+	};	` -- PatternAnimatorTest `
+
+include "AnimData.awl";
+
+! AnimTest (HexSource blockW blockH NFrames fgColor bgColor gridX gridY) =
+	Animator (HexDecode (HexSource), 0, blockW, blockH, NFrames, fgColor, bgColor, gridX << 3, gridY << 3);
+
+WinSession (
+
+	(PatternAnimatorTest ("Simple pattern animation test", 480, 320,
+		(
+		AnimTest (ManicMiner_B700_100, 2, 2, 8, pYellow, pBlue, 2, 2),
+		AnimTest (ManicMiner_BF00_100, 2, 2, 8, pGreen, pMagenta, 8, 2),
+		AnimTest (ManicMiner_BB00_100, 2, 2, 8, pRed, pCyan, 14, 2),
+		AnimTest (ManicMiner_C300_100, 2, 2, 8, pWhite, pBlack, 20, 2),
+		AnimTest (ManicMiner_DB00_80, 2, 2, 4, pBlue, pYellow, 26, 2),
+		AnimTest (ManicMiner_DF80_80, 2, 2, 4, pYellow, pRed, 32, 2),
+		AnimTest (ManicMiner_EF00_100, 2, 2, 4, pYellow, pBlue, 38, 2),
+		AnimTest (ManicMiner_F300_80, 2, 2, 4, pMagenta, pYellow, 44, 2),
+
+		AnimTest (JetSetWilly_AC00_80, 2, 2, 4, pCyan, pBlue, 2, 8),
+		AnimTest (JetSetWilly_AC80_80, 2, 2, 4, pCyan, pBlack, 8, 8),
+		AnimTest (JetSetWilly_AD00_80, 2, 2, 4, pGreen, pBlue, 14, 8),
+		AnimTest (JetSetWilly_AD80_80, 2, 2, 4, pGreen, pMagenta, 20, 8),
+		AnimTest (JetSetWilly_AE00_80, 2, 2, 4, pRed, pBlue, 26, 8),
+		AnimTest (JetSetWilly_AE80_80, 2, 2, 4, pRed, pYellow, 32, 8),
+		AnimTest (JetSetWilly_BC00_100, 2, 2, 8, pCyan, pBlack, 38, 8),
+		AnimTest (JetSetWilly_BE00_80, 2, 2, 4, pMagenta, pWhite, 44, 8),
+
+		AnimTest (PyjamaRama_A389_60, 2, 2, 3, pBlack, pRed, 2, 14),
+		AnimTest (PyjamaRama_A449_C0, 2, 2, 6, pBlack, pGreen, 8, 14),
+		AnimTest (PyjamaRama_A14B_80, 2, 2, 4, pBlack, pCyan, 14, 14),
+		AnimTest (PyjamaRama_A84B_100, 2, 2, 8, pBlack, pYellow, 20, 14),
+		AnimTest (PyjamaRama_A94B_80, 2, 2, 4, pBlack, pYellow, 26, 14),
+		AnimTest (PyjamaRama_A08B_A0, 2, 2, 5, pBlack, pMagenta, 32, 14),
+		AnimTest (PyjamaRama_A68B_100, 2, 2, 8, pBlack, pCyan, 38, 14),
+		AnimTest (PyjamaRama_A78B_C0, 2, 2, 5, pBlack, pRed, 44, 14),
+
+`
+		AnimTest (TirNaNog_943E_F50, 4, 7, 14, pBlack, pBlue, 2, 20),
+		AnimTest (TirNaNog_DDB7_118, 5, 7, 1, pRed, pBlack, 30, 20)
+`
+		)
+		)
+	),
+
+	);		` -- WinSession `
+
+<: "Done test (AnimDemo).\n";
