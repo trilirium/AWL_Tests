@@ -1,17 +1,30 @@
 
-Various AWL tests:
+AWL specific tests:
 
-	Array, Array1, Array2, Array3:
-	array operations
+	* Array, Array1, Array2, Array3:
+	operations on arrays
 
+	* BitOpcode:
+	bit operations (set, clear, check, locate, count)
 
-	BitOpcode:
-	bit set/clear/check
+	* Coerce:
+	scalar (string <-> number) coercion operations
 
-	Coerce:
-	string/number coercions
-
-
-	Object:
-	object operations
+	* Object:
+	class/object operations
 	
+	* Return:
+	return from functors
+
+	* Ring:
+	ring operations
+
+	* ScalList:
+	scalar/list implicit conversions
+
+	* StringMut:
+	checking "string mutators"
+
+	* Strings
+	string operations
+
