@@ -1,0 +1,944 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Object3D.awl':
+	|	Simple 3D objects browser.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+include "Matrix3D.awl";
+
+` declare all global variables `
+:[];
+
+` Output vertex `
+! put_vertex (X Y Z) =
+	<: ("(", X, ", ", Y, ", ", Z, ")");
+
+` Add vectors A and B `
+! add_vertex (A B) = (B[0] + A[0], B[1] + A[1], B[2] + A[2]);
+
+` Subtract vectors A and B `
+! sub_vertex (A B) = (B[0] - A[0], B[1] - A[1], B[2] - A[2]);
+
+` Calculate vertex radius `
+! rad_vertex (X Y Z) = sqr (X*X + Y*Y + Z*Z);
+
+` Calculate vector product of A and B `
+! prod_vertex (A B) =
+	(A[1]*B[2] - A[2]*B[1], A[2]*B[0] - A[0]*B[2], A[0]*B[1] - A[1]*B[0]);
+
+` Calculate normal vector for 'facet' `
+! facet_norm (vertices facet) : [vertex_1] = {
+	vertex_1 = vertices[facet[1]];
+
+	` result is: `
+	prod_vertex (
+		sub_vertex(vertices[facet[0]], vertex_1),
+		sub_vertex(vertex_1, vertices[facet[2]])
+		)
+};		` facet_norm `
+
+! label_id (Label i) = "    " +$ Label +$ (i+1) +$ ": ";
+
+! label_list (Label List) =
+	Label +$ "{" +$ #List +$ "}={" +$ s_join (", ", l_map (!(s) = (Label +$ (s+1)), List)) +$ "}";
+
+`
+	Simple (strictly convex) 3D object
+`
+!! Simple3D (NameOf VertexList EdgeList FacetList FacetColor) {
+
+	` Dump information about 3D object (self) `
+	! dump : [n iV vertex iE edge0 edge1 edge_vec iF facet V_E_link V_F_link] = {
+		<: ("Object: ", NameOf, "\n");
+
+		` Collect Vertex->Edge list: `
+		V_E_link = array (#VertexList);
+		for_inc (iE, #EdgeList,
+			l_loop (iV, EdgeList[iE], V_E_link{iV} [<-] iE)
+			);
+
+		` Collect Vertex->Facet list: `
+		V_F_link = array (#VertexList);
+		for_inc (iF, #FacetList,
+			l_loop (iV, FacetList[iF], V_F_link{iV} [<-] iF)
+			);
+
+		! list_title (name id array) =
+		    <: ("\n  - ", name, ": ", id, "{", #array, "} ->\n");
+
+		list_title ("Vertices", 'v', VertexList);
+		for_inc (iV, #VertexList, {
+			vertex = ();					` !!! `
+			vertex = VertexList[iV];
+
+			<: label_id ('v', iV); put_vertex (vertex);
+			<: ("\n\t\tR=", rad_vertex (vertex), "\n");
+			<: ("\t\t",
+				label_list ('e', [~] V_E_link{iV}), ", ",
+				label_list ('f', [~] V_F_link{iV}), "\n");
+			});
+
+		list_title ("Edges", 'e', EdgeList);
+		for_inc (iE, #EdgeList, {
+			[edge0 edge1] = EdgeList[iE];
+			edge_vec = sub_vertex (VertexList[edge0], VertexList[edge1]);
+			<: label_id ('e', iE);
+			<: ('[', 'v', (edge0 + 1), " -> ", 'v', (edge1 + 1), "],\t",
+				"L=", rad_vertex (edge_vec), "\n");
+			});
+
+		list_title ("Facets", 'f', FacetList);
+		for_inc (iF, #FacetList, {
+			<: (label_id ('f', iF), label_list ('v', FacetList[iF]));
+
+			<: ",\tN=";
+			n = facet_norm (VertexList, FacetList[iF]);
+			put_vertex (n);
+			<: "\n";
+			});
+
+		<: "\n";
+		}	` dump `
+
+	};		` -- Simple3D `
+
+`
+	3D object viewer widget
+`
+
+` Widget draw flags: `
+
+:[ShowFacets ShowEdges ShowAxes ShowRadials FadeFacets];
+
+ShowFacets	= 1 << 0;			` enable facets drawing `
+ShowEdges	= 1 << 1;			` enable edges drawing `
+ShowAxes	= 1 << 2;			` enable axis drawing `
+ShowRadials	= 1 << 3;			` enable vertex radials drawing `
+FadeFacets	= 1 << 4;			` enable facets fading `
+
+
+:[DefViews];
+
+` Default views for (AX, AY, AZ) `
+DefViews = [
+
+	` "Forward" view `
+	[(0,  0, -1) (0,  1,  0) (1,  0,  0) :]
+	` "Top" view `
+	[(1,  0,  0) (0,  0, -1) (0,  1,  0) :]
+	` "Left" view `
+	[(0,  1,  0) (1,  0,  0) (0,  0, -1) :]
+
+	` "Backward" view `
+	[( 0, -1,  0) ( 0,  0,  1) (-1,  0,  0) :]
+	` "Bottom" view `
+	[( 0,  0,  1) (-1,  0,  0) ( 0, -1,  0) :]
+	` "Right" view `
+	[(-1,  0,  0) ( 0, -1,  0) ( 0,  0,  1) :]
+
+	:];
+
+:[HelpText];
+HelpText = "3D view widget.
+
+Use these keys to:
+	[Left]/[Right]: rotate 30 deg left/right (around horizonal axis);
+	[Up]/[Down]: rotate 30 deg up/down (around vertical axis);
+	[Home]/[End]: rotate 30 deg CW/CCW (around central axis);
+
+	[1]..[6]: select fixed view;
+
+	[F1]: show this help;
+	[F2]: dump 3D object info to console;
+	[F3]: dump visual matrix to console;
+	[F5]: facets drawing on/off;
+	[F6]: edges drawing on/off;
+	[F7]: axes drawing on/off;
+	[F8]: radials drawing on/off;
+	[F9]: facets fading on/off.
+
+Drag mouse (with right button pressed) for X/Y-rotation of object.
+Turn mouse wheel (with left button pressed) for Z-rotation of object.
+";
+
+!! [Widget] View3D (object3D scale_by) : [matrix norm_length show_flags f_index]
+	= {
+	matrix = Matrix3D ();
+
+	Matrix3D!!matrix. {
+		reset_unit ();
+		scale (scale_by);
+		};
+
+	Title = "View 3D: " +$ Simple3D!!object3D.NameOf;
+
+	show_flags = ShowFacets | FadeFacets;
+
+	Simple3D!!object3D.{
+
+	` initialise norm lengths (already scaled) `
+	! norm_len (i) : [norm] = {
+		` NOTE: "norm" temporary is needed (still) `
+		norm = facet_norm (VertexList, FacetList[i]);
+		scale_by * scale_by * rad_vertex (norm)
+		};
+
+	norm_length = array (#FacetList);
+	a_init_all (norm_length, !norm_len);
+	};
+
+	}		` -- constructor `
+
+	{
+
+	` Draw this object, transformed by 'matrix', in current context `
+	! draw_object (matrix off_X off_Y) :
+		[v_list poly level origin vertex vertex_count edge normal facet colors f_color p0 p1 count] = {
+
+	` transform point to visual coords `
+	! point_vis (ptX ptY ptZ) = (off_X + ptX, off_Y - ptY);
+
+	origin = Matrix3D!!matrix.transform_point ([0 0 0]);
+
+	` draw radial for "vector" (relative, with "color") `
+	! draw_radial (vector Color) : [endpoint] = {
+		endpoint = Matrix3D!!matrix.transform_point(vector);
+		graphics!!plot_color (Color)::
+			line (point_vis(origin), point_vis(endpoint))
+		};
+
+	v_list = Matrix3D!!matrix.l_map (!transform_point, Simple3D!!VertexList);
+
+	if (show_flags & ShowAxes):: {
+		draw_radial ((2, 0, 0), Red());
+		draw_radial ((0, 2, 0), Green());
+		draw_radial ((0, 0, 2), Yellow());
+
+		draw_radial ((-2, 0, 0), Cyan());
+		draw_radial ((0, -2, 0), Magenta());
+		draw_radial ((0, 0, -2), Blue());
+		};
+
+	vertex_count = array (#v_list);
+	a_fill (vertex_count, 0);
+
+	if (show_flags & ShowRadials)::
+		l_loop (vertex, Simple3D!!VertexList, draw_radial (vertex, Grey (\x80)));
+
+	colors = Simple3D!!FacetColor;
+	f_index = 0;
+
+	` draw facets `
+	l_loop (facet, Simple3D!!FacetList, {
+		normal = facet_norm (v_list, facet);
+		colors [->] f_color;
+
+		` create list of vertices:
+			start from 0 `
+		poly = 0;
+
+		l_loop (vertex, facet, {
+			vertex_count{vertex} =+: sgn (normal[2]);
+			poly [<-] (point_vis (v_list [vertex]), );
+			});
+
+		` make list terminated... `
+		l_tail_by (#facet, poly) = ();
+
+		if ((show_flags & ShowFacets) && normal[2] > 0):: {
+		level = (show_flags & FadeFacets) ? int ((normal[2] / norm_length {f_index}) * \xFF) : \xFF;
+		#f_color ?
+			graphics!!plot_disable (1):: fill_color (f_color ! level):: polygon (poly) :
+			graphics!!polygon (poly);
+		};
+
+		f_index ++;
+		});
+
+	` draw edges `
+	if (show_flags & ShowEdges)::
+	  l_loop (edge, Simple3D!!EdgeList, {
+		[p0 p1] = edge;
+		count = vertex_count{p0} + vertex_count{p1};
+
+		graphics!!plot_color (White (count > 0 ? \xC0 : count < 0 ? \x40 : \x80))::
+			line (point_vis(v_list[p0]), point_vis(v_list[p1]));
+		});
+
+	},	` -- draw_object `
+
+	! draw = {
+		graphics!!fill_color (Black ()):: fill ([0 0], [Width Height]);
+		object3D.draw_object (matrix, Width%2, Height%2);
+		},
+
+	! redraw = with_widget^draw (),
+
+	! #on_paint (L_T R_B) = draw (),
+
+	! #on_resize = redraw (),
+
+	! show_help = alert_box ("View3D Help", HelpText),
+
+	` Select view #0..6 (from list of 'DefViews') `
+	! select_view (i) : [v] = {
+		v = DefViews [i];
+		matrix.Matrix3D!! {
+			AX.Axis3D!!set(v[0]);
+			AY.Axis3D!!set(v[1]);
+			AZ.Axis3D!!set(v[2]);
+
+			scale (scale_by);
+			};
+		},
+
+	! #on_char (Char) =
+		if (dc_b '1' <= Char && Char <= dc_b '6')::
+			{ select_view (Char - dc_b '1'); redraw (); },
+
+	! #on_key (action key) : [i] =
+		if (action > 0)::
+		  switch (key):: (
+			KB_Up:: {
+				matrix.Matrix3D!!rotate_about_X (pi (-1/6));
+				redraw ();
+				},
+			KB_Down:: {
+				matrix.Matrix3D!!rotate_about_X (pi (1/6));
+				redraw ();
+				},
+
+			KB_Left:: {
+				matrix.Matrix3D!!rotate_about_Y (pi (-1/6));
+				redraw ();
+				},
+			KB_Right:: {
+				matrix.Matrix3D!!rotate_about_Y (pi (1/6));
+				redraw ();
+				},
+
+			KB_Home:: {
+				matrix.Matrix3D!!rotate_about_Z (pi (-1/6));
+				redraw ();
+				},
+			KB_End:: {
+				matrix.Matrix3D!!rotate_about_Z (pi (1/6));
+				redraw ();
+				},
+
+			KB_Center:: {
+				matrix.Matrix3D!! Axis3D!! (AX.O = AY.O = AZ.O = 0.0);
+				redraw ();
+				},
+
+			KB_F1::
+				show_help (),
+
+			KB_F2:: {
+				object3D.Simple3D!!dump ();
+				},
+
+			KB_F3:: {
+				<: "Visual matrix:\n";
+				matrix.Matrix3D!!put ();
+				<: '\n';
+				},
+
+			KB_F4::	{
+				<: "Facet norms:\n";
+				for_inc (i, a_dims(norm_length),
+				    <: (i, ": ", norm_length{i}, "\n"));
+				},
+
+			KB_F5:: {
+				show_flags =~: ShowFacets;
+				redraw();
+				},
+			KB_F6:: {
+				show_flags =~: ShowEdges;
+				redraw();
+				},
+			KB_F7:: {
+				show_flags =~: ShowAxes;
+				redraw();
+				},
+			KB_F8:: {
+				show_flags =~: ShowRadials;
+				redraw();
+				},
+			KB_F9:: {
+				show_flags =~: FadeFacets;
+				redraw();
+				},
+		
+			),
+
+	! #on_mouse_move (State From To) = {
+		if ((MB_State(State) == MB_Left || MB_State(State) == MB_Right) && #From && #To)::
+			{
+			matrix.Matrix3D!! {
+				rotate_about_X ((To[1] - From[1]) / scale_by);
+				rotate_about_Y ((To[0] - From[0]) / scale_by);
+				};
+			redraw ();
+			};
+		},	` -- on_mouse_move `
+
+	! #on_mouse_wheel (State Wheel At) = {
+		if (MB_State(State) == MB_Left || MB_State(State) == MB_Right):: {
+			matrix.Matrix3D!!rotate_about_Z (Wheel / 4);
+			redraw ();
+			}
+		},	` -- on_mouse_wheel `
+
+	};		` -- View3D `
+
+`
+	Definition of shapes
+`
+
+`
+	Create new cube (with edge S, 6 base colors)
+`
+
+! build_Cube (S Colors_6) : [s] = {
+	s = S / 2;
+
+	Simple3D (
+	"Cube (" +$ S +$ ")",
+
+	` cube vertices: `
+	[
+		( s,  s,  s)			` v0 `
+		( s,  s, -s)			` v1 `
+		( s, -s,  s)			` v2 `
+		( s, -s, -s)			` v3 `
+
+		(-s,  s,  s)			` v4 `
+		(-s,  s, -s)			` v5 `
+		(-s, -s,  s)			` v6 `
+		(-s, -s, -s)			` v7 `
+	:],
+
+	` cube edges: `
+	[
+		[0 1]
+		[1 3]
+		[3 2]
+		[2 0]
+
+		[0 4]
+		[1 5]
+		[2 6]
+		[3 7]
+
+		[4 5]
+		[5 7]
+		[7 6]
+		[6 4]
+
+	:],
+
+	` cube facets: `
+	[
+		[0 2 3 1]			` f0 `
+		[0 1 5 4]			` f1 `
+		[1 3 7 5]			` f2 `
+
+		[4 5 7 6]			` f3 `
+		[3 2 6 7]			` f4 `
+		[2 0 4 6]			` f5 `
+	:],
+
+	Colors_6
+	)
+	};
+
+`
+	Create new tetrahedron (with edge S, 4 base colors)
+`
+
+! build_Tetrahedron (S Colors_4) : [s t] = {
+	s = S / (2*sqr 3);
+	t = S / (2*sqr 6);
+
+	Simple3D (
+
+	"Tetrahedron (" +$ S +$ ")",
+
+	` tetrahedron vertices: `
+	[
+		(0, 0, S*sqr(2/3) - t)	` v0 `
+		(0, 2*s, -t)			` v1 `
+		(S/2, -s, -t)			` v2 `
+		(-S/2, -s, -t)			` v3 `
+	:],
+
+	` tetrahedron edges: `
+	[
+		[0 1]
+		[0 2]
+		[0 3]
+		
+		[1 2]
+		[2 3]
+		[3 1]
+	:],
+
+	` tetrahedron facets: `
+	[
+		[0 2 1]				` f0 `
+		[1 3 0]				` f1 `
+		[2 0 3]				` f2 `
+		[3 1 2]				` f3 `
+	:],
+	
+	Colors_4
+	)
+	};
+
+`
+	Create new octahedron (with edge S, 4 base colors)
+`
+
+! build_Octahedron (S Color0 Color1 Color2 Color3) : [s] = {
+	s = S / sqr(2);
+
+	Simple3D (
+
+	"Octahedron (" +$ S +$ ")",
+
+	` octahedron vertices: `
+	[
+		( 0,  0,  s)		` v0 `
+
+		( 0,  s,  0)		` v1 `
+		( s,  0,  0)		` v2 `
+		( 0, -s,  0)		` v3 `
+		(-s,  0,  0)		` v4 `
+
+		( 0,  0, -s)		` v5 `
+	:],
+
+	` octahedron edges: `
+	[
+		[0 1]
+		[0 2]
+		[0 3]
+		[0 4]
+
+		[1 2]
+		[2 3]
+		[3 4]
+		[4 1]
+
+		[1 5]
+		[2 5]
+		[3 5]
+		[4 5]
+	:],
+
+	` octahedron facets: `
+	[
+		[0 2 1]			` f0 `
+		[0 3 2]			` f1 `
+		[0 4 3]			` f2 `
+		[0 1 4]			` f3 `
+
+		[1 2 5]			` f4 `
+		[2 3 5]			` f5 `
+		[3 4 5]			` f6 `
+		[4 1 5]			` f7 `
+	:],
+
+	[ Color0 Color1 Color2 Color3
+	  Color2 Color3 Color0 Color1 ]
+	)
+	};
+
+`
+	Create new icosahedron (with edge S, 5 base colors)
+`
+
+! build_Icosahedron (S Color0 Color1 Color2 Color3 Color4) : [T U] = {
+
+	T = S / 2;
+	U = (sqr 5 + 1) / 4;
+
+Simple3D (
+	"Icosahedron (" +$ S +$ ")",
+
+	[
+
+	( 0,  U,  T)		` v0 `
+	( T,  0,  U)		` v1 `
+	(-T,  0,  U)		` v2 `
+	( 0, -U,  T)		` v3 `
+
+	(-U,  T,  0)		` v4 `
+	(-U, -T,  0)		` v5 `
+	(-T,  0, -U)		` v6 `
+	( 0, -U, -T)		` v7 `
+
+	( 0,  U, -T)		` v8 `
+	( T,  0, -U)		` v9 `
+	( U,  T,  0)		` v10 `
+	( U, -T,  0)		` v11 `
+
+	:],
+
+	[
+
+	[0 1]
+	[0 2]
+	[1 2]
+	[1 3]
+	[2 3]
+	  [0 4]
+	  [2 4]
+	  [2 5]
+	  [3 5]
+	  [3 7]
+
+	[4 5]
+	[4 6]
+	[5 6]
+	[5 7]
+	[6 7]
+	  [4 8]
+	  [6 8]
+	  [6 9]
+	  [7 9]
+	  [7 11]
+
+	[8 9]
+	[8 10]
+	[9 10]
+	[9 11]
+	[10 11]
+	  [8 0]
+	  [10 0]
+	  [10 1]
+	  [11 1]
+	  [11 3]
+
+	:],
+
+	[
+	[8 4 0]			` f0 `
+
+	  [6 4 8]		` f1 `	` 6-8  `
+	[8 9 6]			` f2 `	` 8-9  `
+	[9 8 10]		` f3 `	` 8-10 `
+	  [0 10 8]		` f4 `	` 0-10 `
+	[10 0 1]		` f5 `	` 0-1  `
+	[2 1 0]			` f6 `	` 2-0  `
+	  [0 4 2]		` f7 `	` 4-2  `
+	[5 2 4]			` f8 `	` 5-4  `
+	[4 6 5]			` f9 `	` 4-6  `
+
+	  [1 3 11]		` f10 `	` 1-11 `
+	[11 10 1]		` f11 `	` 11-10 `
+	[10 11 9]		` f12 `	` 11-9 `
+	  [7 9 11]		` f13 `	` 7-9 `
+	[9 7 6]			` f14 `	` 7-6 `
+	[5 6 7]			` f15 `	` 5-7 `
+	  [7 3 5]		` f16 `	` 3-5 `
+	[2 5 3]			` f17 `	` 2-3 `
+	[3 1 2]			` f18 `	` 3-1 `
+
+	[3 7 11]		` f19 `
+	:],
+
+	[	Color0 Color1 Color2 Color3 Color4
+		Color2 Color1 Color3 Color2 Color4
+
+		Color3 Color0 Color1 Color4 Color0
+		Color3 Color1 Color0 Color4 Color2
+	]
+	)
+
+};	` -- build_Icosahedron `
+
+`
+	Create new dodecahedron (with edge S, 6 base colors)
+`
+
+! build_Dodecahedron (S Color0 Color1 Color2 Color3 Color4 Color5) : [T U V] = {
+
+T = S / (3 - sqr 5);
+U = S / 2;
+V = S / (sqr 5 - 1);
+
+Simple3D (
+	"Dodecahedron (" +$ S +$ ")",
+
+	[
+
+	( V,  V,  V)		` v0 `
+	( 0,  U,  T)		` v1 `
+	(-V,  V,  V)		` v2 `
+	(-T,  0,  U)		` v3 `
+
+	( U,  T,  0)		` v4 `
+	(-U,  T,  0)		` v5 `
+	(-V,  V, -V)		` v6 `
+	(-T,  0, -U)		` v7 `
+
+	( V,  V, -V)		` v8 `
+	( 0,  U, -T)		` v9 `
+	( 0, -U, -T)		` v10 `
+	(-V, -V, -V)		` v11 `
+
+	( T,  0, -U)		` v12 `
+	( V, -V, -V)		` v13 `
+	( U, -T,  0)		` v14 `
+	(-U, -T,  0)		` v15 `
+
+	( T,  0,  U)		` v16 `
+	( V, -V,  V)		` v17 `
+	( 0, -U,  T)		` v18 `
+	(-V, -V,  V)		` v19 `
+
+	:],
+
+	[
+
+	[0 1]
+	[1 2]
+	[2 3]
+	  [0 4]
+	  [2 5]
+	  [3 7]
+
+	[4 5]
+	[5 6]
+	[6 7]
+	  [4 8]
+	  [6 9]
+	  [7 11]
+
+	[8 9]
+	[9 10]
+	[10 11]
+	  [8 12]
+	  [10 13]
+	  [11 15]
+
+	[12 13]
+	[13 14]
+	[14 15]
+	  [12 16]
+	  [14 17]
+	  [15 19]
+
+	[16 17]
+	[17 18]
+	[18 19]
+	  [16 0]
+	  [18 1]
+	  [19 3]
+
+	:],
+	
+	[
+
+	[16 12 8 4 0]			` f0 `
+
+	[2 1 0  4 5]			` f1 `
+	[6 5 4  8 9]			` f2 `
+	[10 9 8  12 13]			` f3 `
+	[14 13 12  16 17]		` f4 `
+	[18 17 16  0 1]			` f5 `
+
+	[1 2 3  19 18]			` f6 `
+	[5 6 7  3 2]			` f7 `
+	[9 10 11  7 6]			` f8 `
+	[13 14 15  11 10]		` f9 `
+	[17 18 19  15 14]		` f10 `
+
+	[3 7 11 15 19]			` f11 `
+
+	:],
+
+	[	Color0 Color1 Color2 Color3 Color4 Color5
+		Color3 Color4 Color5 Color1 Color2 Color0
+	]
+	)
+};	` -- build_Dodecahedron `
+
+`
+	ExtCube (side S; displace D; color of: (corner/edge/side) facets)
+`
+
+! build_ExtCube (S D ColorC ColorE ColorS) = {
+D =+: S;
+
+Simple3D (
+	"Ext_Cube (" +$ S +$ ", " +$ D +$ ")",
+
+	` (vertices:) `
+	[
+	` (-X vertices: v0..v3) `
+	(-D,  S,  S)
+	(-D, -S,  S)
+	(-D,  S, -S)
+	(-D, -S, -S)
+
+	` (+X vertices: v4..v7) `
+	( D,  S,  S)
+	( D, -S,  S)
+	( D,  S, -S)
+	( D, -S, -S)
+
+	` (-Y vertices: v8..v11) `
+	( S, -D,  S)
+	(-S, -D,  S)
+	( S, -D, -S)
+	(-S, -D, -S)
+
+	` (+Y vertices: v12..v15) `
+	( S,  D,  S)
+	(-S,  D,  S)
+	( S,  D, -S)
+	(-S,  D, -S)
+
+	` (-Z vertices: v16..v19) `
+	( S,  S, -D)
+	(-S,  S, -D)
+	( S, -S, -D)
+	(-S, -S, -D)
+
+	` (+Z vertices: v20..v23) `
+	( S,  S,  D)
+	(-S,  S,  D)
+	( S, -S,  D)
+	(-S, -S,  D)
+
+	:],
+
+	` (edges:) `
+	[
+	` (-X facet edges) `
+	[0 1] [1 3] [3 2] [2 0]
+
+	` (+X facet edges) `
+	[4 5] [5 7] [7 6] [6 4]
+
+	` (-Y facet edges) `
+	[8 9] [9 11] [11 10] [10 8]
+
+	` (+Y facet edges) `
+	[12 13] [13 15] [15 14] [14 12]
+
+	` (-Z facet edges) `
+	[16 17] [17 19] [19 18] [18 16]
+
+	` (+Z facet edges) `
+	[20 21] [21 23] [23 22] [22 20]
+
+
+	` (-X, -Y, -Z vertex edges) `
+	[3 11] [11 19] [19 3]
+
+	` (-X, -Y, +Z vertex edges) `
+	[1 9] [9 23] [23 1]
+
+	` (-X, +Y, -Z vertex edges) `
+	[2 15] [15 17] [17 2]
+
+	` (-X, +Y, +Z vertex edges) `
+	[0 13] [13 21] [21 0]
+
+	` (+X, -Y, -Z vertex edges) `
+	[7 10] [10 18] [18 7]
+
+	` (+X, -Y, +Z vertex edges) `
+	[5 8] [8 22] [22 5]
+
+	` (+X, +Y, -Z vertex edges) `
+	[6 14] [14 16] [16 6]
+
+	` (+X, +Y, +Z vertex edges) `
+	[4 12] [12 20] [20 4]
+
+	:],
+
+	` (facets:) `
+	[
+
+	[2 3 1 0]			` -X 'side' facet `
+	[4 5 7 6]			` +X 'side' facet `
+	[8 9 11 10]			` -Y 'side' facet `
+	[14 15 13 12]		` +Y 'side' facet `
+	[18 19 17 16]		` -Z 'side' facet `
+	[20 21 23 22]		` +Z 'side' facet `
+
+	[9 1 3 11]			` -X, -Y 'edge' facet `
+	[0 13 15 2]			` -X, +Y 'edge' facet `
+	[10 7 5 8]			` +X, -Y 'edge' facet `
+	[6 14 12 4]			` +X, +Y 'edge' facet `
+	[18 10 11 19] 		` -Y, -Z 'edge' facet `
+	[8 22 23 9]			` -Y, +Z 'edge' facet `
+	[14 16 17 15] 		` +Y, -Z 'edge' facet `
+	[13 21 20 12] 		` +Y, +Z 'edge' facet `
+	[19 3 2 17]			` -Z, -X 'edge' facet `
+	[7 18 16 6]			` -Z, +X 'edge' facet `
+	[1 23 21 0]			` +Z, -X 'edge' facet `
+	[22 5 4 20]			` +Z, +X 'edge' facet `
+
+	[19 11 3]			` -X, -Y, -Z 'vertex' facet `
+	[1 9 23]			` -X, -Y, +Z 'vertex' facet `
+	[2 15 17]			` -X, +Y, -Z 'vertex' facet `
+	[21 13 0]			` -X, +Y, +Z 'vertex' facet `
+	[7 10 18]			` +X, -Y, -Z 'vertex' facet `
+	[22 8 5]			` +X, -Y, +Z 'vertex' facet `
+	[16 14 6]			` +X, +Y, -Z 'vertex' facet `
+	[4 12 20]			` +X, +Y, +Z 'vertex' facet `
+
+	:],
+
+	` colors (6 sides, 12 edges, 8 facets) `
+	((ColorS [*] 6) [+] (ColorE [*] 12) [+] (ColorC [*] 8))
+	)
+};	` -- build_ExtCube `
+
+`
+	Launch window session
+`
+WinSession (
+
+	(View3D ((),
+		build_Cube (1, !Red, !Green, !Blue, !Cyan, !Magenta, !Yellow),
+			120), [0 0], [400 400]),
+
+	(View3D ((),
+		build_Tetrahedron (1, !Red, !Green, !Yellow, !Blue),
+			180), [50 0], [400 400]),
+
+	(View3D ((),
+		build_Octahedron (1, !Red, !Green, !Blue, !Yellow),
+			120), [100 0], [400 400]),
+
+	(View3D ((),
+		build_Icosahedron (1, !Red, !Blue, !Green, !Cyan, !Yellow),
+			100), [150 0], [400 400]),
+
+	(View3D ((),
+		build_Dodecahedron (1, !Red, !Magenta, !Blue, !Cyan, !Yellow, !Green),
+			70), [200 0], [400 400]),
+
+	(View3D ((),
+		build_ExtCube (0.7, 0.5, !Yellow, !Blue, !Green),
+			70), [0 200], [350 350]),
+
+	);
+

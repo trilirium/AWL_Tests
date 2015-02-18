@@ -1,0 +1,199 @@
+
+`
+	Game15.awl:
+	well-known puzzle game
+`
+
+include "winter.awl";
+
+` TODO: shuffle puzzle... `
+
+:[];
+
+` Utility: center string of text inside box (Origin:Extent) `
+! center_text (Text Origin Extent) : [Metrics] = graphics!! {
+	` Measure text dimensions `
+	text_metrics (Metrics, 1, text (Text));
+
+	` Check text extent `
+	(Metrics[0] <= Extent[0] && Metrics[1]+Metrics[2] <= Extent[1]) ?
+		` OK to output `
+		{ text_org (
+			Origin[0] + (Extent[0] - Metrics[0]) % 2,
+			Origin[1] + Metrics[1] + (Extent[1] - Metrics[1] - Metrics[2]) % 2
+			);
+		  text (Text);
+		} :
+
+		` otherwise, width or height exceed Extent -- no output at all `
+		;
+	};
+
+
+: [color_list];
+color_list = (!Red, !Yellow, !Green, !Blue);
+
+` Actual Game 15 widget `
+!! [Widget] Game15 (BorderW BorderH TileW TileH EdgeW EdgeH) :
+	[board emptyR emptyC count]
+
+	` constructor `
+	= {
+		Title = "Game 15";
+		board = a_create ([4 4]);
+
+		[Height Width] = (4*TileH + 2*BorderH, 4*TileW + 2*BorderW);
+		}
+
+	{
+
+	` Tile number from row/column `
+	! tile_no (R C) = R*4 + C + 1,
+
+	` Reset game to initial state `
+	! reset : [R C] = {
+		for_inc (R, 4, for_inc (C, 4, (board {R, C} = tile_no(R, C))));
+		count = 15;
+		board {(emptyR = 3), (emptyC = 3)} = 0;
+		},		` -- reset `
+
+	! #on_open = reset (),
+
+	` font attributes prefix `
+	! font_attr (@X) = 	graphics!!
+		font_size(16):: font_weight(1):: font_fgcolor (White(255)) :: (^X),
+
+	` draw game border (returns overall extent) `
+	! draw_border (NColor LColor DColor): [BoardH BoardW] = graphics!! {
+		[BoardH BoardW] = (BorderH + 4*TileH, BorderW + 4*TileW);
+
+		frame3D ([0 0], (BorderW + BoardW, BorderH + BoardH),
+			[EdgeW EdgeH], [NColor LColor DColor]);
+
+		frame3D ((BorderW - EdgeW, BorderH - EdgeH),
+			(BoardW + EdgeW, BoardH + EdgeH),
+			[EdgeW EdgeH], [NColor DColor LColor]);
+
+		(BorderW + BoardW, BorderH + BoardH)
+		},
+
+	` draw tile at (R, C) `
+	! draw_tile (R C) : [tile color] = graphics !! {
+		tile = board {[R C]};
+
+		[R C] = (BorderH + TileH*R, BorderW + TileW*C);
+
+		tile ?
+			` draw not-empty tile: `
+			{
+			color = color_list [(tile - 1) % 4];
+
+			frame3D ([C R], (C + TileW, R + TileH), [EdgeW EdgeH],
+				color ! \x80, color ! \xC0, color ! \x40);
+
+			font_attr (font_bgcolor (color ! \x80)::
+				center_text (tile, [C R], [TileW TileH]));
+			} :
+
+			` empty space `
+			fill_color (0) :: fill ([C R], (C + TileW, R + TileH));
+		},		` -- draw_tile `
+
+	` Draw game board `
+	! #on_paint (L_T R_B) : [R C] = {
+		[C R] = draw_border (Grey \x80, Grey \xC0, Grey \x40);
+
+		graphics!! fill_color(0):: {
+			if (Width > C):: fill ([C 0], [Width Height]);
+			if (Height > R):: fill ([0 R], [Width Height]);
+			};
+
+		` draw tiles: `
+		for_inc (R, 4,
+			for_inc (C, 4,
+				draw_tile ([R C])
+				)
+			);
+		},		` -- on_paint `
+
+	` When game is won... `
+	! winning = alert_box ("Winner!", "You solved the puzzle!"),
+
+	` Wrong move `
+	! error = alert_beep (0),
+
+	` Move tile in appropriate direction [deltaR deltaC]
+	  (must be validated already) `
+	! move_tile (deltaR deltaC) = {
+		deltaR =+: emptyR; deltaC =+: emptyC;
+
+		` if was in place before... `
+		board {deltaR, deltaC} == tile_no (deltaR, deltaC) ?
+			-- count :;
+
+		board {deltaR, deltaC} :=: board {emptyR, emptyC};
+		deltaR :=: emptyR; deltaC :=: emptyC;
+
+		` if is in place after... `
+		board {deltaR, deltaC} == tile_no (deltaR, deltaC) ?
+			++ count :;
+
+		with_widget ({
+			draw_tile ([deltaR deltaC]);
+			draw_tile ([emptyR emptyC]);
+			});
+
+		count == 15 ? winning ():
+		},
+
+	` Try moving tile in appropriate direction [deltaR deltaC] `
+	! try_move (deltaR deltaC) =
+		` Note: reverse move direction `
+		(inside (emptyR - deltaR, 0..4) &&
+		 inside (emptyC - deltaC, 0..4)) ?
+			move_tile (-deltaR, -deltaC) : error (),
+
+	` Try mouse click on tile [tileR tileC] `
+	! try_click (tileR tileC) = {
+		inside (tileR, 0..4) && inside (tileC, 0..4) ? (
+			((emptyC == tileC && abs(emptyR - tileR) == 1) ||
+			 (emptyR == tileR && abs(emptyC - tileC) == 1)) ?
+				` valid click: proceed `
+				move_tile (tileR - emptyR, tileC - emptyC):
+
+				` invalid click `
+				error ()
+			) :
+		},			` -- try_click `
+
+	` Handle key press `
+	! #on_key (action key) =
+		if (action > 0)::
+
+		switch (key):: (
+		KB_Up::		try_move (-1, 0),
+		KB_Down::	try_move (1, 0),
+
+		KB_Left::	try_move (0, -1),
+		KB_Right::	try_move (0, 1),
+
+		CH_Escape::	close_widget (),
+		),		` -- on_key `
+
+	` Handle mouse button press `
+	! #on_mouse_click (button action PointX PointY) =
+		action > 0 && button == MB_Left &&
+		(PointY =-: BorderH) >= 0 && (PointX =-: BorderW) >= 0 ?
+			try_click (PointY % TileH, PointX % TileW) :
+			` -- on_mouse_click `
+
+	};		` -- Game15 `
+
+` Launch windowing session `
+
+WinSession (
+
+	(Game15 ([() 18 18 40 40 4 4]), [0 0], ),
+
+	);
+

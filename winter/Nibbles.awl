@@ -1,0 +1,1403 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Nibbles.awl':
+	|	Nibbles snake game.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+	` Tile index list `
+
+	T_EMPTY	= 0;					` empty space `
+
+	` snake tiles `
+
+	T_HEAD_UP = 8;					` snake head up `
+	T_HEAD_DOWN = 9;				` snake head down `
+	T_HEAD_LEFT = 10;				` snake head left `
+	T_HEAD_RIGHT = 11;				` snake head right `
+
+	T_BODY_V = 12;					` snake body vertical `			
+	T_BODY_H = 13;					` snake body horizontal `
+
+	T_TURN_UL = 16;					` snake turn up/left `
+	T_TURN_UR = 17;					` snake turn up/right `
+	T_TURN_DL = 18;					` snake turn down/left `
+	T_TURN_DR = 19;					` snake turn down/right `
+
+	T_TAIL_UP = 20;					` snake tail up `
+	T_TAIL_DOWN = 21;				` snake tail down `
+	T_TAIL_LEFT = 22;				` snake tail left `
+	T_TAIL_RIGHT = 23;				` snake tail right `
+
+	T_DIGIT = 32;					` digit base (add 0..9) `
+
+	T_WALL	= 64;					` wall base `
+
+	` wall vertical/horizontal edge status `
+	T_EDGE_UP		= 1 << 0;		` up edge `
+	T_EDGE_LEFT		= 1 << 1;		` left edge `
+	T_EDGE_DOWN		= 1 << 2;		` down edge `
+	T_EDGE_RIGHT	= 1 << 3;		` right edge `
+
+	` wall corner status (not used) `
+	T_CORNER_UL		= 1 << 4;		` up/left corner `
+	T_CORNER_UR		= 1 << 5;		` up/right corner `
+	T_CORNER_DL		= 1 << 6;		` down/left corner `
+	T_CORNER_DR		= 1 << 7;		` down/right corner `
+
+	T_TOTAL = 512;
+
+	` Directional motion `
+	MOVE_LEFT = 0;
+	MOVE_UP = 1;
+	MOVE_RIGHT = 2;
+	MOVE_DOWN = 3;
+
+`
+	Define digit bitmaps
+`
+
+
+! encode_characters (char matrix_data) : [result i elem] = {
+	! encode_bitline (source) : [result code] = {
+		result = 0;
+		s_loop (code, source, result = (result << 1) | (code == char));
+		result };
+
+	result = array (#matrix_data);
+	i = 0;
+	l_loop (elem, matrix_data, result{i ++} = l_map (!encode_bitline, elem));
+
+	result };
+
+` load 6*8 matrix font `
+Digits_0_9 = encode_characters (\c 'o',
+	` == font definition begin `
+
+	` 0: `
+	[	'.ooo. '
+		'o...o '
+		'o..oo '
+		'o.o.o '
+		'oo..o '
+		'o...o '
+		'.ooo. '
+		'      '	],		` == 0 `
+
+	` 1: `
+	[	'..o.. '
+		'.oo.. '
+		'o.o.. '
+		'..o.. '
+		'..o.. '
+		'..o.. '
+		'.ooo. '
+		'      '	],		` == 1 `
+
+	` 2: `
+	[	'.ooo. '
+		'o...o '
+		'...o. '
+		'..o.. '
+		'.o... '
+		'o...o '
+		'ooooo '
+		'      '	],		` == 2 `
+
+	` 3: `
+	[	'ooooo '
+		'o..o. '
+		'..o.. '
+		'...o. '
+		'....o '
+		'o...o '
+		'.ooo. '
+		'      '	],		` == 3 `
+
+	` 4: `
+	[	'...o. '
+		'..oo. '
+		'.o.o. '
+		'o..o. '
+		'ooooo '
+		'...o. '
+		'..ooo '
+		'      '	],		` == 4 `
+
+	` 5: `
+	[	'ooooo '
+		'o...o '
+		'o.... '
+		'.ooo. '
+		'....o '
+		'o...o '
+		'.ooo. '
+		'      '	],		` == 5 `
+
+	` 6: `
+	[	'..ooo '
+		'.o... '
+		'o.... '
+		'oooo. '
+		'o...o '
+		'o...o '
+		'.ooo. '
+		'      '	],		` == 6 `
+
+	` 7: `
+	[	'ooooo '
+		'o..o. '
+		'..o.. '
+		'.o... '
+		'.o... '
+		'.o... '
+		'.o... '
+		'      '	],		` == 7 `
+
+	` 8: `
+	[	'.ooo. '
+		'o...o '
+		'o...o '
+		'.ooo. '
+		'o...o '
+		'o...o '
+		'.ooo. '
+		'      '	],		` == 8 `
+
+	` 9: `
+	[	'.ooo. '
+		'o...o '
+		'o...o '
+		'.oooo '
+		'....o '
+		'o...o '
+		'.ooo. '
+		'      '	],		` == 9 `
+
+	` == font definition end `
+	);
+
+`
+	MIDI playback
+`
+
+_dynamic_load ("audio.dll", "audio_entry");
+
+! play_tune (channel instrument tempo note_list) : [note] = MIDI!! {
+	midi_instrument (channel, instrument);
+
+	l_loop (note, note_list, {
+		midi_note_on (channel, note[0], 127);
+		midi_wait (note[1] * tempo * 1000);
+		midi_note_off (channel, note[0], 127);
+		});
+	};	` play_tune `
+
+`
+	Colors for digits
+`
+Digit_Colors = [
+		(RGB8(7, 32),  RGB8(7, 192))
+
+		(RGB8(1, 240), RGB8(6, 200))
+		(RGB8(3, 240), RGB8(4, 200))
+		(RGB8(5, 240), RGB8(2, 200))
+		(RGB8(4, 240), RGB8(3, 200))
+		(RGB8(6, 240), RGB8(1, 200))
+		(RGB8(2, 240), RGB8(5, 200))
+
+		(RGB8(7, 64),  RGB8(7, 128))
+		(RGB8(7, 128), RGB8(6, 64))
+		(RGB8(7, 192), RGB8(7, 32))
+		:];
+
+`
+	Actual game widget
+`
+
+!! [Widget] NibblesGame (Cols Rows XStep YStep XGap YGap) :
+	[InfoHgt game_arena tile_dispatch 
+	 BackgroundColor ForegroundColor wallColors SnakeColor
+	 snake_dir snake_loc snake_len snake_grow level_done
+	 playLevel playSpeed playTimer playMoves playScore playLives playStats]
+
+	= ([Width Height] = (Cols*XStep, (InfoHgt = 24) + Rows*YStep))
+
+	{
+
+	` (Re-)Draw any tile `
+	! draw_tile (col row) : [X Y] = {
+		[X Y] = (col*XStep, row*YStep + InfoHgt);
+		tile_dispatch {game_arena {col, row}} ! ([X Y], (X + XStep, Y + YStep))
+		},	` -- draw_tile `
+
+	` Draw empty tile `
+	! draw_tile_empty (LeftTop RightBottom) = graphics!! {
+		fill_color (BackgroundColor):: fill (LeftTop, RightBottom);
+		plot_color (ForegroundColor):: {
+			line (LeftTop, RightBottom);
+			line ((LeftTop[0], RightBottom[1]), (RightBottom[0], LeftTop[1]));
+			};
+		},	` -- draw_empty_tile `
+
+	` Draw snake head.
+	  Dir: head direction -- T_HEAD_{LEFT|UP|RIGHT|DOWN}
+	  [LeftTop RightBottom]: tile area `
+	! draw_snake_head (Dir LeftTop RightBottom) : [arc_range phase] = {
+		phase = sub (snake_loc[0]) & 1;
+
+		` background `
+		graphics!! fill_color (BackgroundColor):: fill (LeftTop, RightBottom);
+
+		arc_range = switch (Dir):: (
+			T_HEAD_LEFT ::		` == head left `
+				(phase ? ((1, -1), [1 1]) : ((2, -1), [2 1])),
+
+			T_HEAD_UP ::		` == head up `
+				(phase ? ([1 1], (-1, 1)) : ([1 2], (-1, 2))),
+
+			T_HEAD_RIGHT ::		` == head right `
+				(phase ? ((-1, 1), (-1, -1)) : ((-2, 1), (-2, -1))),
+
+			T_HEAD_DOWN ::		` == head down `
+				(phase ? ((-1, -1), (1, -1)) : ((-1, -2), (1, -2))),
+			);
+
+		graphics!! fill_color (SnakeColor):: wedge (LeftTop, RightBottom, arc_range);
+		},	` -- draw_snake_head `
+
+	` Draw snake strait body fragment.
+	  Dir: body orientation -- T_BODY_{V|H}
+	  [LeftTop RightBottom]: tile area `
+	! draw_snake_body (Dir LeftTop RightBottom) : [delta Orient] = {
+		` background `
+		graphics!! fill_color (BackgroundColor):: fill (LeftTop, RightBottom);
+		Orient = Dir == T_BODY_H;
+
+		delta = Orient ? XGap : YGap;
+		LeftTop[Orient] =+: delta; RightBottom[Orient] =-: delta;
+		graphics!! fill_color (SnakeColor):: rect (LeftTop, RightBottom);
+		},	` -- draw_snake_body `
+
+	` Draw snake turn body fragment.
+	  Angle: turn angle -- T_TURN_{UL|UR|DL|DR}
+	  [LeftTop RightBottom]: tile area `
+	! draw_snake_turn (Angle LeftTop RightBottom) : [arc_range deltaX deltaY] = {
+		` background `
+		graphics!! fill_color (BackgroundColor):: fill (LeftTop, RightBottom);
+	
+		arc_range = switch (Angle):: (
+			T_TURN_UL ::	{		` == up / left `
+				LeftTop[0] =-: XStep;
+				LeftTop[1] =-: YStep;
+
+				([0 1], [1 0]) },
+
+			T_TURN_UR ::	{		` == up / right `
+				RightBottom[0] =+: XStep;
+				LeftTop[1] =-: YStep;
+
+				((-1, 0), [0 1]) },
+
+			T_TURN_DL ::	{		` == down / left `
+				LeftTop[0] =-: XStep;
+				RightBottom[1] =+: YStep;
+
+				([1 0], (0, -1)) },
+
+			T_TURN_DR ::	{		` == down / right `
+				RightBottom[0] =+: XStep;
+				RightBottom[1] =+: YStep;
+
+				((0, -1), (-1, 0)) },
+
+			);
+
+			` draw OUTER wedge: `
+			LeftTop[0] =+: XGap; LeftTop[1] =+: YGap;
+			RightBottom[0] =-: XGap; RightBottom[1] =-: YGap;
+			graphics!! fill_color (SnakeColor):: wedge (LeftTop, RightBottom, arc_range);
+
+			` draw INNER wedge: `
+			[deltaX deltaY] = (XStep - XGap*2, YStep - YGap*2);
+			LeftTop[0] =+: deltaX; LeftTop[1] =+: deltaY;
+			RightBottom[0] =-: deltaX; RightBottom[1] =-: deltaY;
+			graphics!! fill_color (BackgroundColor):: wedge (LeftTop, RightBottom, arc_range);
+		},	` -- draw_snake_turn `
+
+	` Draw snake tail.
+	  Dir: tail direction -- T_TAIL_{LEFT|UP|RIGHT|DOWN}
+	  [LeftTop RightBottom]: tile area `
+	! draw_snake_tail (Dir LeftTop RightBottom) : [triangle] = {
+		` background `
+		graphics!! fill_color (BackgroundColor):: fill (LeftTop, RightBottom);
+
+		triangle = switch (Dir):: (
+			T_TAIL_LEFT ::		` == left `
+				((LeftTop[0] + XGap, (LeftTop[1] + RightBottom[1]) % 2),
+				 (RightBottom[0] - 1, LeftTop[1] + YGap),
+				 (RightBottom[0] - 1, RightBottom[1] - YGap),
+				 ),
+
+			T_TAIL_UP ::		` == up `
+				(((LeftTop[0] + RightBottom[0]) % 2, LeftTop[1] + YGap),
+				 (LeftTop[0] + XGap, RightBottom[1] - 1),
+				 (RightBottom[0] - XGap, RightBottom[1] - 1),
+				 ),
+
+			T_TAIL_RIGHT ::		` == right `
+				((RightBottom[0] - XGap, (LeftTop[1] + RightBottom[1]) % 2),
+				 (LeftTop[0] + 1, RightBottom[1] - YGap),
+				 (LeftTop[0] + 1, LeftTop[1] + YGap),
+				 ),
+
+			T_TAIL_DOWN ::		` == down `
+				(((LeftTop[0] + RightBottom[0]) % 2, RightBottom[1] - YGap),
+				 (RightBottom[0] - XGap, LeftTop[1] + 1),
+				 (LeftTop[0] + XGap, LeftTop[1] + 1),
+				 ),
+			);
+
+		graphics!! fill_color (SnakeColor):: polygon (triangle);
+		},	` -- draw_snake_tail `
+
+	` Draw entire snake `
+	! draw_snake : [loc] = l_loop (loc, snake_loc, draw_tile (loc)),
+
+	` Erase entire snake `
+	! erase_snake : [loc] = l_loop (loc, snake_loc, { game_arena {loc} = T_EMPTY; draw_tile (loc); }),
+
+	` Draw wall tile `
+	! draw_wall (EdgeFlags LeftTop RightBottom) : [iL iR iT iB colorNorm colorDark colorLite] = graphics!! {
+		[iL iR] = (LeftTop[0] + XGap, RightBottom[0] - XGap);
+		[iT iB] = (LeftTop[1] + YGap, RightBottom[1] - YGap);
+		[colorDark colorNorm colorLite] = wallColors;
+
+		fill_color (colorNorm):: plot_color (colorNorm):: fill (LeftTop, RightBottom);
+
+		fill_color (colorLite):: plot_color (colorLite):: {
+		  EdgeFlags & T_EDGE_LEFT ?
+			polygon (LeftTop, (LeftTop[0], RightBottom[1]), [iL iB], [iL iT], )
+		  :	line ([iL iT], [iL iB]);
+
+		  EdgeFlags & T_EDGE_UP ?
+			polygon (LeftTop, (RightBottom[0], LeftTop[1]), [iR iT], [iL iT], )
+		  :	line ([iL iT], [iR iT]);
+		};
+
+		fill_color (colorDark):: plot_color (colorDark):: {
+		EdgeFlags & T_EDGE_RIGHT ?
+			polygon (RightBottom, (RightBottom[0], LeftTop[1]), [iR iT], [iR iB], )
+		  :	line ([iR iT], [iR iB]);
+
+		EdgeFlags & T_EDGE_DOWN ?
+			polygon (RightBottom, (LeftTop[0], RightBottom[1]), [iL iB], [iR iB], )
+		  :	line ([iL iB], [iR iB]);
+		};
+
+		plot_color (colorNorm):: {
+			EdgeFlags & (T_EDGE_UP|T_EDGE_LEFT) == (T_EDGE_UP|T_EDGE_LEFT) ?
+				line (LeftTop, [iL iT]) : ;
+
+			EdgeFlags & (T_EDGE_DOWN|T_EDGE_RIGHT) == (T_EDGE_DOWN|T_EDGE_RIGHT) ?
+				line (RightBottom, [iR iB]) : ;
+			}
+		},	` -- draw_wall `
+
+	` Draw digit `
+	! draw_digit (Digit LeftTop RightBottom) : [dig_data X Y Color0 Color1] = graphics!!{
+
+		fill_color (BackgroundColor):: fill (LeftTop, RightBottom);
+
+		[Color1 Color0] = Digit_Colors [Digit];
+		plot_color (Color0):: fill_color (Color0):: oval (LeftTop, RightBottom);
+		dig_data = Digits_0_9 {Digit};
+
+		[X Y] = LeftTop;
+		++ Y;
+		fill_color (Color1)::
+		l_loop (v, dig_data, {
+			for_dec (i, 8, {
+				if (v & (1 << i))::
+					fill ([X Y], (X + 2, Y + 2));
+
+				X =+: 2; });
+
+			X =-: 2 * 8;
+			Y =+: 2; });
+
+		},	` -- draw_digit `
+
+	` draw entire game (in active visual) `
+	! draw_field : [X Y row col] =
+		for_inc (row, Rows, {
+			Y = row * YStep + InfoHgt;
+			for_inc (col, Cols, {
+				X = col * XStep;
+				tile_dispatch {game_arena {col, row}} ! ([X Y], (X + XStep, Y + YStep))
+				})
+			}),
+
+	`
+		Information Panel
+	`
+
+	! info_box (gridL gridR bg_color fg_color @output) : [L R] = graphics!! {
+		[L R] = (gridL * (Width >> 4), gridR * (Width >> 4));
+
+		plot_color (fg_color):: fill_disable (1):: rect ([L 0], [R InfoHgt]);
+		fill_color (bg_color):: font_bgcolor (bg_color)::
+			text_box (3 << 4 | 3, (L+1, 1), (R-1, InfoHgt-1), font_fgcolor (fg_color):: (^output));
+		},
+
+	! info_clear (gridL gridR bg_color fg_color) : [L R] = graphics!! {
+		[L R] = (gridL * (Width >> 4), gridR * (Width >> 4));
+		fill_color (bg_color):: plot_color (fg_color):: {
+			rect ([L 0], [R InfoHgt]);
+			rect ((L + 4, 4), (R - 4, InfoHgt - 4));
+			fill_color (fg_color):: rect ((L + 8, 8), (R - 8, InfoHgt - 8));
+			}
+		},
+		
+	` Information: current level `
+	! info_level = info_box (4, 6, Yellow \x60, Yellow(), graphics!! { text "Level: "; text (playLevel); }),
+
+	` Information: score `
+	! info_score = info_box (1, 4, Cyan \x60, Cyan(), graphics!! { text "Score: "; text (playScore); }),
+
+	` Information: number of lives remain `
+	! info_lives = info_box (9, 12, Magenta \x60, Magenta(), graphics!! { text "Lives: "; text (playLives); }),
+
+	` Information: game speed `
+	! info_speed = info_box (6, 9, Green \x60, Green(), graphics!! { text "Speed: "; text (playSpeed); }),
+
+	` Information: # of moves done `
+	! info_moves = info_box (12, 15, Red \x60, Red(), graphics!! { text "Moves: "; text (playMoves); }),
+	
+	` Information: all of the above `
+	! info_all (Bg Fg) = {
+		info_score ();
+		info_lives ();
+		info_level ();
+		info_speed ();
+		info_moves ();
+
+		info_clear (0, 1, Bg, Fg);
+		info_clear (15, 16, Bg, Fg);
+		},
+
+	` Create "looped" snake (primarily for debugging) `
+	! create_snake_loop (FirstRow FirstCol LastRow LastCol) : [Row Col] = 
+		if (FirstRow < LastRow && FirstCol < LastCol)::
+		{
+		` snake vertical 'sides' `
+		for_inc (Row, FirstRow+1 .. LastRow,
+			game_arena {FirstCol, Row} = game_arena {LastCol, Row} = T_BODY_V);
+
+		` snake horizontal 'sides' `
+		for_inc (Col, FirstCol+1 .. LastCol,
+			game_arena {Col, FirstRow} = game_arena {Col, LastRow} = T_BODY_H);
+
+		` snake 'corners' `
+		game_arena {FirstCol, FirstRow} = T_TURN_DR;
+		game_arena {LastCol,  FirstRow} = T_TURN_DL;
+		game_arena {FirstCol, LastRow}  = T_TURN_UR;
+		game_arena {LastCol,  LastRow}  = T_TURN_UL;
+		},	` -- create_snake_loop `
+
+	` Create normal snake (facing HeadDir, starting with [HeadRow, HeadCol]) `
+	! create_snake (HeadDir HeadRow HeadCol TurnList) : [tilesX tilesY] = {
+		! place (tile) = {
+			game_arena {HeadCol, HeadRow} = tile;
+			tilesX [<-] HeadCol; tilesY [<-] HeadRow;
+
+			switch (HeadDir)::
+				(
+				MOVE_LEFT	::	(-- HeadCol),
+				MOVE_UP		::	(-- HeadRow),
+				MOVE_RIGHT	::	(++ HeadCol),
+				MOVE_DOWN	::	(++ HeadRow),
+				);
+			};
+
+		count = 0;
+		snake_dir = HeadDir;
+
+		` start from head `
+		place ([T_HEAD_LEFT T_HEAD_UP T_HEAD_RIGHT T_HEAD_DOWN] [HeadDir]);
+
+		l_loop (item, TurnList, {
+			if (count):: {
+				` select new turn direction `
+				[tile HeadDir] = switch (HeadDir):: (
+					MOVE_LEFT	::	(item > 0 ? [T_TURN_UR MOVE_UP   ] : [T_TURN_DR MOVE_DOWN ]),
+					MOVE_UP		::	(item > 0 ? [T_TURN_DL MOVE_LEFT ] : [T_TURN_DR MOVE_RIGHT]),
+					MOVE_RIGHT	::	(item > 0 ? [T_TURN_DL MOVE_DOWN ] : [T_TURN_UL MOVE_UP   ]),
+					MOVE_DOWN	::	(item > 0 ? [T_TURN_UR MOVE_RIGHT] : [T_TURN_UL MOVE_LEFT ]),
+					);
+
+				place (tile);
+				};
+
+			` remaining part of body `
+			tile = HeadDir & 1 ? T_BODY_V : T_BODY_H;
+			
+			times ((item > 0 ? item : - item) - 1):: place (tile);
+			++ count;
+			});
+
+		` finish with tail `
+		place ([T_TAIL_LEFT T_TAIL_UP T_TAIL_RIGHT T_TAIL_DOWN] [HeadDir]);
+
+		snake_loc = l_zip ([~] tilesX, [~] tilesY);
+		snake_len = #snake_loc;
+		snake_grow = 0;
+		},		` -- create_snake `
+
+	` Create wall (wall block) `
+	! create_wall (Left Top Right Bottom) : [Row Col tile] = 
+		Left == Right ?
+			Top == Bottom ?
+				` single tile! `
+				{ game_arena {Left, Top} = T_WALL + T_EDGE_UP + T_EDGE_DOWN + T_EDGE_LEFT + T_EDGE_RIGHT }
+
+			:	` single tile width: `
+			{	tile = T_WALL + T_EDGE_LEFT + T_EDGE_RIGHT;
+
+				` top end `
+				game_arena {Left, Top} = tile + T_EDGE_UP;
+				` vertical middle section `
+				for_inc (Row, Top+1..Bottom, game_arena {Left, Row} = tile);
+				` bottom end `
+				game_arena {Left, Bottom} = tile + T_EDGE_DOWN;
+				}
+		: Top == Bottom ?
+			` single tile height: `
+			{	tile = T_WALL + T_EDGE_UP + T_EDGE_DOWN;
+
+				` left end `
+				game_arena {Left, Top} = tile + T_EDGE_LEFT;
+				` horizontal middle section `
+				for_inc (Col, Left+1..Right, game_arena {Col, Top} = tile);
+				` right end `
+				game_arena {Right, Top} = tile + T_EDGE_RIGHT;
+			}
+
+		:	` solid rectangle `
+			{
+			` top/left corner `
+			game_arena {Left, Top} = T_WALL + T_EDGE_UP + T_EDGE_LEFT;
+			` bottom/left corner `
+			game_arena {Left, Bottom} = T_WALL + T_EDGE_DOWN + T_EDGE_LEFT;
+			` top/right corner `
+			game_arena {Right, Top} = T_WALL + T_EDGE_UP + T_EDGE_RIGHT;
+			` bottom/right corner `
+			game_arena {Right, Bottom} = T_WALL + T_EDGE_DOWN + T_EDGE_RIGHT;
+
+			` left/right sides: `
+			for_inc (Row, Top+1..Bottom, {
+				game_arena {Left, Row} = T_WALL + T_EDGE_LEFT;
+				game_arena {Right, Row} = T_WALL + T_EDGE_RIGHT;
+				});
+
+			` top/bottom sides: `
+			for_inc (Col, Left+1..Right, {
+				game_arena {Col, Top} = T_WALL + T_EDGE_UP;
+				game_arena {Col, Bottom} = T_WALL + T_EDGE_DOWN;
+				});
+
+			` central area: `
+			for_inc (Col, Left+1..Right,
+				for_inc (Row, Top+1..Bottom,
+					game_arena {Col, Row} = T_WALL
+					)
+				)
+			},	` -- create_wall `
+
+	` Create perimeter wall `
+	! create_perimeter (Left = 0 Top = 0 Right = (Cols-1) Bottom = (Rows-1)) : [Row Col tile] = {
+		` must be reasonable... `
+
+		` corners: `
+		game_arena {Left, Top} = T_WALL + T_EDGE_UP + T_EDGE_LEFT;
+		game_arena {Left, Bottom} = T_WALL + T_EDGE_DOWN + T_EDGE_LEFT;
+		game_arena {Right, Top} = T_WALL + T_EDGE_UP + T_EDGE_RIGHT;
+		game_arena {Right, Bottom} = T_WALL + T_EDGE_DOWN + T_EDGE_RIGHT;
+
+		` left/right sides: `
+		tile = T_WALL + T_EDGE_LEFT + T_EDGE_RIGHT;
+		for_inc (Row, Top+1..Bottom,
+			game_arena {Left, Row} = game_arena {Right, Row} = tile);
+
+		` top/bottom sides: `
+		tile = T_WALL + T_EDGE_UP + T_EDGE_DOWN;
+		for_inc (Col, Left+1..Right,
+			game_arena {Col, Top} = game_arena {Col, Bottom} = tile);
+
+		},	` -- create_perimeter `
+
+	` Join wall blocks: from [WallCol, WallRow] in direction WallDir `
+	! join_walls (WallDir WallCol WallRow) =
+		switch (WallDir):: (
+			MOVE_LEFT	::	{
+				game_arena {WallCol, WallRow} =&: ~T_EDGE_LEFT;
+				game_arena {WallCol-1, WallRow} =&: ~T_EDGE_RIGHT;
+				},
+			MOVE_UP		::	{
+				game_arena {WallCol, WallRow} =&: ~T_EDGE_UP;
+				game_arena {WallCol, WallRow-1} =&: ~T_EDGE_DOWN;
+				},
+			MOVE_RIGHT	::	{
+				game_arena {WallCol, WallRow} =&: ~T_EDGE_RIGHT;
+				game_arena {WallCol+1, WallRow} =&: ~T_EDGE_LEFT;
+				},
+			MOVE_DOWN	::	{
+				game_arena {WallCol, WallRow} =&: ~T_EDGE_DOWN;
+				game_arena {WallCol, WallRow+1} =&: ~T_EDGE_UP;
+				},
+		),	` -- join_walls `
+
+	! place_tile (Col Row Tile) : [X Y] = {
+		game_arena {Col, Row} = Tile;
+		[X Y] = (Col*XStep, Row*YStep + InfoHgt);
+		tile_dispatch {Tile} ! ([X Y], (X + XStep, Y + YStep));
+		},
+
+	` Create new digit (n = 0..9) `
+	! create_digit (n) : [LocX LocY] =
+		if (inside (n, 1..10)):: {
+			` pick empty location [LocX, LocY] `
+			until (game_arena {LocX = rand(Cols), LocY = rand(Rows)} == T_EMPTY):: {};
+
+			place_tile (LocX, LocY, T_DIGIT + n);
+			1 } :: 0,
+
+	! redraw_field_shuffled (Dir matrix) : [mtxH mtxV _temp X col Y row count] = {
+		! redraw_iter (@body) =
+			switch (Dir):: (
+				MOVE_UP::
+					for_dec (row, Rows,
+						for_inc (col, Cols, {
+							_temp = row;
+							^body;
+							row = _temp;
+							})
+						),
+
+				MOVE_LEFT::
+					for_dec (col, Cols,
+						for_inc (row, Rows, {
+							_temp = col;
+							^body;
+							col = _temp;
+							})
+						),
+
+				MOVE_DOWN::
+					for_inc (row, Rows,
+						for_dec (col, Cols, {
+							_temp = row;
+							^body;
+							row = _temp;
+							})
+						),
+
+				MOVE_RIGHT::
+					for_inc (col, Cols,
+						for_dec (row, Rows, {
+							_temp = col;
+							^body;
+							col = _temp;
+							})
+						),
+				);	` -- redraw_iter `
+
+		[mtxV mtxH] = a_dims (matrix);
+		count = 0;
+		redraw_iter^ {
+			row =-: (mtxY = row %% mtxH);
+			col =-: (mtxX = col %% mtxV);
+			[mtxX mtxY] = matrix {mtxX, mtxY};
+
+			row =+: mtxY;
+			col =+: mtxX;
+
+			[X Y] = (col * XStep, row * YStep + InfoHgt);
+			tile_dispatch {game_arena {col, row}} ! ([X Y], (X + XStep, Y + YStep));
+
+			if (count ++ == 10):: { count = 0; winternal!!sleep (8); };
+			};
+		},		` -- redraw_field_shuffled `
+
+	` Definition of game level `
+	!! DefLevel (ColorWallFn ColorBg ColorFg @on_creation),
+
+	`
+		Actual levels definitions
+	`
+	! get_level_def (n) = switch (n):: (
+
+		 1::	DefLevel (!White, White \x40, White \x80,
+			! = {
+			create_perimeter ();
+
+			create_snake (MOVE_DOWN, Rows % 2, Cols % 2, 2);
+			}),
+
+		 2::	DefLevel (!Green, Cyan \x40, Cyan \x80,
+			! : [Y L R] = {
+			create_perimeter ();
+
+			L = Cols % 5; R = Cols-1 - L;
+			Y = Rows % 2;
+			create_wall (L, Y, R, Y);
+
+			create_snake (MOVE_RIGHT, Rows % 4, Cols % 2, 2);
+			}),
+
+		 3::	DefLevel (!Magenta, Red \x40, Yellow \x80,
+			! : [L T R B] = {
+			create_perimeter ();
+
+			[L T] = (Cols % 5, Rows % 5);
+			R = Cols-1 - L; B = Rows-1 - T;
+			create_wall (L, T, L, B);
+			create_wall (R, T, R, B);
+
+			create_snake (MOVE_UP, Rows % 2, Cols % 2, 2);
+			}),
+
+		 4::	DefLevel (!Red, Blue \x40, Magenta \x80,
+			! : [L R H T B V] = {
+			create_perimeter ();
+
+			H = Rows % 2;
+			L = 15; R = Cols-1 - L;
+
+			create_wall (L, 1, L, H);			` top/left V-wall `
+			join_walls (MOVE_UP, L, 1);
+
+			create_wall (R, H, R, Rows-2);		` bottom/right V-wall `
+			join_walls (MOVE_DOWN, R, Rows-2);
+
+			V = Cols % 2;
+			T = 10; B = Rows-1 - T;
+
+			create_wall (1, B, V, B);			` bottom/left H-wall `
+			join_walls (MOVE_LEFT, 1, B);
+
+			create_wall (V, T, Cols-2, T);		` top/right H-wall `
+			join_walls (MOVE_RIGHT, Cols-2, T);
+
+			create_snake (MOVE_LEFT, Rows % 2, Cols % 2, 2);
+			}),
+
+		 5::	DefLevel (!Yellow, Red \x40, Yellow \x80,
+			! : [L T R B] = {
+			create_perimeter ();
+
+			L = 9; R = Cols-1 - L;
+			T = 10; B = Rows-1 - T;
+
+			` H-walls: top, bottom `
+			++ L; -- R; ++ B; -- T;
+			create_wall (L, T, R, T);
+			create_wall (L, B, R, B);
+
+			` V-walls: left, right `
+			L =-: 2; R =+: 2; B =-: 2; T =+: 2;
+			create_wall (L, T, L, B);
+			create_wall (R, T, R, B);
+
+			create_snake (MOVE_UP, Rows % 2, Cols % 2, 2);
+			}),
+
+		 6::	DefLevel (!Blue, Yellow \x80, Cyan \x40,
+			! : [C X H] = {
+			create_perimeter ();
+			H = 15;
+
+			for_inc (C, 1..8, {
+				X = C * 8;
+				create_wall (X, 1, X, H);
+				join_walls (MOVE_UP, X, 1);
+				create_wall (X, Rows-1 - H, X, Rows-2);
+				join_walls (MOVE_DOWN, X, Rows-2);
+				});
+
+			create_snake (MOVE_LEFT, Rows % 2, Cols % 2, 2);
+			}),
+
+		 7::	DefLevel (!Yellow, Blue \x40, White \x70,
+			! : [X Y] = {
+			create_perimeter ();
+
+			X = Cols % 2;
+			for_inc (Y, 1..Rows-1,
+				if (Y %% 2):: create_wall (X, Y, X, Y));
+
+			create_snake (MOVE_DOWN, Rows % 2, Cols % 4, 2);
+			}),
+
+		 8::	DefLevel (!Cyan, Blue \x40, Cyan \x80,
+			! : [X R H] = {
+			create_perimeter ();
+
+			H = 10;
+			for_inc (R, 1..8, {
+				X = R * 8;
+				(R %% 2) ?
+					{ create_wall (X, 1, X, Rows - H); join_walls (MOVE_UP, X, 1); }
+				  :
+					{ create_wall (X, H-1, X, Rows-2); join_walls (MOVE_DOWN, X, Rows-2); }
+				});
+
+			create_snake (MOVE_UP, H % 2, Cols % 2, 2);
+			}),
+
+		 9::	DefLevel (!Red, White \x40, Yellow \x70,
+			! : [Y SL SR] = {
+			create_perimeter ();
+
+			SL = 2; SR = Cols - (Rows + SL);
+			for_inc (Y, 2..Rows-2, {
+				create_wall (Y + SL, Y, Y + SL, Y);
+				create_wall (Y + SR, Y, Y + SR, Y);
+				});
+
+			create_snake (MOVE_LEFT, Rows % 2, Cols % 2, 2);
+			}),
+
+		10::	DefLevel (!White, White \xC0, Black \x70,
+			! : [X Y C F] = {
+			create_perimeter ();
+
+			for_inc (C, 1..8, {
+				F = C %% 2;
+				X = C * 8;
+
+				for_inc (Y, 1..Rows - 1, (Y %% 2 == F) ? create_wall (X, Y, X, Y) :);
+
+				F ? join_walls (MOVE_UP, X, 1) : join_walls (MOVE_DOWN, X, Rows-2);
+				});
+
+			create_snake (MOVE_RIGHT, 1, Cols % 2, 2);
+			}),
+
+		` error trap: black empty level `
+		DefLevel (!Black, Black (0), Black (0), ! = {})
+
+		),	` -- get_level_def `
+
+	! start_level (n) = DefLevel!! get_level_def(n).{
+		playLevel = n;
+
+		[BackgroundColor ForegroundColor] = [ColorBg ColorFg];
+		wallColors = (ColorWallFn ! \x40, ColorWallFn ! \x80, ColorWallFn ! \xC0);
+		SnakeColor = Green \xA0;
+
+		s_matrix = array (5, 5);
+		a_load (s_matrix,
+			[0 0],
+			[0 1], [1 0],
+			[2 0], [1 1], [0 2],
+			[0 3], [1 2], [2 1], [3 0],
+			[4 0], [3 1], [2 2], [1 3], [0 4],
+			[1 4], [2 3], [3 2], [4 1],
+			[4 2], [3 3], [2 4],
+			[3 4], [4 3],
+			[4 4],
+			);
+
+		a_fill (game_arena, T_EMPTY);
+		on_creation ! ();
+
+		alert_box ("NIBBLES: new level!", "Entering level: " +$ n +$ ".");
+		playMoves = 0;
+		info_all (ColorBg, ColorFg);
+		redraw_field_shuffled (n %% 4, s_matrix);
+
+		play_tune (0, 72, 1.4,
+			(\x5C, 1/8),
+			(\x5D, 1/8),
+			(\x5E, 1/8),
+			(\x5D, 1/8),
+			(\x5C, 1/8),
+			(\x5D, 1/8),
+			(\x5E, 1/4),
+			(\x5C, 1/4),
+			(\x5C, 1/4),
+			);
+
+		create_digit (1);
+		level_done = false ();
+		},
+
+	! snake_death (delay) = {
+		for_dec (i, 16, {
+			SnakeColor = Grey (i * 16);
+			draw_snake ();
+			winternal!!sleep (delay);
+			});
+
+		play_tune (1, 19, 0.2,
+			[\x4E 1],
+			[\x4F 1],
+			[\x4A 1.4],
+			[\x4E 1],
+			[\x4F 1],
+			[\x4E 1],
+			[\x4D 1.4],
+			[\x4C 1.4],
+			);
+		},
+
+	! warp_level (dir) = {
+		if (playSpeed):: {
+			stop_timer (playTimer);
+			playTimer = ();
+			};
+
+		erase_snake ();
+
+		dir ?
+			start_level (playLevel + 1)
+		:
+			start_level (playLevel - 1);
+		},
+
+	! eat_digit (digit) = {
+		snake_grow =+: digit;
+
+		play_tune (8, 14, 0.1, (\x4C + digit, 0.25), );
+		
+		playScore =+: digit * playSpeed;
+		info_score ();
+
+		unless (create_digit (digit + 1))::
+			(level_done = true());
+		1 },
+
+	` check motion, before actually moving snake `
+	! check_motion (LocX LocY) : [tile] =
+		inside (LocX, 0..Cols) &&
+		inside (LocY, 0..Rows) &&
+		(tile = game_arena {LocX, LocY}) == T_EMPTY ||
+		(inside (tile, T_DIGIT, T_DIGIT + 10) ?
+			eat_digit (tile - T_DIGIT) : 0),
+
+	` Move snake in direction Dir `
+	! move_snake (Dir) : [tile snake_head HeadX HeadY snake_tail TailX TailY] = {
+		snake_dir = Dir;
+
+		snake_head = snake_loc [0];
+		[HeadX HeadY] = snake_head;
+		tile = game_arena {HeadX, HeadY};
+
+		tile = switch (Dir)::
+			(
+			MOVE_LEFT :: {			` move head left `
+				-- HeadX;
+
+				switch (tile):: (
+					T_HEAD_UP		::	T_TURN_UL,
+					T_HEAD_DOWN		::	T_TURN_DL,
+					T_HEAD_RIGHT	::	T_BODY_H,
+					T_HEAD_LEFT		::	[],
+
+					T_EMPTY )
+				},
+
+			MOVE_UP ::	{			` move head up `
+				-- HeadY;
+
+				switch (tile):: (
+					T_HEAD_LEFT		::	T_TURN_UL,
+					T_HEAD_RIGHT	::	T_TURN_UR,
+					T_HEAD_DOWN		::	T_BODY_V,
+					T_HEAD_UP		::	[],
+
+					T_EMPTY )
+				},
+
+			MOVE_RIGHT ::	{		` move head right `
+				++ HeadX;
+
+				switch (tile):: (
+					T_HEAD_UP		::	T_TURN_UR,
+					T_HEAD_DOWN		::	T_TURN_DR,
+					T_HEAD_LEFT		::	T_BODY_H,
+					T_HEAD_RIGHT	::	[],
+
+					T_EMPTY )
+				},
+
+			MOVE_DOWN ::	{		` move head down `
+				++ HeadY;
+
+				switch (tile):: (
+					T_HEAD_LEFT		::	T_TURN_DL,
+					T_HEAD_RIGHT	::	T_TURN_DR,
+					T_HEAD_UP		::	T_BODY_V,
+					T_HEAD_DOWN		::	[],
+
+					T_EMPTY )
+				},
+			);		` -- switch (tile) `
+
+		unless (#tile):: (
+			` no actual motion -- but no death either! `
+			1
+			) ::
+		if (check_motion (HeadX, HeadY)):: {
+		place_tile (snake_head[0], snake_head[1], tile);
+
+		` new head location `
+		tile = [T_HEAD_RIGHT T_HEAD_DOWN T_HEAD_LEFT T_HEAD_UP] [Dir];
+		place_tile (HeadX, HeadY, tile);
+		snake_loc [<-] ([HeadX HeadY], );
+
+		++ playMoves;
+		info_moves ();
+
+		snake_grow ?
+			{ -- snake_grow; ++ snake_len }:
+		{
+		` move tail `
+		snake_tail = l_tail_by (snake_len - 1, snake_loc);
+
+		[TailX TailY] = snake_tail[1];
+		tile = game_arena {TailX, TailY};
+		place_tile (TailX, TailY, T_EMPTY);
+		l_tail (snake_tail) = ();
+
+		[TailX TailY] = snake_tail[0];
+
+		tile = switch (game_arena {TailX, TailY}):: (
+			T_BODY_H::					` was vertical body: `
+				switch (tile):: (
+					T_TAIL_LEFT		::	T_TAIL_LEFT,
+					T_TAIL_RIGHT	::	T_TAIL_RIGHT,
+
+					T_EMPTY ),
+
+			T_BODY_V::					` was horizontal body: `
+				switch (tile):: (
+					T_TAIL_UP		::	T_TAIL_UP,
+					T_TAIL_DOWN		::	T_TAIL_DOWN,
+
+					T_EMPTY ),
+
+			T_TURN_UL::					` was up/left turn: `
+				switch (tile):: (
+					T_TAIL_UP		::	T_TAIL_RIGHT,
+					T_TAIL_LEFT		::	T_TAIL_DOWN,
+
+					T_EMPTY ),
+
+			T_TURN_UR::					` was up/right turn: `
+				switch (tile):: (
+					T_TAIL_UP		::	T_TAIL_LEFT,
+					T_TAIL_RIGHT	::	T_TAIL_DOWN,
+
+					T_EMPTY ),
+
+			T_TURN_DL::					` was down/left turn: `
+				switch (tile):: (
+					T_TAIL_DOWN		::	T_TAIL_RIGHT,
+					T_TAIL_LEFT		::	T_TAIL_UP,
+
+					T_EMPTY ),
+
+			T_TURN_DR::					` was down/right turn: `
+				switch (tile):: (
+					T_TAIL_DOWN		::	T_TAIL_LEFT,
+					T_TAIL_RIGHT	::	T_TAIL_UP,
+
+					T_EMPTY ),
+
+			T_EMPTY );
+
+		place_tile (TailX, TailY, tile);
+		};	` (move tail) `
+		
+		1 }			` move head: OK `
+		::
+		0		` move head: fail `
+
+		},	` -- move_snake `
+
+	` initialisation: set up tiles -> actions map `
+	! init_tilemap = {
+		tile_dispatch = array (T_TOTAL);
+
+		tile_dispatch {T_EMPTY} = !draw_tile_empty;
+
+		` init wall draw tiles `
+		for_inc (i, 16,
+			tile_dispatch {T_WALL + i} = f_curry (!draw_wall, i, [], [], []));
+
+		` init snake draw tiles `
+		l_loop (entry,
+
+			(
+			T_HEAD_LEFT		::	f_curry (!draw_snake_head, T_HEAD_LEFT, [], [], []),
+			T_HEAD_UP		::	f_curry (!draw_snake_head, T_HEAD_UP, [], [], []),
+			T_HEAD_RIGHT	::	f_curry (!draw_snake_head, T_HEAD_RIGHT, [], [], []),
+			T_HEAD_DOWN		::	f_curry (!draw_snake_head, T_HEAD_DOWN, [], [], []),
+
+			T_BODY_H		::	f_curry (!draw_snake_body, T_BODY_H, [], [], []),
+			T_BODY_V		::	f_curry (!draw_snake_body, T_BODY_V, [], [], []),
+
+			T_TURN_UL		::	f_curry (!draw_snake_turn, T_TURN_UL, [], [], []),
+			T_TURN_UR		::	f_curry (!draw_snake_turn, T_TURN_UR, [], [], []),
+			T_TURN_DL		::	f_curry (!draw_snake_turn, T_TURN_DL, [], [], []),
+			T_TURN_DR		::	f_curry (!draw_snake_turn, T_TURN_DR, [], [], []),
+
+			T_TAIL_LEFT		::	f_curry (!draw_snake_tail, T_TAIL_LEFT, [], [], []),
+			T_TAIL_UP		::	f_curry (!draw_snake_tail, T_TAIL_UP, [], [], []),
+			T_TAIL_RIGHT	::	f_curry (!draw_snake_tail, T_TAIL_RIGHT, [], [], []),
+			T_TAIL_DOWN		::	f_curry (!draw_snake_tail, T_TAIL_DOWN, [], [], []),
+			),
+
+			tile_dispatch {l_head(entry)} = l_tail(entry));
+
+		` init digit draw tiles `
+		for_inc (i, 10,
+			tile_dispatch {T_DIGIT + i} = f_curry (!draw_digit, i, [], [], []));
+
+		},	` -- init_tilemap `
+
+	! #on_open : [entry] = {
+		init_tilemap ();
+		game_arena = array (Cols, Rows);
+		
+		playStats = array (10);
+
+		randomize ();
+		},
+
+	` Title screen `
+	! draw_title (LeftTop RightBottom) = graphics!! {
+		! center_box (top bottom @_) =
+			text_box (3 << 4 | 3, (LeftTop[0], top), (RightBottom[0], bottom), ^_);
+
+		fill_color (Grey \x60):: font_bgcolor (Grey \x60):: {
+			fill (LeftTop, RightBottom);
+
+			font_face 'Times':: {
+			center_box (10, 40, font_size 28:: font_weight 1:: font_fgcolor (White())::
+				{
+				text "N I B B L E S";
+				});
+			center_box (36, 70, text "Nibbles is a game for one or two players.");
+			center_box (70, 100, text "Navigate your snakes around the game board, trying to eat up numbers.");
+			center_box (100, 130, text "Avoid running into the walls, or other snakes, or yourself.");
+			center_box (130, 160, text "The more numbers you eat up, the more points you gain and the longer your snake becomes.");
+			};
+
+			center_box (320, 350, font_fgcolor (Red()):: text "Original copyright (C) Microsoft Corporation 1990");
+			center_box (360, 380, font_fgcolor (Yellow()):: text "AWL remake (C) trilirium 2014");
+			center_box (380, 410, font_bgcolor (White()):: text " * Press key [1] to [9] to start game * ");
+			center_box (410, 430, font_bgcolor (White()):: text "( [1] -- slow, [9] -- fast )");
+			}
+		},
+
+	` On game over `
+	! game_over : [stats] = {
+		stop_timer (playTimer);
+		
+		stats = "\nFINAL STATISTICS:\n";
+		stats =+$: "\tSCORE\tLIVES\tMOVES\n";
+
+		for_inc (level, playLevel-1,
+			stats =+$: "Level " +$ (level+1) +$ ":\t" +$ s_join ('\t', l_map (!string, playStats{level})) +$ "\n");
+		
+		stats =+$: "Final score:\t" +$ playScore +$ ".";
+		alert_box ("NIBBLES", "Game over!" +$ stats);
+
+		playLevel = ();
+		with_widget^draw_title ([0 0], [Width Height]);
+		},
+
+	! #on_paint (L_T R_B) = {
+		if (#playLevel):: {
+			draw_field ();
+			DefLevel!!get_level_def(playLevel).info_all (ColorBg, ColorFg);
+			} ::
+		draw_title (L_T, R_B);
+		},
+
+	! time_delay =
+		inside (playSpeed, 1..10) ? 500 % playSpeed : 0,
+
+	! #on_timer =
+		with_widget (
+			unless (move_snake (snake_dir)):: {
+				` snake death! `
+				stop_timer (playTimer);
+				playTimer = ();
+				snake_death (80);
+
+				(-- playLives) ? {
+				alert_box ("NIBBLES", "Life lost!\n" +$ "(total " +$ playLives +$ " remain.)");
+				erase_snake ();
+				start_level (playLevel);		` (restart level) `
+				}
+				:
+				{
+				erase_snake ();
+				game_over ();
+				}
+				}::
+				{
+				if (level_done):: {
+					playStats {playLevel-1} = [playScore playLives playMoves];
+					warp_level (1);
+					}
+				}),
+
+	` set snake direction and/or move snake `
+	! snake_direction (Dir) =
+		(playSpeed && playMoves) ?
+			` wait for next timer event! `
+			(snake_dir = Dir)
+		:	{
+			` really move `
+			unless (with_widget^ move_snake (Dir))::
+				alert_beep (0);
+
+			` start timer, if in game `
+			if (playSpeed):: {
+				playTimer = restart_timer (playTimer, time_delay ());
+				}
+			},
+
+	! #on_key (action key) : [] =
+		if (action > 0)::
+			if (#playLevel):: {
+
+			switch (key):: (
+
+			` move snake left `
+			KB_Left ::
+				snake_direction (MOVE_LEFT),
+
+			` move snake up `
+			KB_Up ::
+				snake_direction (MOVE_UP),
+
+			` move snake right `
+			KB_Right ::
+				snake_direction (MOVE_RIGHT),
+
+			` move snake down `
+			KB_Down ::
+				snake_direction (MOVE_DOWN),
+
+			` level warp down `
+			KB_Minus ::
+				with_widget^ warp_level (0),
+
+			` level warp up `
+			KB_Plus ::
+				with_widget^ warp_level (1),
+
+			` finish `
+			CH_Escape::	game_over (),
+			)
+		} ::
+		with_widget^ {
+			graphics!! fill_color (Black ()):: fill ([0 0], [Width Height]);
+
+			inside (key, \c'0' .. \c'9'+1) ?
+				(playSpeed = key - \c'0')
+			: (key == \c'~') ?
+				(playSpeed = 0)		` practice mode `
+			: (playSpeed = ());
+
+			if (#playSpeed):: {
+				playLives = 5;
+				playScore = 0;
+				start_level (1);
+				}
+			},
+
+	! #on_mouse_click (Event Buttons At) : [MRow MCol HeadX HeadY turn_dir] =
+		if (#playLevel):: {
+		[MRow MCol] = ((At[1] - InfoHgt) % YStep, At[0] % XStep);
+
+		if (Event > 0 &&
+			inside (MRow, 0..Rows) && inside (MCol, 0..Cols)):: {
+			[HeadX HeadY] = snake_loc [0];
+
+			turn_dir = switch (game_arena {HeadX, HeadY}):: (
+				T_HEAD_UP:: (
+					MRow > HeadY ? MOVE_DOWN :
+					MCol < HeadX ? MOVE_LEFT :
+					MCol > HeadX ? MOVE_RIGHT :
+					),
+
+				T_HEAD_LEFT:: (
+					MCol > HeadX ? MOVE_RIGHT :
+					MRow < HeadY ? MOVE_UP :
+					MRow > HeadY ? MOVE_DOWN :
+					),
+
+				T_HEAD_DOWN:: (
+					MRow < HeadY ? MOVE_UP :
+					MCol > HeadX ? MOVE_RIGHT :
+					MCol < HeadX ? MOVE_LEFT :
+					),
+
+				T_HEAD_RIGHT:: (
+					MCol < HeadX ? MOVE_LEFT :
+					MRow > HeadY ? MOVE_DOWN :
+					MRow < HeadY ? MOVE_UP :
+					),
+				);
+			
+			if (#turn_dir):: snake_direction (turn_dir);
+			}
+		},
+
+	! #on_mouse_wheel (State Wheel At) : [turn_dir] =
+		if (#playLevel && (MB_State(State) == MB_Left || MB_State(State) == MB_Right)):: {
+			turn_dir = switch (game_arena {snake_loc [0]}):: (
+				T_HEAD_UP::
+					(Wheel < 0 ? MOVE_LEFT : MOVE_RIGHT),
+
+				T_HEAD_LEFT::
+					(Wheel < 0 ? MOVE_DOWN : MOVE_UP),
+
+				T_HEAD_DOWN::
+					(Wheel < 0 ? MOVE_RIGHT : MOVE_LEFT),
+
+				T_HEAD_RIGHT::
+					(Wheel < 0 ? MOVE_UP : MOVE_DOWN),
+				);
+
+			snake_direction (turn_dir);
+			},
+
+	! #on_close = (),
+
+	};	` NibblesGame `
+
+`
+	Game entry point
+`
+
+MIDI!!with_midi (0)::
+WinSession (
+
+	(NibblesGame ("Nibbles Game", 65, 40, 16, 16, 3, 3), ),
+	
+	);

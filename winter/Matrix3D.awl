@@ -1,0 +1,113 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Matrix3D.awl':
+	|	Simple 3D matrix (for objects browser).
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+`
+	3D axis transform
+`
+!! Axis3D (X Y Z O) {
+
+	` clear self `
+	! clear =
+		(X = Y = Z = O = 0.0),
+	
+	` set self to [x y z] `
+	! set (x y z) =
+		[X Y Z] = [x y z],
+
+	` scale self by factor F `
+	! scale (F) =
+		{ X =*: F; Y =*: F; Z =*: F; O =*: F; },
+
+	` transform point by self `
+	! transform_pt (x y z) = x*X + y*Y + z*Z + O,
+
+	` rescale axis pair, returns: 'fA*A + fB*B' `
+	! rescale_pair (A fA B fB) =
+		A.Axis3D (fA*X + fB*B.X, fA*Y + fB*B.Y, fA*Z + fB*B.Z, fA*O + fB*B.O),
+
+	` output self `
+	! put =
+		<: ('{X= ', X, ', Y= ', Y, ', Z= ', Z, ', O= ', O, '}')
+
+	};
+
+`
+	3D transformation matrix
+`
+!! Matrix3D (AX = (Axis3D()) AY = (Axis3D()) AZ = (Axis3D ()))
+
+	{
+
+	` Reset self to null matrix `
+	! reset_null = Axis3D!!
+		{ AX.clear(); AY.clear(); AZ.clear(); },
+
+	` Reset self to unit matrix `
+	! reset_unit = {
+		reset_null ();
+		Axis3D!! (AX.X = AY.Y = AZ.Z = 1.0);
+		},
+
+	` Offset self by vector (x, y, z) `
+	! offset_vec (x y z) = Axis3D!!
+		{ AX.O =+: x; AY.O =+: y; AZ.O =+: z; },
+		
+	` Scale self by scalar F `
+	! scale (F) = Axis3D!!
+		{ AX.scale (F); AY.scale (F); AZ.scale (F); },
+
+	` Scale self by vector (fX, fY, fZ) `
+	! scale_vec (fX fY fZ) = Axis3D!!
+		{ AX.scale (fX); AY.scale (fY); AZ.scale (fZ); },
+
+	` Rotate axis pair (A,B) by angle 'phi'
+	  (returning result) `
+	! rotate_pair (phi A B) : [sin_phi cos_phi] = Axis3D!! {
+		[sin_phi cos_phi] = (sin(phi), cos(phi));
+
+		` result is: `
+		(
+		  rescale_pair (A, cos_phi, B, -sin_phi),
+		  rescale_pair (A, sin_phi, B, cos_phi)
+		)
+		},
+
+	` Rotate (Y, Z) by 'phi' about axis X `
+	! rotate_about_X (phi) =
+		[AY AZ] = rotate_pair (phi, AY, AZ),
+
+	` Rotate (Z, X) by 'phi' about axis Y `
+	! rotate_about_Y (phi) =
+		[AZ AX] = rotate_pair (phi, AZ, AX),
+
+	` Rotate (X, Y) by 'phi' about axis Z `
+	! rotate_about_Z (phi) =
+		[AX AY] = rotate_pair (phi, AX, AY),
+
+	` Transform point (x, y, z) by matrix `
+	! transform_point (point) =
+		Axis3D!! (
+			AX.transform_pt (point),
+			AY.transform_pt (point),
+			AZ.transform_pt (point)
+			),
+
+	` Output self `
+	! put = Axis3D!!{
+		! put_LV (L P) = { <: (L, '= '); P.put (); <: ";\n"; };
+		
+		put_LV ('AX', AX);
+		put_LV ('AY', AY);
+		put_LV ('AZ', AZ);
+		}
+	};

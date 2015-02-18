@@ -1,0 +1,127 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Interfer.awl':
+	|	Interference patterns from multiple wave sources.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+:[];
+
+` fractional part of X `
+!frac (X) = X - int(X);
+
+` Waves generator (with location=(X,Y) and wavelength=Lambda) `
+!! Generator (X Y Lambda) {
+	` calculate phase `
+	! calc_phase (x y) = abs(frac(rad(x-X, y-Y)/Lambda) - 0.5) * 2
+	};
+
+` Interference widget `
+!! [Widget] Interference (BaseColor)
+	` virtual: calculate phase for point (X,Y) -> 0..1 `
+	# { calc_phase }
+
+	{
+
+	! #on_paint (L_T R_B) : [x y] = {
+		graphics!!fill_color (BaseColor * 128):: fill (L_T, R_B);
+
+		for_inc (y, L_T[1]..R_B[1],
+			for_inc (x, L_T[0]..R_B[0],
+				graphics!!pixel ([x y], BaseColor * int(255 * calc_phase([x y])))
+				)
+			)
+		}		` -- #on_paint `
+
+	};		` [Widget] Interference `
+
+!! [Widget] InterferenceC
+	` virtual: calculate color for point (X,Y) -> 0..1 `
+	# { calc_color }
+
+	{
+
+	! #on_paint (L_T R_B) : [x y] = {
+		graphics!!fill_color (0):: fill (L_T, R_B);
+
+		for_inc (y, L_T[1]..R_B[1],
+			for_inc (x, L_T[0]..R_B[0],
+				graphics!!pixel ([x y], calc_color ([x y]))
+				)
+			)
+		}		` -- #on_paint `
+
+	};		` [Widget] InterferenceC `
+
+` (One waves source) `
+!! [Interference] Inter1 (Source1) {
+	! #calc_phase (pt) = Generator!!(Source1.calc_phase(pt))
+	};
+
+` (Two waves sources) `
+!! [Interference] Inter2 (Source1 Source2) {
+	! #calc_phase (pt) = Generator!!
+		(Source1.calc_phase(pt) + Source2.calc_phase(pt)) / 2
+	};
+
+` (Three waves sources) `
+!! [Interference] Inter3 (Source1 Source2 Source3) {
+	! #calc_phase (pt) = Generator!!
+		(Source1.calc_phase(pt) + Source2.calc_phase(pt) + Source3.calc_phase(pt)) / 3
+	};
+
+` (One waves source) `
+!! [InterferenceC] InterC1 (Source1 Color1) {
+	! #calc_color (pt) = Generator!!
+		(Color1 * int (255 * Source1.calc_phase (pt)))
+	};
+
+` (Two waves sources) `
+!! [InterferenceC] InterC2 (Source1 Color1 Source2 Color2) {
+	! #calc_color (pt) = Generator!! (
+		Color1 * int (255 * Source1.calc_phase (pt)) |
+		Color2 * int (255 * Source2.calc_phase (pt))
+		)
+	};
+
+` (Three waves sources) `
+!! [InterferenceC] InterC3 (Source1 Color1 Source2 Color2 Source3 Color3) {
+	! #calc_color (pt) = Generator!! (
+		Color1 * int (255 * Source1.calc_phase (pt)) |
+		Color2 * int (255 * Source2.calc_phase (pt)) |
+		Color3 * int (255 * Source3.calc_phase (pt))
+		)
+	};
+
+WinSession (
+	(Inter1 (("Interference 1", Red(1)),
+		Generator([70 180 30])),
+			[0 0], [150 200]),
+
+	(Inter2 (("Interference 2", Green(1)),
+		Generator([80 150 20]), Generator([320 240 65])),
+			[150 0], [150 200]),
+
+	(Inter3 (("Interference 3", Cyan(1)),
+		Generator([200 120 12]), Generator([320 240 45]), Generator([180 50 80])),
+			[300 0], [150 200]),
+
+	(InterC2 (("Interference A"),
+		Generator([60 130 25]), Yellow(1), Generator([300 210 40]), Blue(1)),
+			[0 200], [200 200]),
+
+	(InterC3 (("Interference B"),
+		Generator([60 130 15]), Red(1),
+		Generator([200 115 25]), Blue(1),
+		Generator([300 210 38]), Green(1),
+		),
+			[200 200], [200 200]),
+
+	);

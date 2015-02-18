@@ -1,0 +1,235 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Impossible.awl':
+	|	Draw some "impossible" 3D objects.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+: [show_points];
+
+show_points = false();
+
+` For debug: show point (x,y) `
+! show_pt (color x y) =
+	graphics!! plot_color(color):: fill_color(color)::
+		oval ((x-4, y-4), (x+4, y+4));
+
+` Cyclically previous point of 3 `
+! prev(i) = (i+2) %% 3;
+
+` Cyclically next point of 3 `
+! next(i) = (i+1) %% 3;
+
+`
+	Impossible trigon widget
+	(constructed from base points [pt0 pt1 pt2])
+`
+
+!! [Widget] ImpTrigon (pt0 pt1 pt2 tri_colors) : [points1]
+
+	` constructor: precalc all points `
+	= {
+
+	` (3 polygons) * (4 vertixes) `
+	points1 = array ([3 4]);
+
+	` initialise base control points `
+	points1{[0 0]} = pt0;
+	points1{[1 0]} = pt1;
+	points1{[2 0]} = pt2;
+
+	` calculate derived control points `
+	` NOTE: wrapped in anon functor `
+	(! () : [x0 y0 x1 y1 x2 y2 i] =
+	(for_inc (i, 3, {
+		[x0 y0] = points1 {i, 0};
+		[x1 y1] = points1 {next(i), 0};
+		[x2 y2] = points1 {prev(i), 0};
+
+		points1 {i, 1} = (2*x0 - x1, 2*y0 - y1);
+		points1 {i, 2} = (4*x0 - 2*x1 - x2, 4*y0 - 2*y1 - y2);
+		points1 {i, 3} = (4*x0 - x1 - 2*x2, 4*y0 - y1 - 2*y2);
+		})
+	)) ! ()
+
+	}	` -- constructor `
+
+	{
+	! #on_paint (L_T R_B) : [i j] = graphics!! {
+
+		` (paint widget area) `
+		fill_color (Black()) :: fill (L_T, R_B);
+
+		` (draw trigon object) `
+		for_inc (i, 3,
+			fill_color (tri_colors[i])::
+			polygon (
+				points1 {prev(i), 1},
+				points1 {next(i), 2},
+				points1 {next(i), 3},
+				points1 {prev(i), 2},
+				points1 {i, 1},
+				points1 {i, 0},
+				)
+			);
+
+		if (show_points) ::
+			for_inc (i, 3,
+				for_inc (j, 4,
+					show_pt (Grey(128), ^points1{[i j]})));
+		}		` -- #on_paint `
+
+	};		` -- ImpTrigon `
+
+`
+	Impossible tri-trigon widget
+	(constructed from base points [pt0 pt1 pt2])
+`
+
+!! [Widget] ImpTriTrigon (pt0 pt1 pt2 tri_colors) : [points0 points1 points2]
+
+	` constructor (precalc points) `
+	= {
+
+	` internal triangle `
+	points0 = array (3);
+
+	` (3 base trigons) * (5 additional points) `
+	points1 = array ([3 5]);
+
+	` (3 base trigons) * (3 polygons) * (4 vertices) `
+	points2 = array ([3 3 4]);
+
+	` initialise center points `
+	points0 {0} = pt0;
+	points0 {1} = pt1;
+	points0 {2} = pt2;
+
+	` calculate derived control points `
+	` NOTE: wrapped in anon functor `
+	(! () : [x y x0 y0 x1 y1 x2 y2 i j] =
+
+	` calculate 3 trigons base control points `
+	(for_inc (i, 3, {
+		[x0 y0] = points0 {i};
+		[x1 y1] = points0 {prev (i)};
+		[x2 y2] = points0 {next (i)};
+
+		points1 {[i 0]} = (2*x1 - x0, 2*y1 - y0);
+		points1 {[i 1]} = (3*x1 - 2*x0, 3*y1 - 2*y0);
+		points1 {[i 2]} = (3*x1 - x0 - x2, 3*y1 - y0 - y2);
+		points1 {[i 3]} = (3*x2 - 2*x0, 3*y2 - 2*y0);
+		points1 {[i 4]} = (5*x0 - 2*x1 - 2*x2, 5*y0 - 2*y1 - 2*y2);
+
+		points2 {i, i, 0} = [x0 y0];
+		points2 {i, prev(i), 0} = (4*x1 - 3*x0, 4*y1 - 3*y0);
+		points2 {i, next(i), 0} = (4*x2 - 3*x0, 4*y2 - 3*y0);
+
+		for_inc (j, 3, {
+			[x y] = points2 {[i j 0]};
+
+			[x0 y0] = points0 {j};
+			[x1 y1] = points0 {prev (j)};
+			[x2 y2] = points0 {next (j)};
+
+			points2 {[i j 1]} = (x + x0 - x1, y + y0 - y1);
+			points2 {[i j 2]} = (x + 3*x0 - 2*x1 - x2, y + 3*y0 - 2*y1 - y2);
+			points2 {[i j 3]} = (x + 3*x0 - x1 - 2*x2, y + 3*y0 - y1 - 2*y2);
+			})
+		})
+	)) ! ()
+
+	}	` -- constructor for ImpTriTrigon `
+
+	{
+	! #on_paint (L_T R_B) : [i j k] = graphics!! {
+
+		` (paint widget area) `
+		fill_color (Black()) :: fill (L_T, R_B);
+
+		for_inc (i, 3,
+
+			fill_color (tri_colors [i]) ::
+			{
+			polygon (
+				points2 {i, i, 1},
+				points2 {i, i, 0},
+				points2 {i, next(i), 1},
+				points2 {i, prev(i), 2},
+				points2 {i, prev(i), 3},
+				points2 {i, next(i), 2},
+				);
+
+			polygon (
+				points2 {next(i), next(i), 2},
+				points2 {prev(i), next(i), 2},
+				points2 {prev(i), i, 1},
+				points2 {prev(i), i, 0},
+				points2 {prev(i), next(i), 1},
+				points1 {prev(i), 2},
+				);
+
+			polygon (
+				points1 {i, 1},
+				points1 {i, 2},
+				points2 {next(i), next(i), 1},
+				points1 {i, 3},
+				);
+
+			polygon (
+				points1 {next(i), 1},
+				points2 {next(i), i, 0},
+				points2 {next(i), i, 1},
+				points1 {next(i), 2},
+				);
+
+			polygon (
+				points2 {next(i), prev(i), 2},
+				points2 {next(i), prev(i), 3},
+				points1 {prev(i), 4},
+				points2 {prev(i), prev(i), 2},
+				);
+
+			});		` -- for_inc (i) `
+
+		if (show_points) ::
+			for_inc (i, 3, {
+				for_inc (j, 3,
+					for_inc (k, 4,
+						show_pt (Grey(192), ^points2{[i j k]})));
+
+				for_inc (j, 5,
+					show_pt (Grey (128), ^points1{[i j]}));
+
+				show_pt (Grey(255), ^points0{i});
+			})
+
+		}		` -- #on_paint `
+
+	};		` -- ImpTriTrigon `
+
+`
+	Windowing session entry point
+`
+
+WinSession (
+
+	(ImpTrigon ("Impossible trigon",
+		[140 125], [160 160], [120 160],
+			(Red(), Green(), Blue())),
+				[20 20], [290 300]),
+
+	(ImpTriTrigon ("Impossible 'tri-trigon'",
+		[160 150], [172 170], [148 170],
+			(Magenta(), Yellow(), Cyan())),
+				[400 20], [330 330]),
+
+	);
+

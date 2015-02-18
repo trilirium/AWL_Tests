@@ -1,0 +1,255 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'LifeGame.awl':
+	|	Conway's game of Life
+	|	(unaltered rules)
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[offset];
+
+offset = 8;		` (shift left) `
+
+` State of cells `
+
+:[C_DEAD C_LIVE C_SURV2 C_SURV3 C_BORN];
+
+` (permanent cell states) `
+C_DEAD = 0;					` empty (dead) `
+C_LIVE = 1 << offset;		` full (alive) `
+
+` (transition cell states) `
+C_SURV2 = C_LIVE + 1 + 2;			` survived (with 2 neighbours) `
+C_SURV3 = C_LIVE + 1 + 3;			` survived (with 3 neighbours) `
+C_BORN = 3;							` newborn `
+
+!! LifeGame (Rows Cols) :
+	[Area n_gener total_count born_count died_count]
+
+	` game constructor `
+	= (Area = array (Cols, Rows))
+
+	{
+	` Clear/reset entire game `
+	! clear = {
+		a_fill (Area, 0);
+		n_gener = 0;
+		total_count = born_count = died_count = 0;
+		},	` -- clear `
+
+	` Toggle single cell `
+	! toggle (R C) =
+		(Area {C, R} =~: 1 << offset) == C_LIVE ? ++ total_count : -- total_count,
+
+	` Place/remove cell, at location (R, C) `
+	! place (flag R C obj_def) : [loc] =
+		l_loop (loc, obj_def,
+			Area {C + loc[1], R + loc[0]} = flag ? C_LIVE : C_DEAD),		` -- place `
+
+	` Update: advance to next generation `
+	! update : [R C new_count] = {
+
+		` (internal): game area recalculation `
+		! recalc : [r c count delta r_range] = {
+		` (main row (R) loop): `
+		for_inc (R, Rows, {
+
+			` range of rows to scan: `
+			r_range =
+				(R == 0 ? 0 : R - 1) .. (R == Rows-1 ? Rows : R + 2);
+
+			` initial counter (start of row) `
+			delta = 0;
+			for_inc (c, 0..2,
+				for_inc (r, r_range,
+					delta =+: Area {c, r})
+				);
+			count = delta >> offset;
+			Area {0, R} =+: count;
+
+			` (column (C) loop): `
+			for_inc (C, 1..Cols, {
+
+				` unless last column: `
+				unless (C + 1 == Cols):: {
+					`- add next column `
+					delta = 0;
+					for_inc (r, r_range,
+						delta =+: Area {C + 1, r});
+					count =+: delta >> offset;
+					};
+
+				` unless first column: `
+				unless (C == 1):: {
+					`- subtract previous column `
+					delta = 0;
+					for_inc (r, r_range,
+						delta =+: Area {C - 2, r});
+					count =-: delta >> offset;
+					};
+
+				Area {C, R} =+: count;
+				})	` -- C loop `
+			});	` -- R loop `
+		};	` recalc `
+
+		` (internal): game area recalculation (alternate) `
+		! recalc_alt : [c_delta] = {
+			c_delta = array (Cols);
+
+			` rows loop (R) `
+			for_inc (R, Rows, {
+				` only if top row: `
+				unless (R)::
+					for_inc (C, Cols, c_delta{C} = Area{C, 0} >> offset);
+
+				` cols loop (C): first recalc c_delta: `
+				for_inc (C, Cols,
+					c_delta{C} =+:
+						` (add next row?) `
+						(R+1 == Rows ? 0 : Area{C, R+1} >> offset) -
+						` (subtract prev row?) `
+						(R < 2 ? 0 : Area{C, R-2} >> offset)
+					);	` -- C loop `
+
+				` cols loop (C): then recalc game area: `
+				for_inc (C, Cols,
+					Area{C,R} =+:
+						` (previous column delta?) `
+						(C == 0 ? 0 : c_delta{C-1}) +
+						` (this column delta) `
+						c_delta{C} +
+						` (next column delta?) `
+						(C+1 == Cols ? 0 : c_delta{C+1})
+					);	` -- C loop `
+				});	` -- R loop `
+			};		` -- recalc_alt `
+
+		recalc_alt ();
+
+		` Switch to next generation `
+		n_gener ++;
+		born_count = died_count = 0;
+
+		new_count = Rows*Cols;
+		for_inc (R, Rows,
+			for_inc (C, Cols,
+				Area {C, R} =
+					switch (Area {C, R}):: (
+						` survived 1: `
+						C_SURV2:: C_LIVE,
+						` survived 2: `
+						C_SURV3:: C_LIVE,
+						` newborn: `
+						C_BORN::  { ++ born_count; C_LIVE },
+
+						` ... otherwise `
+						{ -- new_count; C_DEAD }
+						)
+				)	` -- C loop `
+			);	` -- R loop `
+
+		died_count = total_count + born_count - new_count;
+		total_count = new_count;
+
+		` for debug: `
+		<: ("Generation: ", n_gener, " total: ", total_count, " born: ", born_count, " died: ", died_count, "\n");
+		}	` -- update `
+
+	};		` -- LifeGame `
+
+`
+	Game widget
+`
+
+include "winter.awl";
+
+!! [Widget] LifeWidget (Game Size StatHgt)
+	= (LifeGame!!Game.( [Height Width] = (Size*Rows + StatHgt, Size*Cols) ))
+
+	{
+
+	! #on_open = {
+		LifeGame!!Game.clear ();
+		},
+	
+	` Draw game area range (RowRange, ColRange) `
+	! draw_area (RowRange ColRange) : [R C X Y] = 
+		LifeGame!!Game.
+		for_inc (R, RowRange, {
+			Y = R * Size;
+			for_inc (C, ColRange, {
+				X = C * Size;
+				graphics!!{
+					plot_color (White \xB0)::rect ([X Y], (X + Size, Y + Size));
+					if (Area {C, R})::
+						fill_color (0)::
+							oval ((X+1, Y+1), (X-1 + Size, Y-1 + Size));
+					}
+				})
+			}),		` -- draw_area `
+
+	` Draw single cell `
+	! draw_cell (R C) = draw_area (R..R+1, C..C+1),
+
+	` Show game status `
+	! show_status = graphics!!{
+		! hilite (@_) = font_weight 1:: font_fgcolor (White ()):: (^_);
+
+		font_bgcolor (Grey (\x80)):: fill_color (Grey (\x80))::
+			font_fgcolor (Red ())::
+			font_face 'Arial':: font_size 16::
+			text_box (3 + 3<<4, (0, Height - StatHgt), (Width, Height),
+				LifeGame!!Game.{
+					text "Generation: "; hilite^text (n_gener);
+					text " | Total: "; hilite^text (total_count);
+					text " | Born: "; hilite^text (born_count);
+					text " | Died: "; hilite^text (died_count);
+					})
+			},		` -- show_status `
+
+	` Paint widget `
+	! #on_paint (L_T R_B) = {
+		[L_T R_B] =
+		graphics!!map_grid_rect ([0 0], [Size Size],
+			LifeGame!!Game.[Cols Rows], [L_T R_B]);
+
+		LifeGame!!Game.draw_area (L_T[1]..R_B[1], L_T[0]..R_B[0]);
+		show_status ();
+		},
+
+	` Key action `
+	! #on_key (action key) = 
+		if (action > 0):: (LifeGame!!Game.{
+			if (key == CH_Escape)::
+				` reset entire game: `
+				(clear ()) ::
+				` update to next generation: `
+				(update ());
+
+			with_widget^ { draw_area (Rows, Cols); show_status (); };
+			}),
+
+	` Mouse click action `
+	! #on_mouse_click (button action point) = 
+	    if (action > 0 && button == MB_Left):: {
+		point = graphics!!map_grid_point
+			([0 0], [Size Size], LifeGame!!Game.[Cols Rows], point);
+
+		LifeGame!!Game.toggle (point[1], point[0]);
+		with_widget^ { draw_cell (point[1], point[0]); show_status (); };
+		}
+
+	};
+
+` Game entry point `
+
+WinSession (
+	(LifeWidget ("Life game", LifeGame (42, 60), 12, 16), [50 50], ),
+	);
+

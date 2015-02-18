@@ -1,0 +1,137 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'ImageView.awl':
+	|	Very basic image viewer widget.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+include "winter.awl";
+
+!! [Widget] ImageView (Shape iHeight iWidth) : [image xOff yOff] {
+	! #on_open = with_widget^ {
+		image = graphics!!image_create ([iHeight iWidth]);
+		graphics!!with_image (image):: (Shape ! [iHeight iWidth]);
+
+		xOff = yOff = 0;
+		},
+
+	! erase (Area) = graphics!! fill_color (0):: fill (Area),
+
+	! #on_paint = graphics!!{
+		image_blit (image, [0 0], (), [xOff yOff], [iWidth iHeight]);
+
+		if (xOff > 0):: erase ([0 0], [xOff Height]);
+		if (yOff > 0):: erase ([0 0], [Width yOff]);
+		if (xOff + iWidth < Width):: erase ((xOff + iWidth, 0), [Width Height]);
+		if (yOff + iHeight < Height):: erase ((0, yOff + iHeight), [Width Height]);
+		},
+
+	! offset (off_x off_y) = {
+		xOff =+: off_x;
+		yOff =+: off_y;
+		with_widget (on_paint ([0 0], [iHeight iWidth]));
+		},
+
+	! origin (image_at view_at) = {
+		xOff = view_at[0] - image_at[0];
+		yOff = view_at[1] - image_at[1];
+		
+		with_widget (on_paint ([0 0], [iHeight iWidth]));
+		},
+
+	! #on_key (action key) =
+		if (action > 0)::
+			switch (key):: (
+
+			KB_Up::		offset (0, 16),
+			KB_Down::	offset (0, -16),
+			KB_Left::	offset (16, 0),
+			KB_Right::	offset (-16, 0),
+
+			KB_Home::
+				origin ([0 0], [0 0]),
+			KB_End::
+				origin ([0 iHeight], [0 Height]),
+			KB_PgUp::
+				origin ([iWidth 0], [Width 0]),
+			KB_PgDn::
+				origin ([iWidth iHeight], [Width Height]),
+
+			KB_Center::
+				origin ((iWidth % 2, iHeight % 2), (Width % 2, Height % 2)),
+
+			),	` -- on_key `
+
+	! #on_mouse_move (State From To) =
+		if ((State & (MB_Right << 16)) && #From && #To)::
+			offset (To[0] - From[0], To[1] - From[1]),
+				` -- on_mouse_move `
+
+	! #on_close = with_widget (graphics!!image_destroy (image))
+
+	};
+
+` Go test it `
+
+` Shaded rectangle `
+! ShadeRect (TopLeft BottomRight Inset fnColor) :
+	[colors colors1 insets] = graphics!!{
+	colors = l_map (fnColor, \x80, Inset > 0 ? [\xC0 \x40] : [\x40 \xC0]);
+	colors1 = l_map (fnColor, Inset > 0 ? [\xF8 \x08] : [\x08 \xF8]);
+	insets = Inset > 0 ? (Inset, Inset) : (-Inset, -Inset);
+	frame3D (TopLeft, BottomRight, insets, colors);
+
+	plot_color (colors1[0]):: line (TopLeft,
+		(TopLeft[0] + insets[0], TopLeft[1] + insets[1]));
+
+	plot_color (colors1[1])::
+		line ((BottomRight[0] - insets[0], BottomRight[1] - insets[1]),
+		BottomRight);
+	};
+
+` Shaded ellipse `
+! ShadeEllipse (TopLeft BottomRight Inset fnColor) = graphics!!
+	plot_disable (1):: {
+	fill_color (fnColor ! \xC0)::
+	    wedge (TopLeft, BottomRight,
+		(BottomRight[1] - TopLeft[1], TopLeft[0] - BottomRight[0]),
+		(TopLeft[1] - BottomRight[1], BottomRight[0] - TopLeft[0]));
+	fill_color (fnColor ! \x40)::
+	    wedge (TopLeft, BottomRight,
+		(TopLeft[1] - BottomRight[1], BottomRight[0] - TopLeft[0]),
+		(BottomRight[1] - TopLeft[1], TopLeft[0] - BottomRight[0]));
+	fill_color (fnColor ! \x80)::
+	    oval ((TopLeft[0] + Inset, TopLeft[1] + Inset),
+		(BottomRight[0] - Inset, BottomRight[1] - Inset));
+	};
+
+`
+	Session entry point
+`
+
+WinSession (
+	(ImageView ("Image 1",
+	! (width height) = {
+		ShadeRect ([0 0], [width height], 12, !Green);
+		ShadeRect ([30 30], (width-30, height-30), -6, !Cyan);
+
+		ShadeEllipse ([60 60], (width-60, height-60), 10, !Magenta);
+		},
+		[300 300]), [0 0], [320 360]),
+
+	(ImageView ("Image 2",
+	! (width height) = {
+		ShadeRect ([0 0], [width height], 12, !Red);
+		ShadeRect ([30 30], (width-30, height-30), -6, !Yellow);
+		},
+		[200 200]), [200 200], [220 220]),
+	);
+
+<: "Image view done.\n";
