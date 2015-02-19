@@ -1,0 +1,728 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'SortDemo.awl':
+	|	Demonstration of various sorting algorithms.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+:[];
+
+`
+	*
+	*	Basic definitions:
+	*	generic sortables, sorting algorithms
+	*
+`
+
+`
+	Abstract sortable object interface
+`
+!! Sortable
+	#{
+		` # of items in Sortable `
+		items_count
+
+		` get item (n) of Sortable `
+		item_get
+		
+		` get range of item values in Sortbale `
+		items_range
+		
+		` compare items (i, j) in Sortable; return result `
+		items_cmp
+		
+		` swap items (i, j) in Sortable `
+		items_swap
+	}
+
+	{
+	` (no items by default...) `
+	! #items_count = 0
+	};
+
+`
+	Implement Sortable: array of integers
+`
+!! [Sortable] SortIntArray (array) {
+
+	! #items_count = a_dims(array),
+
+	! #item_get(i) = array{i},
+
+	! #items_range : [i min max] = {
+		min = max = array {0};
+		for_inc (i, 1..items_count(), {
+			min = ?< : array{i};
+			max = ?> : array{i};
+			});
+
+		` result is: `
+		min..max
+		},
+
+	! #items_cmp (i j) = array{i} <?> array{j},
+
+	! #items_swap (i j) = array{i} :=: array{j}
+
+	};
+
+`
+	Check sortable for being ordered
+	(reverse ? descending : ascending)
+`
+! CheckOrdering (reverse) : [i result] = Sortable!! {
+	result = 1;
+	for_inc (i, items_count() - 1,
+		result = result &&
+			(reverse ? !ge : !le) ! (items_cmp (i, i+1), 0)
+		);
+
+	result
+	};		` -- CheckOrdering `
+
+`
+	Sortable random shuffling
+	(Fisher-Yates method)
+`
+! Shuffle : [n m] = Sortable!!
+	for_dec (n, 1..items_count (), {
+		m = rand (n + 1);
+		if (m <> n):: items_swap (m, n)
+		});
+
+`
+	Sortable reverse
+`
+
+! Reverse : [last i] = Sortable!! {
+	last = items_count() - 1;
+	for_inc (i, last % 2, items_swap (i, last - i));
+	};
+
+`
+	Sort method:
+	Insertion sort
+`
+
+! InsertSort : [I J] = Sortable!!
+	for_inc (I, 1..items_count(), {
+		` move item #I down to proper place: `
+		J = I;
+		while (J && items_cmp (J-1, J) > 0):: {
+			items_swap (J-1, J);
+			-- J;
+			}
+		});
+
+`
+	Sort method:
+	Selection sort
+`
+
+! SelectSort : [I J _Min] = Sortable!!
+	for_inc (I, items_count()-1, {
+		` locate minimal item #_Min: `
+	    _Min = I;
+		for_inc (J, I+1..items_count(),
+			if (items_cmp (J, _Min) < 0):: (_Min = J));
+
+	    if (_Min <> I):: items_swap (_Min, I);
+	    });
+
+`
+	Sort method:
+	Bubble sort (incremental)
+`
+
+! BubbleSort : [N i count] = Sortable!! {
+N = items_count ();
+?? {
+	count = 0;
+	` bubble element(s) up (and count swaps) `
+	for_inc (i, 0 .. --N,
+		if (items_cmp (i, i+1) > 0)::
+			{ items_swap (i, i+1); ++ count; }
+			);
+	} (count);
+};	` -- BubbleSort `
+
+`
+	Sort method:
+	Shaker sort
+	(bi-directional Bubble sort)
+`
+
+! ShakerSort : [lo hi count i] = Sortable!! {
+lo = 0;
+hi = items_count() - 1;
+
+?? {
+	count = 0;
+
+	` bubbling smallest elements down to start: `
+	for_dec (i, lo..hi,
+		if (items_cmp (i, i+1) > 0):: {
+			items_swap (i, i+1);
+			lo = i+1;
+			++ count;
+			}
+		);
+
+	` bubbling biggest elements up to end: `
+	for_inc (i, lo..hi,
+		if (items_cmp (i, i+1) > 0):: {
+			items_swap (i, i+1);
+			hi = i;
+			++ count;
+			}
+		);
+
+	} (lo < hi && count);
+};	` -- ShakerSort `
+
+`
+	Sort method:
+	Shell sort (halving interval)
+`
+
+! ShellSort : [total interval i j] = Sortable!! {
+total = interval = items_count ();
+
+while (interval =%: 2):: {
+	for_inc (i, interval..total, {
+		j = i;
+		while (j >= interval && items_cmp (j - interval, j) > 0):: {
+			items_swap (j, j - interval);
+			j =-: interval;
+			}
+		})
+	}
+};
+
+`
+	Sort method:
+	Quick sort A (with static pivot item)
+`
+
+! QuickSortA = Sortable!! {
+
+` Recursive:
+  quick sort fragment lo..hi+1 (in direction dir) `
+! QS_fragment (dir lo hi) : [i pivot] =
+if (lo < hi)::					` anything to sort `
+	if (hi - lo == 1):: (
+		` trivial two elements ordering: `
+		if (items_cmp (lo, hi) > 0):: items_swap (lo, hi)
+		) ::
+
+	(			` (non-trivial sorting) `
+	(dir) ~?
+	{		` with incremental partitioning: `
+	` choose middle pivot: `
+    items_swap (pivot = lo, (lo + hi) % 2);
+    for_inc (i, lo+1..hi+1,
+		if (items_cmp (i, pivot) < 0 && ++ lo <> i)::
+			items_swap (lo, i)
+		);
+
+    if (lo <> pivot):: items_swap (lo, pivot);
+
+	` recursive sort both partitions `
+    QS_fragment (0, pivot, lo-1);
+    QS_fragment (1, lo+1, hi);
+    }
+	:
+	{		` with decremental partitioning: `
+	` choose middle pivot: `
+    items_swap (pivot = hi, (lo + hi) % 2);
+    for_dec (i, lo..hi,
+		if (items_cmp (i, pivot) > 0 && -- hi <> i)::
+			items_swap (hi, i)
+		);
+
+    if (hi <> pivot):: items_swap (hi, pivot);
+
+	` recursive sort both partitions `
+    QS_fragment (1, lo, hi-1);
+    QS_fragment (0, hi+1, pivot);
+	}
+	);	` -- QS_fragment `
+
+` algorithm entry point: `
+QS_fragment (0, 0, items_count() - 1);
+};		` QuickSortA `
+
+`
+	Sort method:
+	Quick sort B (with dynamic pivot item)
+`
+
+! QuickSortB = Sortable!! {
+
+` Recursive:
+  quick sort fragment lo..hi+1 `
+! QS_fragment (lo hi) : [from to pivot] =
+	if (lo < hi)::					` anything to sort `
+	if (hi - lo == 1):: (
+		` trivial two elements ordering: `
+		if (items_cmp (lo, hi) > 0):: items_swap (lo, hi)
+		) ::
+
+	{			` (non-trivial sorting) `
+	[from to] = [lo hi];
+	pivot = (from + to) % 2;
+
+	?? {
+		(from <> pivot && items_cmp (from, pivot) < 0)?? ++ from;
+		(to <> pivot && items_cmp (to, pivot) > 0)?? -- to;
+
+		if (from <= to):: {
+			if (from <> to):: {
+				items_swap (from, to);
+				pivot =
+					(pivot == from) ? to :
+					(pivot == to) ? from :
+					pivot;
+				};
+
+			from ++; to --;
+			};
+		} (from <= to);
+
+	QS_fragment (lo, to);
+	QS_fragment (from, hi);
+	};		` QS_fragment `
+
+` algorithm entry point: `
+QS_fragment (0, items_count() - 1);
+};	` QuickSortB `
+
+`
+	Pre-sorting recorder
+`
+
+!! [Sortable] SortRecorder (sortable) :
+	[action_list cmp_count swap_count cmp_total swap_total]
+	= {	action_list = 0; cmp_count = swap_count = 0 }
+
+	{
+	! #items_count = sortable.items_count (),
+
+	! #item_get (i) = sortable.item_get (i),
+
+	! #items_range = sortable.items_range (),
+
+	` Record compared items (i, j) `
+	! #items_cmp (i j) = {
+		action_list [<-] ([0 i j], );
+		
+		++ cmp_count;
+
+		` (result is:) `
+		sortable.items_cmp (i, j)
+		},
+
+	` Record swapped items (i, j) `
+	! #items_swap (i j) = {
+		action_list [<-] ([1 i j], );
+
+		++ swap_count;
+
+		sortable.items_swap (i, j);
+		},
+
+	` Revert sortable back `
+	! revert : [new_list action] = {
+		[cmp_total swap_total] = [cmp_count swap_count];
+
+		new_list = 0;
+
+		sortable.times (#action_list - 1)::{
+			action_list [->] action;
+
+			if (action[0])::
+				items_swap (action[1], action[2]);
+
+			new_list [<-] action;
+			};
+
+		action_list = new_list;
+
+		` make list terminated: `
+		l_tail_by (#action_list-1, action_list) = ();
+		},	` -- revert `
+
+	` retrieve current action `
+	! retrieve : [action] = {
+		#action_list ? {
+			action_list [->] action;
+			action
+			}
+			:
+		}	` -- retrieve `
+	};
+
+`
+	*
+	*	Sorting demo widget
+	*
+`
+
+include "winter.awl";
+
+`
+	"SortDemo":
+	Sorting methods demonstration widget
+`
+
+! text_font(@_) = graphics!!font_face 'Courier'::font_size 16::(^_);
+
+:[text_height BgC];
+
+text_height = 20;
+BgC = Black ();
+
+:[DelayCmp DelaySwap DelayPlay];
+
+` Delay intervals (in ms.) `
+DelayCmp = 50;		` compare showing delay `
+DelaySwap = 75;		` swap showing delay `
+DelayPlay = 30;		` playback delay `
+
+:[sorting_hook];	` (forward link to hook) `
+
+!! [Widget] SortDemo (sort_obj method method_name HStep WStep FillColorFn):
+	[Count Range PreSorted PlaybackTimer]
+
+	= (Sortable!!sort_obj.{
+		Count = items_count ();
+		Range = items_range ();
+
+		Height = 3*text_height + (HStep + 2) * (Count + 2) - 4;
+		Width = WStep * (Range[1] + 4);
+
+		Title = "Sort demo: " +$ method_name;
+		})
+	{
+
+	` Get rectangle for item #i `
+	! item_rect (i) : [val x y] = {
+		val = sort_obj.Sortable!!item_get(i);
+
+		x = (Width - WStep*val) % 2;
+		y = 3*text_height + (HStep + 2) * (i + 1) - 1;
+
+		` (result is): `
+		([x y], (Width - x, y + HStep))
+		},
+
+	` Get color for item #i `
+	! item_color (i) : [val] = {
+		val = sort_obj.Sortable!!item_get(i);
+		FillColorFn ! (((val - Range[0]) * \xFF) % (Range[1] - Range[0]))
+		},
+
+	` Draw sortable item `
+	! draw_item (i) : [rect] = {
+		rect = item_rect (i);
+		graphics!!{
+			fill_color (BgC)::
+				fill ((0, rect[0][1]), (Width, rect[2]));
+
+			plot_color (White (\xFF))::
+			fill_color (item_color (i))::
+			round_rect (l_head(rect), l_tail(rect), (HStep%2, HStep%2));
+			}
+		},
+
+	` (Un)Draw connection between sortable items `
+	! connect_items (i j right_left) : [iX iY jX jY X] = {
+		([iX iY], ) = item_rect(i);
+		([jX jY], ) = item_rect(j);
+
+		iY =+: HStep % 2; jY =+: HStep % 2;
+		
+		right_left ?		` (at right side) `
+			{
+			X = Width - WStep;
+			iX = X - iX; jX = X - jX;
+			}:				` (at left side) `
+			(X = WStep)
+			;
+
+		` draw connection: `
+		graphics!!{
+			line ([X iY], [iX iY]);
+			line ([X iY], [ X jY]);
+			line ([X jY], [jX jY]);
+			}
+		},
+
+	` Output message 'text' at 'row' `
+	! message (row @text) =
+		graphics!!fill_color (Grey (\x80)):: font_bgcolor (Grey (\x80))::
+		(text_font^ text_box (3 + 3<<4, (0, row*text_height), (Width, (row+1)*text_height), ^text)),
+
+	` boldfaced string: `
+	! bold (str) = graphics!!font_fgcolor (White ()):: font_weight 1:: text (str),
+
+	` Show items comparing `
+	! show_comparing (i j count total) = graphics!! {
+		plot_color (Green ()):: connect_items ([i j 0]);
+
+		message 0::
+			font_fgcolor (Green()):: {
+				text "Comparing: ";
+				bold (i); text " <?> "; bold (j);
+				};
+
+		winternal!!sleep (DelayCmp);
+
+		plot_color (BgC):: connect_items ([i j 0]);
+		message 0:: ();
+
+		font_fgcolor (Green ())::
+			message 1:: {
+				text "Items compared: ";
+				bold (count);
+				if (#total)::
+					{ text '/';	bold (total); };
+				};
+		},	` -- show_comparing `
+
+	` Show items swapping `
+	! show_swapping (i j count total) = graphics!! {
+		plot_color (Red ()):: connect_items ([i j 1]);
+
+		message 0::
+			font_fgcolor (Red()):: {
+				text "Swapping: ";
+				bold (i); text " :=: "; bold (j);
+				};
+
+		winternal!!sleep (DelaySwap);
+
+		plot_color (BgC):: connect_items ([i j 1]);
+		message 0:: ();
+
+		graphics!!font_fgcolor (Red ())::
+			message 2:: {
+				text "Items swapped: ";
+				bold (count);
+				if (#total)::
+					{ text '/'; bold (total); };
+				};
+		},	` -- show_swapping `
+
+	! default_message =
+		graphics!!font_fgcolor (Grey \xE0):: {
+		message 0::
+			{ text "<Demo>: "; bold (method_name); text " sort."; };
+
+		message 1::
+			{ text "Total "; bold (Count); text " elements."; };
+
+		message 2:: font_fgcolor (Black ()):: text "[ press any key to start... ]";
+		},
+
+	` Show completion results `
+	! completion (n_compared n_swapped) : [success] = graphics!!{
+		success = Sortable!!sort_obj.CheckOrdering(0);
+
+		with_widget ^ {
+			message 0::
+				bold (success ? "Sorting complete." : "Sorting failed!");
+			message 1:: font_fgcolor (Green ()):: {
+				text "Total compared: ";
+				bold (n_compared);
+				text '.';
+				};
+			message 2:: font_fgcolor (Red ()):: {
+				text "Total swapped: ";
+				bold (n_swapped);
+				text '.';
+				};
+			};
+
+		<: ("Sorting '", method_name, "' ", (success ? "OK" : "failed"),
+		  " (", "compared: ", n_compared, " / swapped: ", n_swapped, ")\n");
+
+		alert_box ("Sorting done",
+		    "Complete sorting (" +$ method_name +$ "):\n" +$
+		    "\ttotal compared: " +$ n_compared +$ ",\n" +$
+		    "\ttotal swapped: " +$ n_swapped +$ ".\n");
+
+		with_widget^ default_message ();
+		},
+
+	` Sort self instantly `
+	! do_sort_act =
+		with_widget (graphics!!{
+			message 0:: text "Sorting in progress";
+			message 1:: text "[none compared]";
+			message 2:: text "[none swapped]";
+
+			` Apply sorting method to self `
+			completion (sorting_hook ! (self (!SortDemo), method));
+			}),
+
+	` Sort self (with timer recording/playback) `
+	! do_sort_rec =
+		#PreSorted ?
+			` already in playback! `
+			alert_beep (0) :
+		{
+		` create sort recorder: `
+		PreSorted = SortRecorder ((), sort_obj);
+
+		` do pre-sorting: `
+		PreSorted.(method ! ());
+
+		` revert back to unsorted: `
+		PreSorted.SortRecorder!!revert ();
+
+		` start playback... `
+		PlaybackTimer = winternal!!timer_control (Parent, -1, DelayPlay);
+		},
+
+	! #on_paint (L_T R_B): [i] = graphics!! {
+		` (clear widget area) `
+		fill_color (BgC):: fill (L_T, R_B);
+
+		for_inc (i):: Count:: draw_item (i);
+
+		unless (#PreSorted)::
+			default_message ();
+		},
+
+	! #on_resize (Height Width) =
+		with_widget (on_paint ([0 0], [Height Width])),
+
+	! #on_key (action key) : [obj] =
+		if (action > 0):: {
+			do_sort_rec ();	` sort recording `
+
+			` do_sort_act (); `	` sort instantly `
+		},
+
+	! #on_timer : [action act_code item_0 item_1] = SortRecorder!!{
+		[act_code item_0 item_1] = PreSorted.retrieve ();
+
+		if (#act_code):: (
+		` continue playback... `
+		PreSorted.with_widget (
+		if (act_code):: {	` items 0/1 compared `
+			show_swapping (item_0, item_1, swap_total - (-- swap_count), swap_total);
+
+			sort_obj.Sortable!!items_swap (item_0, item_1);
+
+			draw_item (item_0); draw_item (item_1);
+			}
+		 :: (				` items 0/1 swapped `
+			show_comparing (item_0, item_1, cmp_total - (-- cmp_count), cmp_total)
+			)
+		)) :: {
+			` stop playback... `
+			PlaybackTimer = winternal!!timer_control (Parent, PlaybackTimer, 0);
+			` show completion `
+			PreSorted.completion (cmp_total, swap_total);
+			` destroy recording `
+			PreSorted = ();
+			};
+		}	` -- on_timer `
+	};
+
+`
+	"Sortable" interface to SortDemo:
+	dynamically shows all items compares/swaps
+`
+!! [Sortable] WidgetSorter (sort_widget) :
+	[sortable cmp_count swap_count]
+	= {
+		sortable = sort_widget.SortDemo!!sort_obj;
+		cmp_count = swap_count = 0;
+		}
+
+	{
+	! #items_count = sortable.items_count (),
+
+	! #item_get (i) = sortable.item_get (i),
+
+	! #items_range = sortable.items_range (),
+
+	` Show pair of items (i, j) being compared `
+	! #items_cmp (i j) = {
+		SortDemo!!show_comparing (i, j, ++ cmp_count);
+
+		` (result is:) `
+		sortable.items_cmp (i, j)
+		},
+
+	` Show pair of items (i, j) being swapped `
+	! #items_swap (i j) = {
+		SortDemo!!show_swapping (i, j, ++ swap_count);
+
+		sortable.items_swap (i, j);
+
+		SortDemo!! { draw_item (i); draw_item (j); }
+		}
+	};
+
+` Callback for WidgetSorter: `
+sorting_hook =
+	! (sortable method) : [WS] = {
+		(WS = WidgetSorter ((), sortable)).(method ! ());
+
+		` result is: `
+		WidgetSorter!!WS.[cmp_count swap_count]
+		};
+
+:[data];
+
+data = array (32);
+
+a_init_all (data, !(i) = ((i+1) * 4));
+
+randomize ();
+SortIntArray ((), data).Shuffle ();
+
+! make_int_sortable (src) = SortIntArray ((), a_copy (src));
+
+WinSession (
+
+	(SortDemo ((), make_int_sortable (data),
+		!InsertSort, "insertion", 8, 3, !Red),
+			[0 0], ),
+
+	(SortDemo ((), make_int_sortable (data),
+		!SelectSort, "selection", 8, 3, !Green),
+			[100 0], ),
+
+	(SortDemo ((), make_int_sortable (data),
+		!BubbleSort, "bubble", 8, 3, !Blue),
+			[200 0], ),
+
+	(SortDemo ((), make_int_sortable (data),
+		!ShakerSort, "shaker", 8, 3, !Magenta),
+			[300 0], ),
+
+	(SortDemo ((), make_int_sortable (data),
+		!ShellSort, "shell", 8, 3, !White),
+			[400 0], ),
+
+	(SortDemo ((), make_int_sortable (data),
+		!QuickSortA, "quick/A", 8, 3, !Cyan),
+			[500 0], ),
+
+	(SortDemo ((), make_int_sortable (data),
+		!QuickSortB, "quick/B", 8, 3, !Yellow),
+			[600 0], ),
+
+	);	` -- WinSession `
+
+<: "Sorting demo done.\n";

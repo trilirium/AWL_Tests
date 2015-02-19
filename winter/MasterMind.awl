@@ -1,0 +1,377 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'MasterMind.awl':
+	|	Game of MasterMind
+	|	(press F1 for instructions & control options)
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+:[color_tab];
+
+color_tab =
+	(Red(), Yellow(), Green(), Cyan(), Magenta(), Blue());
+
+:[DarkGrey NormGrey LiteGrey White];
+
+[DarkGrey NormGrey LiteGrey White] = (Grey 64, Grey 128, Grey 192, Grey 255);
+
+` Decrementally cycle Val in 0..Max `
+! cycle_dec (@Val Max) =
+	(^Val) -- == 0 ? ((^Val) = Max-1) :;
+
+` Incrementally cycle Val in 0..Max `
+! cycle_inc (@Val Max) =
+	++ (^Val) == Max ? ((^Val) = 0) :;
+
+`
+	MasterMind abstract: game logic
+`
+!! [Widget] MasterMindBase (RowNo ColNo ColorNo) :
+	[Board Secret Answers CurRow CurCol]
+
+	` Constructor: create all arrays `
+	= {
+		Board = array ([RowNo ColNo]);
+		Secret = array (ColNo);
+		Answers = array (RowNo);
+	  }
+
+	` show_row -- provided by implementor `
+	# { show_row }
+
+	{
+	` Create random secret code `
+	! create_secret : [col] =
+		for_inc (col, ColNo, Secret{col} = rand (ColorNo)),
+
+	` Calculate answer (#blacks, #whites)
+	  from current secret code and f_Current supplied as functor `
+	! check_secret (f_Current) :
+		[TSecret TGuess col col1 secret blacks whites] = {
+
+		` initialise... `
+		TSecret = array(ColNo);
+		TGuess = array(ColNo);
+		for_inc (col, ColNo, {
+			TSecret{col} = Secret{col};
+			TGuess{col} = f_Current ! col;
+			});
+
+		blacks = whites = 0;
+
+		` number equality check `
+		! val_eq (val1 val2) = #val1 && #val2 && val1 == val2;
+
+		` count # of black pegs `
+		for_inc (col, ColNo,
+			val_eq (TSecret{col}, TGuess{col}) ?
+				{ ++ blacks; TSecret{col} = TGuess{col} = () } :);
+
+		` count # of white pegs `
+		for_inc (col, ColNo, {
+			secret = TSecret{col};
+			for_inc (col1, ColNo,
+				val_eq (secret, TGuess{col1}) ?
+					{ ++ whites; TGuess{col1} = secret = (); } :);
+			});
+
+		` result is: `
+		[blacks whites]
+		},
+
+	` Show everything `
+	! show_all : [row] =
+		` show both board and secret `
+		for_inc (row, RowNo+1, show_row (row)),
+
+	`
+		Start new game of MasterMind
+	`
+	! start_game : [col] = {
+		` empty board && answers list `
+		a_fill (Board);
+		a_fill (Answers);
+
+		` think up secret code `
+		create_secret ();
+
+		CurRow = CurCol = 0;
+
+		` reset initial row `
+		for_inc (col, ColNo, Board{0, col} = 0);
+
+		show_all ();
+		},
+
+	` End current game `
+	! end_game (lost_won) : [final_row] = {
+		final_row = CurRow;
+
+		CurCol = ();
+		show_row (CurRow = RowNo);
+
+		alert_box (
+			lost_won ? "Winner" : "Loser",
+			lost_won ?
+				"You won the game!\n(In " +$ final_row +$ " moves.)" :
+				"You lost the game!"
+			);
+
+		` Next game follows... `
+		start_game ();
+		},
+
+	` Make new move `
+	! next_move : [col check answer] = {
+		Answers {CurRow} = answer =
+			check_secret(!(col) = (Board{CurRow, col}));
+
+		show_row (CurRow ++);
+
+		answer [==] [ColNo 0] ?
+			` game is won! `
+			end_game (true ()):
+
+		CurRow == RowNo ?
+			` game is lost (no free rows left) `
+			end_game (false ())
+		:
+
+		` advance to next row `
+		{
+		` copy previous guess `
+		for_inc (col, ColNo,
+			Board{CurRow, col} = Board{CurRow-1, col});
+
+		show_row (CurRow);
+
+		CurCol = 0;
+		}
+		}	` -- next_move `
+
+	};	` -- MasterMindBase `
+
+` Some user help `
+
+:[HelpText];
+
+HelpText = "
+OBJECTIVE:
+	to guess secret color code for limited number of tries.
+
+ANSWER:
+	N blacks:	N exact (place + color) matches;
+	M whites:	M inexact (same color / different place) matches.
+
+Keyboard controls:
+	[Left/Right]:	to move selection to prev/next peg.
+	[Home/End]:	to select first/last peg.
+	[Up/Down]:	to cycle color of selected peg.
+	[PgUp/PgDn]:	to cycle selected peg backward/forward.
+	[Enter]:	to make move.
+	[Esc]:	to surrender game.
+
+Mouse can be used to select current peg.
+
+";
+
+` for debug: always show secret `
+
+:[uncover];
+uncover = false();
+
+`
+	MasterMind: game widget
+`
+
+!! [MasterMindBase] MasterMind (Scale Border)
+
+	= (Height = Border*4 + Scale * ((RowNo + 1)*4),
+	   Width = Border*4 + Scale * (ColNo*3+2 + ColNo+1))
+
+	{
+
+	` Draw single color peg (at row, col) `
+	! draw_peg (y row col x) : [color] = {
+		color = row == RowNo ? Secret{col} : Board {[row col]};
+		color = #color ? color_tab [color] : 0;
+		x =+: Scale*(1 + col * 3);
+		graphics!!
+			plot_color ((row == CurRow) ?
+				(#CurCol && col == CurCol) ? White() : Black() :
+					color)::
+			fill_color (color)::
+				oval ([x y], (x + 2*Scale, y + 2*Scale));
+		},		` -- draw_peg `
+
+	` Draw code (at 'row') `
+	! draw_code (row y left) : [col] = graphics!!{
+		plot_color (row == CurRow ? White() : Black())::
+		  fill_color (row == RowNo ? LiteGrey : DarkGrey)::
+			round_rect (
+				(left, y - Scale % 2),
+				(left + Scale*(1 + ColNo * 3), y + 3*Scale - 2),
+				(Scale*3, Scale*3)
+				);
+
+		if (row <> RowNo || (#row && row == CurRow))::
+			for_inc (col, ColNo, draw_peg ([y row col left]));
+		},		` -- draw_code `
+
+	` Draw answers (for 'row') `
+	! draw_answers (row y left x) : [col answer] = graphics!!{
+		fill_color (NormGrey)::
+		round_rect (
+			(x + Scale*left, y - Scale%2),
+			(x + Scale*(left + ColNo + 1), y + 2*Scale + Scale%2),
+			(Scale, Scale)
+			);
+
+		answer = Answers{row};
+
+		if (#answer):: {
+		  for_inc (row, 2, {
+			plot_color (Grey (row ? Dark : Lite))::
+			fill_color (row? White() : Black())::
+			for_inc (col, answer[row],
+				oval ((x + Scale*(left + col) + Scale % 2, y + Scale*row),
+					  (x + Scale*(left + col+1) + Scale % 2, y + Scale*(row+1)))
+				);
+			});
+		}	` if answer `
+		},	` -- draw_answers `
+
+	` Show help window `
+	! show_help =
+		alert_box ("MasterMind help", HelpText),
+
+	` Provide show_row `
+	! #show_row (row) : [y] = {
+		y = Border*2 + Scale * (1 + (row == RowNo ? 0 : RowNo - row)*4);
+
+		draw_code (row, y, Border*2);
+		if (row <> RowNo):: draw_answers (row, y, 2 + ColNo*3, Border*2);
+		},
+
+	` Mouse click handler `
+	! click_on (pointX pointY) : [row col] = {
+		! unscale (@coord offset scale) =
+			((^coord) = ^coord >= offset? (^coord - offset) % scale : -1);
+
+		unscale (pointY, 2*Border, Scale);
+		unscale (pointX, 2*Border, Scale);
+
+		if (pointY >= 0 && pointX >= 0):: {
+			[row col] = ((pointY - 1) % 4, (pointX - 1) % 3);
+
+			(pointY - (row*4 + 1) < 2 && pointX - (col*3 + 1) < 2
+				&& (0 <= row && row <= RowNo)
+				&& (0 <= col && col < ColNo)) ?
+					(row = RowNo - row) :
+
+					(row = col = ())
+			};
+
+		[row col]
+		},
+
+	! #on_open = with_widget (start_game ()),
+
+	! #on_paint (L_T R_B) : [row] = graphics!!{
+		fill_color (NormGrey) :: fill (L_T, R_B);
+
+		frame3D ([0 0], (Width, Height), [Border Border],
+			[NormGrey LiteGrey DarkGrey]);
+
+		` show all rows `
+		for_inc (row, RowNo + 1, show_row (row));
+		},
+
+	! move_peg (do_move) : [OldCol] = {
+		OldCol = CurCol;
+		do_move ! (CurCol, ColNo);
+		Board {[CurRow CurCol]} :=: Board {[CurRow OldCol]};
+		},
+
+	! alter_peg (do_change) = {
+		do_change ! (Board {[CurRow CurCol]}, ColorNo)
+		},
+
+	! #on_key (action key) =
+		if (action > 0)::
+		{
+			key == KB_Left ?		` cycle CurCol backward `
+				cycle_dec (CurCol, ColNo) :
+			key == KB_Right ?		` cycle CurCol forward `
+				cycle_inc (CurCol, ColNo) :
+			
+			key == KB_Home ?		` move CurCol to start `
+				(CurCol = 0) :
+			key == KB_End ?			` move CurCol to end `
+				(CurCol = ColNo-1) :
+
+			key == KB_Up ?			` cycle current peg color to previous `
+				alter_peg (!cycle_dec) :
+			key == KB_Down ?		` cycle current peg color to next `
+				alter_peg (!cycle_inc) :
+
+			key == KB_PgUp ?		` cyclically shift current forward `
+				move_peg (!cycle_dec) :
+			key == KB_PgDn ?		` cyclically shift current backward `
+				move_peg (!cycle_inc) :
+
+			(dc_b '0' <= key && key <= dc_b '9') ?
+				` set color directly `
+				(Board {[CurRow CurCol]} = min (key - dc_b '0', ColorNo-1)) :
+
+			key == CH_Return ?		` move complete `
+				with_widget (next_move ()) :
+
+			key == CH_Escape ?		` surrender game `
+				with_widget (end_game (false ())) :
+
+			key == KB_F1 ?			` show some help `
+				show_help () :
+			;
+
+			with_widget (show_row (CurRow));
+		},
+
+	! #on_mouse_click (button action point) : [m_row m_col] =
+		if (action > 0 && button == MB_Left):: {
+			[m_row m_col] = click_on (point);
+			
+			(#m_row && #m_col) ?
+				(m_row == CurRow) ? {
+					CurCol = m_col;
+					with_widget (show_row (CurRow))
+					} :
+				alert_beep () :
+		},
+
+	! #on_mouse_wheel (State Wheel At) = {
+		if (1 || MB_State(State) == MB_Middle):: {
+			alter_peg (Wheel > 0 ? !cycle_dec : !cycle_inc);
+			with_widget (show_row (CurRow));
+			}
+		},
+	};		` -- End of MasterMind widget `
+
+`
+	Entry point
+`
+
+randomize ();
+
+WinSession (
+	(MasterMind (["MasterMind" 10 4 6], [9 6]),
+		[0 0], ),
+	);
+

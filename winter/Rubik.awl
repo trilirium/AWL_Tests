@@ -1,0 +1,1134 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Rubik.awl':
+	|	Rubik cube (3*3*3) puzzle.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+:[Black DarkGrey NormGrey LiteGrey White];
+
+[Black DarkGrey NormGrey LiteGrey White] = (0, Grey 64, Grey 128, Grey 192, Grey 255);
+
+`
+	Default color map
+	(standard cube coloring)
+
+`
+
+:[color_map];
+
+color_map = (
+	` (red) `
+		RGB(\xD0, \x00, \x00),
+	` (yellow) `
+		RGB(\xE0, \xE0, \x00),
+	` (green) `
+		RGB(\x00, \xD0, \x00),
+
+	` (orange) `
+		RGB(\xFF, \xAF, \x00),
+	` (white) `
+		RGB(\xD8, \xD8, \xD8),
+	` (blue) `
+		RGB(\x00, \x00, \xD0)
+	);
+
+`	Alternate color map (for debugging) `
+
+:[color_map_alt];
+
+color_map_alt = (
+	RGB8 (1, \xFF),
+	RGB8 (2, \xFF),
+	RGB8 (3, \xFF),
+	RGB8 (6, \xFF),
+	RGB8 (5, \xFF),
+	RGB8 (4, \xFF)
+	);
+
+` Utilities ... `
+
+` Toggle boolean Val (between 0 and 1) `
+! _toggle (@Val) = (^Val) = ^Val ? 0 : 1;
+
+` Cyclically decrement Val (in range First..Last) `
+! cycle_dec (@Val First Last) =
+	(^Val)-- == First ? { (^Val) = Last-1; 0 } : 1;
+
+` Cyclically increment Val (in range First..Last) `
+! cycle_inc (@Val First Last) =
+	++(^Val) == Last ? { (^Val) = First; 0 } : 1;
+
+`
+	Define plane 3D orientation
+`
+
+:[P_XY P_YZ P_ZX];
+
+P_XY = 0;			` X/Y axis plane `
+P_YZ = 1;			` Y/Z axis plane `
+P_ZX = 2;			` Z/X axis plane `
+
+` Debugging: plane name `
+! PlaneID (Plane) = ["X/Y" "Y/Z" "Z/X"] [Plane];
+
+`
+	Define 2D rotation / angle
+`
+
+:[R_U R_L R_D R_R];
+
+R_U = 0;			` "Up" (no rotation) `
+R_L = 1;			` "Left" (90 CW or 270 CCW) `
+R_D = 2;			` "Down" (180 CW/CCW) `
+R_R = 3;			` "Right" (270 CW or 90 CCW) `
+
+` Debugging: rotation name `
+! AngleID (Angle) = ['Up' 'Lt' 'Dn' 'Rt'] [Angle];
+
+`
+	Define cube facets
+`
+
+:[F_T F_L F_F F_B F_R F_K];
+
+F_T = 0;			` Top `
+F_L = 1;			` Left `
+F_F = 2;			` Front `
+F_B = 3;			` Bottom `
+F_R = 4;			` Right `
+F_K = 5;			` Back `
+
+` For debug: name of facet `
+! FacetID (Facet) = ['Top' 'Left' 'Front' 'Bottom' 'Right' 'Back'] [Facet];
+
+`
+	Rubik Cube abstract widget
+`
+!! [Widget] RubikAbstract : [Cube]
+	= (Cube = array ([6 3 3]))
+
+	{
+	` Reset cube to initial state `
+	! reset : [F R C] =
+		for_inc (F, 6,
+			for_inc (R, 3,
+				for_inc (C, 3,
+					Cube {[F R C]} = F
+				)
+			)
+		),			` -- reset `
+
+	` Internal consistency validation `
+	! validate : [F R C counter result] = {
+		counter = array (6);
+		a_fill (counter, 0);
+
+		for_inc (F, 6,
+			for_inc (R, 3,
+				for_inc (C, 3,
+					++ counter {Cube{[F R C]}}
+				)
+			)
+		);
+
+		result = true();
+		for_inc (F, 6, result = result && counter{F} == 3*3);
+		result
+		}			` -- validate `
+	};
+
+`
+	Layer Rotation
+`
+
+!! LayerRotation (Plane Angle Offset) {
+
+	! show = <: (PlaneID(Plane), ", ", AngleID(Angle), ", #", Offset+1)
+
+	};
+
+`
+Describe facet/cube rotation (arrow-directed):
+	Plane: arrow plane (P_??);
+	Orientation: arrow orientation (R_?);
+	Offset: relative offset (0..3)
+`
+
+` Pointer reference data:
+	[View Plane Side] => (rotation plane, arrow orientation, polarity)
+`
+
+` Pointer descriptor:
+	plane; orientation; inverse offset flag; inverse rotation flag
+	`
+!! PointerInfo (Plane Orient OffInv RotInv);
+
+:[PointerAttr PointerList];
+
+PointerAttr = array ([2 3 2]);
+
+PointerList = (
+	` Forward view :`
+
+		` F_T / P_XY ::`
+			PointerInfo([P_YZ R_L 0 1]), PointerInfo([P_ZX R_D 0 1]),
+		` F_L / P_YZ ::`
+			PointerInfo([P_XY R_R 0 0]), PointerInfo([P_YZ R_U 1 0]),
+		` F_F / P_ZX ::`
+			PointerInfo([P_ZX R_U 1 0]), PointerInfo([P_XY R_L 1 1]),
+
+	` Backward view :`
+
+		` F_B / P_XY ::`
+			PointerInfo([P_ZX R_R 0 1]), PointerInfo([P_YZ R_U 0 1]),
+		` F_R / P_YZ ::`
+			PointerInfo([P_XY R_L 1 1]), PointerInfo([P_ZX R_D 1 0]),
+		` F_K / P_ZX ::`
+			PointerInfo([P_YZ R_D 1 0]), PointerInfo([P_XY R_R 0 0])
+	);
+
+a_load (PointerAttr, PointerList);
+
+!! CubePointer (View Plane Side Offset) {
+	` Match this pointer with (Plane, Orientation, Offset) model `
+	! check (cPlane cOrient cOffset) =
+		cPlane == Plane &&
+		(#Offset ? cOffset == Offset : true ()) &&
+		cOrient == PointerAttr{[View Plane Side]}.PointerInfo!!Orient,
+
+	` toggle view `
+	! toggle_view = _toggle (View),
+
+	` toggle side `
+	! toggle_side = _toggle (Side),
+
+	` toggle rotation mode `
+	! toggle_mode = (Offset = #Offset? () : 1),
+
+	! cycle_bak =
+		(#Offset? cycle_dec (Offset, 0..3) : false()) ||
+		cycle_dec (Side, 0..2) ||
+		cycle_dec (Plane, 0..3),
+
+	! cycle_for =
+		(#Offset? cycle_inc (Offset, 0..3) : false()) ||
+		cycle_inc (Side, 0..2) ||
+		cycle_inc (Plane, 0..3),
+
+	` Convert: cube pointer -> layer rotation `
+	! to_LayerRot (Angle) =
+		PointerAttr {[View Plane Side]}.
+			PointerInfo!! LayerRotation
+				(Plane,
+				RotInv? 4 - Angle : Angle,
+				#Offset? (OffInv? 2 - Offset : Offset) : ())
+	};
+
+
+`
+	Cube rotations
+`
+
+` Defines rotation path: maps rotations to (facet, angle) pairs `
+
+:[RotPath RotPathList];
+
+RotPathList = [
+	` P_XY:		F_L <-> F_F <-> F_R <-> F_K `
+	[F_L R_U] [F_F R_U] [F_R R_R] [F_K R_R]
+
+	` P_YZ:		F_T <-> F_F <-> F_B <-> F_K `
+	[F_T R_D] [F_F R_L] [F_B R_R] [F_K R_D]
+
+	` P_ZX:		F_T <-> F_L <-> F_B <-> F_R `
+	[F_T R_L] [F_L R_L] [F_B R_U] [F_R R_D]
+
+	:];
+
+RotPath = array ([3 4]);
+a_load (RotPath, RotPathList);
+
+` Rotation sides (for side rotation) `
+
+:[RotSide RotSideList];
+
+RotSideList = [
+
+	` P_XY: `	[F_B 1] [F_T 0]
+	` P_YZ: `	[F_R 0] [F_L 1]
+	` P_ZX: `	[F_F 0] [F_K 1]
+
+	:];
+
+RotSide = array ([3 2]);
+a_load (RotSide, RotSideList);
+
+` Activate debug output (for all tile copy ops) `
+
+:[debug_rotation];
+debug_rotation = false();
+
+` "ApplyRotation":
+  Perform rotation (instance of LayerRotation) of cube (instance of RubikAbstract) `
+! ApplyRotation :
+
+	[Facet0 Coords0 Facet1 Coords1
+	 I_Facet I_Tile Temp Full CoordMap] =
+
+	RubikAbstract!! LayerRotation!! {
+
+` Is full cube rotation needed? `
+Full = #Offset == 0;
+
+` Temporary storage for tiles `
+Temp = array (3);
+
+` Show tile (at debug only) `
+! TileShow (At) =
+	is_num(At)?
+		(<: ['#' At]) :
+		(<: (FacetID(At[0]), '[', At[1], ',', At[2], ']'));
+
+` Tile movement: move tile (coords) "From" -> "To"
+  (if operand is number #, use temporary slot # instead)
+  `
+! TileMove (From To) = {
+	(^(is_num(To) ? @Temp{To} : @Cube{To})) =
+	   is_num(From)? Temp{From} : Cube{From};
+
+	if (debug_rotation):: {
+		TileShow(From); <: " -> "; TileShow(To); <: "\n";
+		}
+	};		` -- TileMove `
+
+` Tile swapping: swap tiles "First" and "Second" `
+! TileSwap (First Second) = {
+	Cube {First} :=: Cube {Second};
+
+	if (debug_rotation):: {
+		TileShow(First); <: " <=> "; TileShow(Second); <: "\n";
+		}
+	};		` -- TileSwap `
+
+`
+	Facet rotation proper
+`
+! RotateFacet (Face RotInv) : [I_Side I_Off CoordMap Coords0 Coords1] = {
+
+	` Rotation map `
+	CoordMap = (
+		@(0, I_Off),
+		@(2 - I_Off, 0),
+		@(2, 2 - I_Off),
+		@(I_Off, 2),
+		);
+
+	` Rotate up? (do nothing at all) `
+	Angle == R_U ?
+		() :
+
+	` Rotate down? (180 degrees) `
+	Angle == R_D ?
+
+		for_inc (I_Side, 0..2, {
+			Coords0 = CoordMap[I_Side];
+			Coords1 = CoordMap[I_Side + 2];
+
+			` swapping facet[Facet0] and facet[Facet1] `
+			for_inc (I_Off, 2,
+				TileSwap ((Face, Coords0), (Face, Coords1)));
+			}) :
+
+	` Rotate left/right (90 degrees) `
+	{
+	Coords0 = CoordMap[0];
+
+	` save row/col to Temp `
+	for_inc (I_Off, 2,
+		TileMove ([Face Coords0], I_Off));
+
+	` rotate facet in place `
+	((Angle == (RotInv ? R_R : R_L)) ? !for_inc : !for_dec) !
+	  (I_Side, 1..4, {
+		Coords1 = CoordMap[I_Side];
+
+		for_inc (I_Off, 2, TileMove ([Face Coords1], [Face Coords0]));
+
+		Coords0 = Coords1;
+		});
+
+	` restore row/col from Temp `
+	for_inc (I_Off, 2,
+		TileMove (I_Off, [Face Coords1]));
+
+	}
+	};		` -- RotateFacet `
+
+Full ?
+	{
+	RotateFacet (RotSide{Plane, 0});
+	RotateFacet (RotSide{Plane, 1});
+	} :
+	if (Offset <> 1)::
+		RotateFacet (RotSide{Plane, Offset == 0});
+
+` Coordinates rotation map
+  (note *double* eval latency) `
+CoordMap = (
+	@@(Offset, I_Tile),
+	@@(2 - I_Tile, Offset),
+	@@(2 - Offset, 2 - I_Tile),
+	@@(I_Tile, 2 - Offset),
+	);
+
+` Translate rotation for facet `
+! CoordXlt (Facet):[Orient] = {
+	[Facet Orient] = RotPath{Plane, Facet};
+	(Facet, CoordMap[Orient])
+	};
+
+` Cyclically evaluate operand depending on 'Offset'
+  (either for layer 'Offset', or for all layers, if full rotation needed) `
+! OffsetCycle (@Body) =
+	Full ? for_inc (Offset, 3, ^Body) : ^Body;
+
+` Rotate up? (do nothing at all) `
+Angle == R_U ?
+	():
+
+` Rotate down? (180 degrees) `
+Angle == R_D ?
+	OffsetCycle^ for_inc (I_Facet, 0..2, {
+		[Facet0 Coords0] = CoordXlt (I_Facet);
+		[Facet1 Coords1] = CoordXlt (I_Facet + 2);
+
+		` swapping facet[Facet0] and facet[Facet1] `
+		for_inc (I_Tile, 3,
+			TileSwap ((Facet0, ^Coords0), (Facet1, ^Coords1)));
+		}) :		` -- rotate down `
+
+` Rotate left/right (90 degrees) `
+OffsetCycle^ {
+
+` pick up facet/angle/coords [0] `
+[Facet0 Coords0] = CoordXlt (0);
+
+` save facet[0] to Temp `
+for_inc (I_Tile, 3,
+	TileMove ((Facet0, ^Coords0), I_Tile));
+
+` current (facet/coords) -> previous `
+[Facet1 Coords1] = [Facet0 Coords0];
+
+` facet loop (follows rotation path) `
+(Angle == R_R ? !for_dec : !for_inc) !
+	(I_Facet, 1..4, {
+
+	` pick up facet/angle/coords [I_Facet] `
+	[Facet0 Coords0] = CoordXlt (I_Facet);
+
+	` move facet[Facet0] to facet[Facet1] `
+	for_inc (I_Tile, 3,
+		TileMove ((Facet0, ^Coords0), (Facet1, ^Coords1)));
+
+	` current (facet/coords) -> previous `
+	[Facet1 Coords1] = [Facet0 Coords0];
+	});
+
+` restore facet[3] from Temp `
+for_inc (I_Tile, 3,
+	TileMove (I_Tile, (Facet1, ^Coords1)));
+
+};		` -- rotate left/right `
+
+};		` -- ApplyRotation `
+
+`
+	--- Special types of cube rotation ---
+`
+
+`
+	Turn around front/back diagonal axis
+	dir_flag ? turn clockwise : turn counter-clockwise
+`
+
+:[FULLROT_REV FULLROT_FOR FULLROT_BAK];
+
+FULLROT_REV = 0;			` Reverse/tumble cube (180 degrees for all 3 planes) `
+FULLROT_FOR = 1;			` Rotate cube forward (clockwise through main diagonal) `
+FULLROT_BAK = 2;			` Rotate cube backward (counterclockwise through main diagonal) `
+
+! CubeTurn (rotation) : [rot] =
+
+l_loop (rot,
+
+	` proper sequence of rotations... `
+	(rotation == FULLROT_FOR) ?
+		(LayerRotation (P_XY, R_R), LayerRotation (P_ZX, R_R)) :
+	(rotation == FULLROT_BAK) ?
+		(LayerRotation (P_XY, R_L), LayerRotation (P_YZ, R_R)) :
+
+		(LayerRotation (P_YZ, R_D), LayerRotation (P_XY, R_L)),
+
+	` l_loop iteration: apply 'rot' `
+	rot.ApplyRotation ()
+	);		` CubeTurn `
+
+`
+	Isometric view system
+`
+
+!! IsoView (X Y S) : [sX sY Ox Oy]
+
+	` Constructor: set up internals of IsoView `
+	= {
+		sX = int (sqr(3) * (sY = S % 2));
+		Ox = Oy = 0;
+		}
+{
+
+` Draw facet in isometry.
+  [Dx Dy]: origin point; plane: plane to draw on `
+! draw_facet (plane Dx Dy) : [x y] = {
+	[x y] = (X + sX*(Ox + Dx), Y + sY*(Oy + Dy));
+
+	` graphics!!polygon (vertex_list); `
+	graphics!!polygon (
+		(
+		` P_XY: `
+			@((x, y + sY), (x + sX, y), (x + 2*sX, y + sY), (x + sX, y + sY*2), ),
+		` P_YZ: `
+			@((x + sX, y), (x + sX, y + 2*sY), (x, y + 3*sY), (x, y + sY), ),
+		` P_ZX: `
+			@((x, y), (x, y + 2*sY), (x + sX, y + 3*sY), (x + sX, y + sY), ),
+		) [plane]);
+	},
+
+` Transform point [px py]
+  (according to 'plane' && 'rotation', with base [x y]) `
+! xform_pt (x y plane rotation px py) = {
+
+		` Rotation transform `
+		[px py] = ^(
+		(
+			` R_U: `	@(px, py),
+			` R_L: `	@(1-py, px),
+			` R_D: `	@(1-px, 1-py),
+			` R_D: `	@(py, 1-px),
+		) [rotation]);
+
+		` Plane transform `
+		^(
+		(
+			` P_XY: `
+				@([px py] = (px + 1 - py, px + py)),
+			` P_YZ: `
+				@(py = 2*py + 1 - px),
+			` P_ZX: `
+				@(py = 2*py + px),
+		) [plane]);
+
+		` Final result `
+		(x + px * sX, y + py * sY)
+	},
+
+` translate point [x y] to isometric planes:
+  returns (point_XY, point_YZ, point_ZX, ) `
+
+! translate_point (x y) = {
+	! rr (i) = i >= 0 ? int(i) : int (i-1);
+	
+	! ndiv (a b) = a >= 0 ? a % b : (a - b) % b;
+
+	[x y] = ((x - X) / sX, (y - Y) / sY);
+
+	` return result(s): `
+	(
+	` P_XY: `
+		(ndiv (-x - y, 2), ndiv (x - y, 2)),
+	` P_YZ: `
+		(ndiv (x, 1), ndiv (y + x, 2)),
+	` P_ZX: `
+		(ndiv (-x, 1), ndiv (y - x, 2)),
+	)
+	},
+
+` Shift point [x y] according to current origin `
+! shift_xy (x y) = (X + sX*(Ox + x), Y + sY*(Oy + y)),
+
+` Draw 'shape' in isometry
+  (transformed as required by 'plane' & 'rotation').
+  [Dx Dy]: origin point (relative to [Ox Oy]) `
+! draw_shape (shape plane rotation Dx Dy) : [x y vert_list] = {
+	[x y] = shift_xy (Dx, Dy);
+
+	` Transform all points of 'shape' `
+	vert_list = l_map (! (pt) = (xform_pt ([x y plane rotation pt])), shape);
+
+	` Final: draw transformed shape `
+	graphics!!polygon (vert_list);
+	},
+
+` Draw 3D bounding box in isometry (hexagon):
+	(R_X[0]..R_X[1], R_Y[0]..R_Y[1], R_Z[0]..R_Z[1]) `
+! draw_3Dframe (view_flag phase_flag R_X R_Y R_Z):
+	[vert_list coord_list center i] = {
+	coord_list =
+		view_flag ?
+
+		` forward view -- `
+		@(
+			(-R_Y, -R_Y),
+			(R_X - R_Y, - R_X - R_Y),
+			(R_X, -R_X),
+
+			(R_X, -R_X + R_Z*2),
+			(0, R_Z*2),
+			(-R_Y, -R_Y + R_Z*2),
+		):
+
+		` backward view -- `
+		@(
+			(-R_Y, R_Y),
+			(R_X - R_Y, R_X + R_Y),
+			(R_X, R_X),
+
+			(R_X, R_X - R_Z*2),
+			(0, -R_Z*2),
+			(-R_Y, R_Y - R_Z*2),
+		);
+
+	` (transform hexagon points) `
+	vert_list = l_map (!shift_xy, coord_list);
+
+	` (draw hexagonal outline) `
+	graphics!!polygon (vert_list);
+
+	` center point `
+	center = shift_xy ([0 0]);
+
+	` (draw edge lines) `
+	for_inc (i, 6, graphics!!plot_color(i %% 2 ? Black(255) : Grey(255)) ::
+		line (center, vert_list [i]));
+	},
+
+` Set coordinate system origin `
+! set_origin (Nx Ny) = [Ox Oy] = [Nx Ny]
+
+};	`-- class IsoView `
+
+`
+	Draw Cube in Isometric view system
+`
+
+:[ArrowShape ArrowShapeAlt];
+
+` Define arrow shape `
+` Note: list is terminated `
+ArrowShape = [
+
+	[0.5 0.2]
+	[0.2 0.5]
+	[0.35 0.5]
+	[0.35 0.95]
+	[0.65 0.95]
+	[0.65 0.5]
+	[0.8 0.5]
+
+	:];
+
+` Alternate arrow shape `
+ArrowShapeAlt = [
+
+	[0.5 0.2]
+	[0.2 0.9]
+	[0.8 0.9]
+
+	:];
+
+`
+
+	Draw cube, using isometric view
+
+`
+
+`	View flags	`
+
+:[DrawCube DrawArrows DrawFrame DrawLabel];
+
+DrawCube	= 1 << 0;
+DrawArrows	= 1 << 1;
+DrawFrame	= 1 << 2;
+DrawLabel	= 1 << 3;
+
+` Some common drawing functors `
+
+` Set origin of cube coordinate system `
+! CubeOrigin (Nx Ny) = IsoView!!set_origin (Nx, Ny);
+
+` Draw isometric cube facet `
+! CubeFacet (plane color Dx Dy) =
+	graphics!!fill_color (color_map [color], IsoView!!draw_facet ([plane Dx Dy]));
+
+` Draw isometric arrow on grid `
+! CubeArrow (plane rotation facet Dx Dy at) =
+	graphics!!fill_color
+			(CubePointer!!check ([plane rotation at])?
+				White(255) : color_map[RubikAbstract!!Cube{[facet 1 1]}])::
+		(IsoView!!draw_shape ([ArrowShape plane rotation Dx Dy]));
+
+` Draw 3D frame around cube `
+! CubeFrame (forw_view phase) = graphics!!
+	fill_color (LiteGrey):: plot_color (phase ? White(255) : Black(255))::
+		(IsoView!!draw_3Dframe (forw_view, phase, [4.3 4.3 4.3]));
+
+! center_text (Text Y XC) : [Metrics] = graphics!!{
+	text_metrics (Metrics, 1, text (Text));
+	text_org (XC - Metrics[0]%2, Y);
+	text (Text);
+	};
+
+! show_label (text view_flag) = graphics!!
+	font_face ('Arial')::
+	font_size (18)::
+	font_weight (1)::
+	font_bgcolor (NormGrey)::
+	font_fgcolor (CubePointer!!View == view_flag ? {  White } : {  Black })::
+		(IsoView!!center_text (text, Y + S*5, X));
+
+`
+	Cube isometric forward view
+	(Top (F_T), Left (F_L), Front (F_F) facets):
+	
+	             [T00]
+	         [T10]   [T01]
+	     [T20]   [T11]   [T02]
+	         [T21]   [T12]
+	[L00]        [T22]        [F02]
+	[L10][L01]           [F01][F12]
+	[L20][L11][L02] [F00][F11][F22]
+	     [L21][L12] [F10][F21]
+	          [L22] [F20]
+
+`
+
+! ForwardView (draw_flags) : [R C] = RubikAbstract!! {
+
+if (draw_flags & DrawFrame)::
+	CubeFrame (true(), false());
+
+`
+	Top facet (F_T)
+`
+
+CubeOrigin (-1, -6);
+
+` [X/Y facet (top)] `
+if (draw_flags & DrawCube)::
+	for_inc (R, 3,
+		for_inc (C, 3,
+			CubeFacet (P_XY, Cube{[F_T R C]}, C - R, R + C)));
+
+if (draw_flags & DrawArrows):: {
+	` [X arrows (top/left)] `
+	for_inc (R, 3,
+		CubeArrow (P_XY, R_L, F_T, -1 - R, R - 1, 2 - R));
+
+	` [Y arrows (top/right)] `
+	for_inc (C, 3,
+		CubeArrow (P_XY, R_D, F_T, C + 1, C - 1, C));
+	};
+
+`
+	Left facet (F_L)
+`
+
+CubeOrigin (-3, -3);
+
+` [Z/X facet (bottom/left)] `
+if (draw_flags & DrawCube)::
+	for_inc (R, 3,
+		for_inc (C, 3,
+			CubeFacet (P_ZX, Cube{[F_L R C]}, C, 2*R + C)));
+
+if (draw_flags & DrawArrows):: {
+	` [Z arrows (middle/left)] `
+	for_inc (R, 3,
+		CubeArrow (P_ZX, R_L, F_L, -1, 2*R - 1, 2 - R));
+
+	` [X arrows (bottom/left)] `
+	for_inc (C, 3,
+		CubeArrow (P_ZX, R_U, F_L, C, C + 6, 2 - C));
+	};
+
+`
+	Front facet (F_F)
+`
+
+CubeOrigin (0, -1);
+
+` [Y/Z facet (bottom/right)] `
+if (draw_flags & DrawCube)::
+	for_inc (R, 3,
+		for_inc (C, 3,
+			CubeFacet (P_YZ, Cube{[F_F R C]}, C, 2*R - C)));
+
+if (draw_flags & DrawArrows):: {
+	` [Z arrows (middle/right)] `
+	for_inc (R, 3,
+		CubeArrow (P_YZ, R_R, F_F, 3, 2*R - 3, R));
+
+	` [Y arrows (bottom/right)] `
+	for_inc (C, 3,
+		CubeArrow (P_YZ, R_U, F_F, C, 6 - C, 2 - C));
+	};
+
+` Restore origin `
+CubeOrigin (0, 0);
+
+if (draw_flags & DrawLabel)::
+	show_label ("Forward view", false());
+};		` -- ForwardView `
+
+`
+	Cube isometric backward view
+	(Bottom (F_B), Back (F_K), Right (F_R) facets):
+	
+	          [R22] [K02]
+	     [R12][R21] [K01][K12]
+	[R02][R11][R20] [K00][K11][K22]
+	[R01][R10]           [K10][K21]
+	[R00]        [B00]        [K20]
+	         [B10]   [B01]
+	     [B20]   [B11]   [B02]
+	         [B21]   [B12]
+	             [B22]
+
+`
+
+! BackwardView (draw_flags) : [R C] = RubikAbstract!! {
+
+if (draw_flags & DrawFrame)::
+	CubeFrame (false(), true());
+
+`
+	Bottom facet (F_B)
+`
+
+CubeOrigin (-1, 0);
+
+` [X/Y facet (bottom)] `
+if (draw_flags & DrawCube)::
+	for_inc (R, 3,
+		for_inc (C, 3,
+			CubeFacet (P_XY, Cube{[F_B R C]}, C - R, R + C)));
+
+if (draw_flags & DrawArrows):: {
+	` [X arrows (bottom/right)] `
+	for_inc (R, 3,
+		CubeArrow (P_XY, R_R, F_B, 3 - R, R + 3, R));
+
+	` [Y arrows (bottom/left)] `
+	for_inc (C, 3,
+		CubeArrow (P_XY, R_U, F_B, C - 3, C + 3, 2 - C));
+	};
+
+`
+	Back facet (F_K)
+`
+
+CubeOrigin (0, -6);
+
+` [Z/X facet (top/right)] `
+if (draw_flags & DrawCube)::
+	for_inc (R, 3,
+		for_inc (C, 3,
+			CubeFacet (P_ZX, Cube{[F_K (C, 2-R)]}, C, 2*R + C)));
+
+if (draw_flags & DrawArrows):: {
+	` [Z arrows (middle/right)] `
+	for_inc (R, 3,
+		CubeArrow (P_ZX, R_R, F_K, 3, 2*R + 3, R));
+
+	` [X arrows (top/right)] `
+	for_inc (C, 3,
+		CubeArrow (P_ZX, R_D, F_K, C, C - 2, C));
+	};
+
+`
+	Right facet (F_R)
+`
+
+CubeOrigin (-3, -4);
+
+` [Y/Z facet (top/left)] `
+if (draw_flags & DrawCube)::
+	for_inc (R, 3,
+		for_inc (C, 3,
+			CubeFacet (P_YZ, Cube{[F_R (C, 2-R)]}, C, 2*R - C)));
+
+if (draw_flags & DrawArrows):: {
+	` [Z arrows (middle/left)] `
+	for_inc (R, 3,
+		CubeArrow (P_YZ, R_L, F_R, -1, 2*R + 1, 2 - R));
+
+	` [Y arrows (top/left)] `
+	for_inc (C, 3,
+		CubeArrow (P_YZ, R_D, F_R, C, -2 - C, C));
+	};
+
+` Restore origin `
+CubeOrigin (0, 0);
+
+if (draw_flags & DrawLabel)::
+	show_label ("Backward view", true());
+};		` -- BackwardView `
+
+
+` Some user help `
+
+:[HelpText];
+
+HelpText = "
+RUBIK'S CUBE
+
+Keyboard controls:
+	[Left]/[Right]:	to cycle pointer forward/backward.
+	[Up]:	rotate selected layer forward
+			(90 degrees in pointer direction).
+	[Down]:	rotate selected layer backward
+			(90 degrees against pointer direction).
+	[Center]:	rotate selected layer 180 degrees.
+	[Ins]:	toggle rotation mode (single layer/whole cube).
+	[Tab]:	toggle front/back view pointer.
+	[PgUp]/[PgDn]:	cube main axis rotation
+			(clockwise/counter-clockwise).
+	[Enter]:	cube reversion.
+	[O]:	orientize cube.
+
+Mouse controls:
+	move mouse to select pointer.
+	[Left button]:
+		rotate selected layer forward
+	[Right button]:
+		rotate selected layer backward
+	[Middle button]:
+		rotate selected layer 180 degrees
+
+";
+
+`
+	Rubik Cube widget
+`
+
+!! [RubikAbstract] RubikCube : [CurArrow ForView BakView] {
+
+	! #on_open () = {
+		reset ();
+		
+		` reset pointer `
+		CurArrow = CubePointer (false (), P_ZX, 0, 0);
+		
+		` initialise views `
+		ForView = IsoView ([150 150 32]);
+		BakView = IsoView ([420 150 32]);
+		},
+
+	` Draw cube view (according to 'flags') `
+	! draw_cube (flags) =
+		with_widget (CurArrow.{
+			ForView.ForwardView (flags);
+			BakView.BackwardView (flags);
+			}),
+
+	! #on_paint (L_T R_B) = {
+		graphics!! fill_color (NormGrey):: fill (L_T, R_B);
+
+		draw_cube (DrawCube|DrawArrows|DrawFrame|DrawLabel);
+		},
+
+	! show_help =
+		alert_box ("Rubik help", HelpText),
+
+	! move_pointer (do_action) = {
+		CurArrow.(do_action ! ());
+		draw_cube (DrawArrows|DrawLabel);
+		},
+
+	! rotate_layer (angle) = {
+		CubePointer!!CurArrow.to_LayerRot (angle).ApplyRotation ();
+		draw_cube (DrawCube|DrawArrows);
+		},
+
+	! rotate_cube (rot_type) = {
+		CubeTurn (rot_type);
+		draw_cube (DrawCube|DrawArrows);
+		},
+
+	` find, where 'facet' currently is: `
+	! locate_facet (facet) : [list] = {
+		list = [F_T F_L F_F F_B F_R F_K];
+		l_while (! (_facet) = (facet <> Cube {[_facet 1 1]}), list)
+		},
+
+	` Orientize cube `
+	! orientize : [rotation] = {
+		` first rotation `
+		rotation = (
+			` F_T: ` (),
+			` F_L: ` LayerRotation (P_ZX, R_L),
+			` F_F: ` LayerRotation (P_YZ, R_L),
+			` F_B: ` LayerRotation (P_YZ, R_D),
+			` F_R: ` LayerRotation (P_ZX, R_R),
+			` F_K: ` LayerRotation (P_YZ, R_R),
+			) [locate_facet (F_T)];
+
+		if (#rotation):: (rotation.ApplyRotation ());
+
+		` second rotation `
+		rotation = (
+			` F_T: ` (),
+			` F_L: ` (),
+			` F_F: ` LayerRotation (P_XY, R_L),
+			` F_B: ` (),
+			` F_R: ` LayerRotation (P_XY, R_D),
+			` F_K: ` LayerRotation (P_XY, R_R),
+			) [locate_facet (F_L)];
+
+		if (#rotation):: (rotation.ApplyRotation ());
+
+		draw_cube (DrawCube|DrawArrows);
+		},
+
+	! #on_char (ch) = CubePointer !! {
+		ch == dc_b '~' ?
+			(<: ("Validation: ", validate () ? "OK." : "Failed!", "\n")) : ;
+
+		(ch == dc_b 'o' || ch == dc_b 'O') ?
+			orientize () : ;
+		},
+
+	! #on_key (action key) : [plane angle flags] =
+		CubePointer!! if (action > 0):: {
+
+			switch (key):: (
+
+			` pointer motion... `
+			KB_Left::
+				move_pointer (!cycle_bak),
+			KB_Right::
+				move_pointer (!cycle_for),
+
+			` layer rotation... `
+			KB_Up::
+				rotate_layer (R_L),
+			KB_Down::
+				rotate_layer (R_R),
+			KB_Center::
+				rotate_layer (R_D),
+
+			KB_Ins::
+				move_pointer (!toggle_mode),		` toggle layer/cube turn `
+			KB_Del::
+				move_pointer (!toggle_side),
+			CH_Tab::
+				move_pointer (!toggle_view),
+
+			` cube rotation... `
+			KB_PgUp::
+				rotate_cube (FULLROT_FOR),
+			KB_PgDn::
+				rotate_cube (FULLROT_BAK),
+			CH_Return::
+				rotate_cube (FULLROT_REV),
+
+			` show help.. `
+			KB_F1::
+				show_help (),
+			);
+
+			},
+
+	` Map window location to pointer `
+	! map_to_pointer (view result) : [plane rx ry pointer] = {
+		for_inc (plane, 0..3, {
+			[rx ry] = result[plane];
+
+			pointer = 
+			view ?
+				` Checking forward view arrows: `
+				(rx == -4 && inside (ry, -3..0)) ?
+					(plane, 0, -1 - ry) :
+				(ry == -4 && inside (rx, -3..0)) ?
+					(plane, 1, 3 + rx) :
+
+					pointer:
+
+				` Checking backward view arrows: `
+				(rx == 3 && inside (ry, 0..3)) ?
+					(plane, 0, ry) :
+				(ry == 3 && inside (rx, 0..3)) ?
+					(plane, 1, 2 - rx) :
+
+					pointer;
+
+				});		` -- for (plane) `
+
+		(#pointer) ? {
+			if (pointer[0] == 2):: {
+				pointer[1] = 1 - pointer[1];
+				pointer[2] = 2 - pointer[2];
+				};
+
+			CubePointer (view, pointer)
+			} :
+			` (otherwise: preserve current pointer) `
+			CurArrow
+		},		` -- map_to_pointer `
+
+	` Select arrow with mouse `
+	! MouseSelect (Point) : [view_flag result pointer] = IsoView!!{
+		view_flag = Point[0] > (ForView.X + BakView.X) % 2;
+
+		result = (view_flag ? BakView : ForView).translate_point (Point);
+		pointer = map_to_pointer (view_flag, result);
+
+		if (pointer [<>] CurArrow):: {
+			CurArrow = pointer;
+			draw_cube (DrawArrows|DrawLabel);
+			}
+		},		` MouseSelect `
+
+	` Handle mouse movement action `
+	! #on_mouse_move (Buttons From To) : [result view_flag] =
+		if (#To):: MouseSelect (To),
+
+	` Handle mouse button action `
+	! #on_mouse_click (action Button Point) : [result view_flag] =
+		if (action > 0):: {
+			MouseSelect (Point);
+
+			switch (MB_Code (Button)):: (
+				MB_Left::	rotate_layer (R_L),
+				MB_Right::	rotate_layer (R_R),
+				MB_Middle::	rotate_layer (R_D),
+				);
+			}	` -- on_mouse_click `
+	};
+
+`
+	Entry point
+`
+
+WinSession (
+	(RubikCube ("Rubik cube (3*3*3) puzzle"), [100 100], [600 370]),
+	);
+

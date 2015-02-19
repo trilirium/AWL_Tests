@@ -1,0 +1,136 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Rotor.awl':
+	|	Rotating colored wheels test.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+:[];
+
+!! [Widget] Rotor (Angle Diameter Delay ColorBg ColorFg Max) :
+	[Total Timer Phase Speed]
+	= {
+		Total = 360 % Angle;
+		Height = Width = Diameter;
+		}
+	{
+
+	! #on_open = { <: ("Opened: ", Title, '\n'); Phase = Speed = 0; },
+
+	! draw_phase (on_off) : [s_angle e_angle] = graphics!!{
+		s_angle = pi((Phase * Angle) / 180);
+		e_angle = pi(((Phase+1) * Angle) / 180);
+
+		! neg_offset (X Y) = (-X, -Y);
+
+		! do_draw (arc_fn L_T R_B s_offset e_offset) = {
+			arc_fn ! (L_T, R_B, s_offset, e_offset);
+			arc_fn ! (L_T, R_B, neg_offset(s_offset), neg_offset(e_offset));
+			};
+
+		! arc_clr (L_T R_B s_angle e_angle) = graphics!!{
+			wedge (L_T, R_B, s_angle, e_angle);
+			plot_disable (0):: plot_color (ColorFg)::
+				arc (L_T, R_B, s_angle, e_angle);
+			};
+
+		plot_disable (1)::
+		fill_color (on_off ? ColorFg : ColorBg)::
+		do_draw (on_off ? !wedge : !arc_clr,
+			((Width - Diameter)%2, (Height - Diameter)%2),
+			((Width + Diameter)%2, (Height + Diameter)%2),
+			(Diameter * sin(s_angle), Diameter * cos(s_angle)),
+			(Diameter * sin(e_angle), Diameter * cos(e_angle)));
+		},
+
+	! #on_paint (L_T R_B) = graphics!! {
+		fill_color (Grey \x80):: fill (L_T, R_B);
+
+		fill_color (ColorBg):: plot_color (ColorFg)::
+			oval (
+			((Width - Diameter)%2, (Height - Diameter)%2),
+			((Width + Diameter)%2, (Height + Diameter)%2)
+			);
+		draw_phase (1);
+		},
+
+	! #on_resize (W H) = {
+		Diameter = H ?< W;
+		with_widget (on_paint ([0 0], [W H]));
+		},
+
+	! rotate_wheel (Direction) = with_widget^ {
+		draw_phase(0);
+
+		Direction ? {
+			if (Phase == 0):: (Phase = Total);
+			-- Phase;
+			}
+		:	(++ Phase == Total ? (Phase = 0) :);
+
+		draw_phase(1);
+		},
+
+	! change_speed (Step) = {
+		Step ?
+			((abs(Speed =+: Step) == Max) ? { alert_beep (0); Speed =-: Step; } : )
+		:	(Speed = 0);
+
+		Timer = restart_timer (Timer, Speed ? (Max - abs(Speed)) * 100 : 0);
+
+		<: (Title, ": ");
+		Speed > 0 ?
+			(<: ("turning +", Speed)) :
+		Speed < 0 ?
+			(<: ("turning -", -Speed)) :
+
+			(<: "stopped");
+		<: ".\n";
+		},
+		
+	! set_speed (NewSpeed) = change_speed (NewSpeed - Speed),
+
+	! #on_key (action key) =
+		if (action > 0):: {
+		
+		switch (key):: (
+
+			KB_Up::			rotate_wheel (0),
+			KB_Down::		rotate_wheel (1),
+
+			KB_Left::		change_speed (-1),
+			KB_Right::		change_speed (1),
+			KB_Center::		change_speed (0),
+
+			` default: `
+			(inside (key, s_ord '0' .. s_ord '9' + 1)) ?
+				set_speed (key - s_ord '0') :
+			);
+
+		},		` -- on_key `
+
+	! #on_timer =
+		rotate_wheel (Speed > 0),
+
+	! #on_close () = (<: ("Closed: ", Title, '\n')),
+	};
+
+
+` Launch windowing session `
+
+WinSession (
+
+	(Rotor ("Wheel #1", 15, 180, 250, Yellow(), Red(), 10), [100 100], ),
+	(Rotor ("Wheel #2", 36, 240, 400, Green(), Blue(), 10), [200 200], ),
+	(Rotor ("Wheel #3", 45, 320, 500, Black(), White(), 10), [300 300], ),
+	(Rotor ("Wheel #4", 24, 200, 200, Cyan(), Magenta(), 10), [400 400], ),
+
+	);
+

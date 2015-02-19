@@ -1,0 +1,462 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Periodic.awl':
+	|	Periodic table of elements.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+:[];
+
+`
+	Element definition:
+	number, symbol, full names (EN/RU), atomic weight
+`
+!! Element (No Symbol Type Name_EN Name_RU AtomWeight);
+
+` Type of element (for Element!!Type) `
+!! ElemType (Symbol Color);
+
+:[S_Elem P_Elem D_Elem F_Elem];
+
+S_Elem = ElemType ('S', Red(\x70));
+P_Elem = ElemType ('P', Blue(\x70));
+D_Elem = ElemType ('D', Yellow(\x50));
+F_Elem = ElemType ('F', Green(\x50));
+
+`
+	***** ***** ***** *****
+		Elements data
+	***** ***** ***** *****
+`
+
+:[ElementData];
+
+ElementData = (
+
+	` Period #1 (2 elements): `
+	Element(1, 'H',		S_Elem, "Hydrogen", "Водород", "1.00794(7)"),
+	Element(2, 'He',	S_Elem, "Helium", "Гелий", "4.002602(2)"),
+
+	` Period #2 (8 elements): `
+	Element(3, 'Li',	S_Elem, "Lithium", "Литий", "6.941(2)"),
+	Element(4, 'Be',	S_Elem, "Beryllium", "Бериллий", "9.012182(3)"),
+	Element(5, 'B',		P_Elem, "Boron", "Бор", "10.881(7)"),
+	Element(6, 'C',		P_Elem, "Carbon", "Углерод", "12.0107(8)"),
+	Element(7, 'N',		P_Elem, "Nitrogen", "Азот", "14.00674(7)"),
+	Element(8, 'O',		P_Elem, "Oxygen", "Кислород", "15.9994(3)"),
+	Element(9, 'F',		P_Elem, "Fluorine", "Фтор", "18.9984032(5)"),
+	Element(10, 'Ne',	P_Elem, "Neon", "Неон", "20.1797(6)"),
+
+	` Period #3 (8 elements): `
+	Element(11, 'Na',	S_Elem, "Sodium", "Натрий", "22.989770(2)"),
+	Element(12, 'Mg',	S_Elem, "Magnesium", "Магний", "24.3050(6)"),
+	Element(13, 'Al',	P_Elem, "Aluminium", "Алюминий", "26.981538(2)"),
+	Element(14, 'Si',	P_Elem, "Silicon", "Кремний", "28.0855(3)"),
+	Element(15, 'P',	P_Elem, "Phosphorus", "Фосфор", "30.973761(2)"),
+	Element(16, 'S',	P_Elem, "Sulfur", "Сера", "32.066(6)"),
+	Element(17, 'Cl',	P_Elem, "Chlorine", "Хлор", "35.4527(9)"),
+	Element(18, 'Ar',	P_Elem, "Argon", "Аргон", "39.948(1)"),
+
+	` Period #4 (18 elements): `
+	Element(19, 'K',	S_Elem, "Potassium", "Калий", "39.0983(1)"),
+	Element(20, 'Ca',	S_Elem, "Calcium", "Кальций", "40.078(4)"),
+	Element(21, 'Sc',	D_Elem, "Scandium", "Скандий", "44.955910(8)"),
+	Element(22, 'Ti',	D_Elem, "Titanium", "Титан", "47.867(1)"),
+	Element(23, 'V',	D_Elem, "Vanadium", "Ванадий", "50.9415(1)"),
+	Element(24, 'Cr',	D_Elem, "Chromium", "Хром", "51.9961(6)"),
+	Element(25, 'Mn',	D_Elem, "Manganese", "Марганец", "54.938049(9)"),
+	Element(26, 'Fe',	D_Elem, "Iron", "Железо", "55.845(2)"),
+	Element(27, 'Co',	D_Elem, "Cobalt", "Кобальт", "58.933200(9)"),
+	Element(28, 'Ni',	D_Elem, "Nickel", "Никель", "58.6934(2)"),
+	Element(29, 'Cu',	D_Elem, "Copper", "Медь", "63.546(3)"),
+	Element(30, 'Zn',	D_Elem, "Zinc", "Цинк", "65.39(2)"),
+	Element(31, 'Ga',	P_Elem, "Gallium", "Галлий", "69.723(1)"),
+	Element(32, 'Ge',	P_Elem, "Germanium", "Германий", "72.61(2)"),
+	Element(33, 'As',	P_Elem, "Arsenic", "Мышьяк", "74.92160(2)"),
+	Element(34, 'Se',	P_Elem, "Selenium", "Селен", "78.96(3)"),
+	Element(35, 'Br',	P_Elem, "Bromine", "Бром", "79.904(1)"),
+	Element(36, 'Kr',	P_Elem, "Krypton", "Криптон", "83.80(1)"),
+
+	` Period #5 (18 elements): `
+	Element(37, 'Rb',	S_Elem, "Rubidium", "Рубидий", "85.4678(3)"),
+	Element(38, 'Sr',	S_Elem, "Strontium", "Стронций", "87.62(1)"),
+	Element(39, 'Y',	D_Elem, "Yttrium", "Иттрий", "88.90585(2)"),
+	Element(40, 'Zr',	D_Elem, "Zirconium", "Цирконий", "91.224(2)"),
+	Element(41, 'Nb',	D_Elem, "Niobium", "Ниобий", "92.90638(2)"),
+	Element(42, 'Mo',	D_Elem, "Molybdenum", "Молибден", "95.94(1)"),
+	Element(43, 'Tc',	D_Elem, "Technetium", "Технеций", "[97.9072]"),
+	Element(44, 'Ru',	D_Elem, "Ruthenium", "Рутений", "101.07(2)"),
+	Element(45, 'Rh',	D_Elem, "Rhodium", "Родий", "102.90550(2)"),
+	Element(46, 'Pd',	D_Elem, "Palladium", "Палладий", "106.42(1)"),
+	Element(47, 'Ag',	D_Elem, "Silver", "Серебро", "107.8682(2)"),
+	Element(48, 'Cd',	D_Elem, "Cadmium", "Кадмий", "112.411(8)"),
+	Element(49, 'In',	P_Elem, "Indium", "Индий", "114.818(3)"),
+	Element(50, 'Sn',	P_Elem, "Tin", "Олово", "118.710(7)"),
+	Element(51, 'Sb',	P_Elem, "Antimony", "Сурьма", "121.760(1)"),
+	Element(52, 'Te',	P_Elem, "Tellurium", "Теллур", "127.60(3)"),
+	Element(53, 'I',	P_Elem, "Iodine", "Йод", "126.90447(3)"),
+	Element(54, 'Xe',	P_Elem, "Xenon", "Ксенон", "131.29(2)"),
+
+	` Period #6 (32 elements): `
+	Element(55, 'Cs',	S_Elem, "Caesium", "Цезий", "132.90545(2)"),
+	Element(56, 'Ba',	S_Elem, "Barium", "Барий", "137.327(7)"),
+	Element(57, 'La',	D_Elem, "Lanthanum", "Лантан", "138.9055(2)"),
+
+	Element(58, 'Ce',	F_Elem, "Cerium", "Церий", "140.116(1)"),
+	Element(59, 'Pr',	F_Elem, "Praseodymium", "Празеодим", "140.90765(2)"),
+	Element(60, 'Nd',	F_Elem, "Neodymium", "Неодим", "144.24(3)"),
+	Element(61, 'Pm',	F_Elem, "Promethium", "Прометий", "[144.9127]"),
+	Element(62, 'Sm',	F_Elem, "Samarium", "Самарий", "150.36(3)"),
+	Element(63, 'Eu',	F_Elem, "Europium", "Европий", "151.964(1)"),
+	Element(64, 'Gd',	F_Elem, "Gadolinium", "Гадолиний", "157.25(3)"),
+	Element(65, 'Tb',	F_Elem, "Terbium", "Тербий", "158.92534(2)"),
+	Element(66, 'Dy',	F_Elem, "Dysprosium", "Диспрозий", "162.50(3)"),
+	Element(67, 'Ho',	F_Elem, "Holmium", "Гольмий", "164.93032(2)"),
+	Element(68, 'Er',	F_Elem, "Erbium", "Эрбий", "167.26(3)"),
+	Element(69, 'Tm',	F_Elem, "Thulium", "Тулий", "168.93421(2)"),
+	Element(70, 'Yb',	F_Elem, "Ytterbium", "Иттербий", "173.04(3)"),
+	Element(71, 'Lu',	F_Elem, "Lutetium", "Лютеций", "174.967(1)"),
+
+	Element(72, 'Hf',	D_Elem, "Hafnium", "Гафний", "178.49(2)"),
+	Element(73, 'Ta',	D_Elem, "Tantalum", "Тантал", "180.9479(1)"),
+	Element(74, 'W',	D_Elem, "Tungsten", "Вольфрам", "183.84(1)"),
+	Element(75, 'Re',	D_Elem, "Rhenium", "Рений", "186.207(1)"),
+	Element(76, 'Os',	D_Elem, "Osmium", "Осмий", "190.23(3)"),
+	Element(77, 'Ir',	D_Elem, "Iridium", "Иридий", "192.217(3)"),
+	Element(78, 'Pt',	D_Elem, "Platinum", "Платина", "195.078(2)"),
+	Element(79, 'Au',	D_Elem, "Gold", "Золото", "196.96655(2)"),
+	Element(80, 'Hg',	D_Elem, "Mercury", "Ртуть", "200.59(2)"),
+	Element(81, 'Tl',	P_Elem, "Thallium", "Таллий", "204.3383(2)"),
+	Element(82, 'Pb',	P_Elem, "Lead", "Свинец", "207.2(1)"),
+	Element(83, 'Bi',	P_Elem, "Bismuth", "Висмут", "208.98038(2)"),
+	Element(84, 'Po',	P_Elem, "Polonium", "Полоний", "[208.9824]"),
+	Element(85, 'At',	P_Elem, "Astatine", "Астат", "[209.9871]"),
+	Element(86, 'Rn',	P_Elem, "Radon", "Радон", "[222.0176]"),
+
+	` Period #7 (32 elements): `
+	Element(87, 'Fr',	S_Elem, "Francium", "Франций", "[223.0197]"),
+	Element(88, 'Ra',	S_Elem, "Radium", "Радий", "[226.0254]"),
+	Element(89, 'Ac',	D_Elem, "Actinium", "Актиний", "[227.0277]"),
+
+	Element(90, 'Th',	F_Elem, "Thorium", "Торий", "232.0381(1)"),
+	Element(91, 'Pa',	F_Elem, "Protactinium", "Протактиний", "231.03588(2)"),
+	Element(92, 'U',	F_Elem, "Uranium", "Уран", "238.0289(1)"),
+	Element(93, 'Np',	F_Elem, "Neptunium", "Нептуний", "[237.0482]"),
+	Element(94, 'Pu',	F_Elem, "Plutonium", "Плутоний", "[244.0642]"),
+	Element(95, 'Am',	F_Elem, "Americium", "Америций", "[243.0614]"),
+	Element(96, 'Cm',	F_Elem, "Curium", "Кюрий", "[247.0703]"),
+	Element(97, 'Bk',	F_Elem, "Berkelium", "Берклий", "[247.0703]"),
+	Element(98, 'Cf',	F_Elem, "Californium", "Калифорний", "[251.0796]"),
+	Element(99, 'Es',	F_Elem, "Einsteinium", "Эйнштейний", "[252.0830]"),
+	Element(100, 'Fm',	F_Elem, "Fermium", "Фермий", "[257.0951]"),
+	Element(101, 'Md',	F_Elem, "Mendelevium", "Менделевий", "[258.0984]"),
+	Element(102, 'No',	F_Elem, "Nobelium", "Нобелий", "[259.1011]"),
+	Element(103, 'Lr',	F_Elem, "Lawrencium", "Лоуренсий", "[262.110]"),
+
+	Element(104, 'Rf',	D_Elem, "Rutherfordium", "Резерфордий", "[263.1125]"),
+	Element(105, 'Db',	D_Elem, "Dubnium", "Дубний", "[262.1144]"),
+	Element(106, 'Sg',	D_Elem, "Seaborgium", "Сиборгий", "[266.1219]"),
+	Element(107, 'Bh',	D_Elem, "Bohrium", "Борий", "[264.1247]"),
+	Element(108, 'Hs',	D_Elem, "Hassium", "Хассий", "[269.1341]"),
+	Element(109, 'Mt',	D_Elem, "Meitnerium", "Мейтнерий", "[268.1388]"),
+	Element(110, 'Ds',	D_Elem, "Darmstadtium", "Дармштадтий", "[272.1463]"),
+
+	Element(111, 'Rg',	D_Elem, "Roentgenium", "Рентгений", "[272]"),
+
+	);		` -- ElementData `
+
+`
+	Elements table (brief form)
+`
+
+:[ElementsTable];
+
+ElementsTable = [
+	['H' [][][][][][][][][] 'He']
+
+	['Li' 'Be' 'B'  'C'  'N'  'O'  'F'  [][][] 'Ne']
+	['Na' 'Mg' 'Al' 'Si' 'P'  'S'  'Cl' [][][] 'Ar']
+
+	['K'  'Ca' 'Sc' 'Ti' 'V'  'Cr' 'Mn' 'Fe' 'Co' 'Ni']
+	['Cu' 'Zn' 'Ga' 'Ge' 'As' 'Se' 'Br' [][][] 'Kr']
+
+	['Rb' 'Sr' 'Y'  'Zr' 'Nb' 'Mo' 'Tc' 'Ru' 'Rh' 'Pd']
+	['Ag' 'Cd' 'In' 'Sn' 'Sb' 'Te' 'I'  [][][] 'Xe']
+
+	['Cs' 'Ba' 'La' 'Hf' 'Ta' 'W'  'Re' 'Os' 'Ir' 'Pt']
+	['Au' 'Hg' 'Tl' 'Pb' 'Bi' 'Po' 'At' [][][] 'Rn']
+
+	['Fr' 'Ra' 'Ac' 'Rf' 'Db' 'Sg' 'Bh' 'Hs' 'Mt' 'Ds']
+	['Rg']
+
+	['Ce' 'Pr' 'Nd' 'Pm' 'Sm' 'Eu' 'Gd' 'Tb' 'Dy' 'Ho' 'Er' 'Tm' 'Yb' 'Lu']
+	['Th' 'Pa' 'U'  'Np' 'Pu' 'Am' 'Cm' 'Bk' 'Cf' 'Es' 'Fm' 'Md' 'No' 'Lr']
+
+	:];
+
+` Utilities `
+
+` Align text left from 'Origin' `
+! text_left (Origin Text) = graphics!! {
+	text_org (Origin);
+	text (Text);
+	};
+
+` Align text right from 'Origin' `
+! text_right (Origin Text) : [Metrics] = graphics!! {
+	text_metrics (Metrics, 1, text (Text));
+	text_org (Origin[0] - Metrics[0], Origin[1]);
+	text (Text);
+	};
+
+`
+	Periodic table widget
+`
+
+!! [Widget] PeriodicTable (CellH CellW Updater) :
+	[table elems TabHgt TabWdt ElemCnt CurRow CurCol]
+
+	` constructor `
+	= {
+		` (initialisation) `
+		! init : [Hash Row Col elem el_row] = {
+			` hash all table items `
+			Hash = h_create ();
+			l_loop (elem, ElementData,
+				h_elem (Hash, Element!!elem.Symbol) = elem);
+
+			` initialise table `
+			table = array ([TabHgt TabWdt]);
+			elems = array (ElemCnt = #ElementData);
+			for_inc (Row, TabHgt, {
+				el_row = ElementsTable[Row];
+				if (#el_row)::
+					for_inc (Col, TabWdt,
+						if (elem = el_row[Col]):: {
+							table{Row, Col} = elem = h_lookup(Hash, elem);
+							elems{Element!!elem.No - 1} = [Col Row];
+							}
+						)
+				})
+			};		` -- init `
+
+		[TabHgt TabWdt] = [13 14];
+		init ();
+
+		` set widget extent: `
+		[Height Width] = (CellH*TabHgt, CellW*TabWdt)
+		}
+
+	{
+
+	` draw element cell at [Row Col] `
+	! draw_cell (Row Col): [Elem is_current align_flag fg_color bg_color] = graphics!! {
+			is_current = Row == CurRow && Col == CurCol;
+			Elem = table {[Row Col]};
+			Col =*: CellW; Row =*: CellH;
+
+			if (#Elem):: (Elem.Element!! {
+				bg_color = Type.ElemType!!Color;
+				fg_color = White(\x60);
+				is_current ? { bg_color = fg_color; fg_color = White(\xB0) } :;
+				align_flag = Type [==] D_Elem || Type [==] F_Elem;
+				fill_color (bg_color)::
+				plot_color (is_current ? White(\xA0) : White(\x40))::
+					rect ((Col, Row), (Col + CellW, Row + CellH));
+
+				font_fgcolor (fg_color):: font_bgcolor (bg_color):: {
+					font_face 'Arial':: font_size 18:: font_weight 1::
+					font_fgcolor (White (\xC0))::
+						(align_flag ?
+							text_right((Col + 46, Row + 16), Symbol) :
+							text_left((Col + 4, Row + 16), Symbol)
+						);
+					font_face 'Courier':: font_size 14::
+						(align_flag ?
+							text_left ((Col + 4, Row + 32), No) :
+							text_right ((Col + 46, Row + 32), No)
+						);
+					}
+				})
+		},	` -- draw_cell `
+
+	` select new cell [NewCol NewRow] `
+	! select_cell (NewCol NewRow) =
+		if ((NewRow <> CurRow || NewCol <> CurCol) &&
+		  #table {[NewRow NewCol]}):: {
+			` exchange old & new ... `
+			NewRow :=: CurRow; NewCol :=: CurCol;
+			with_widget ({
+				draw_cell (NewRow, NewCol); draw_cell (CurRow, CurCol);
+				});
+			Updater ! (table {[CurRow CurCol]});
+			1		` (return true on success) `
+			},		` -- select_cell `
+
+	! #on_open = {
+		CurRow = CurCol = 0;
+		Updater ! (table {[CurRow CurCol]});
+		},
+
+	! #on_paint (L_T R_B) : [Row Top Left Col Bottom Right] = {
+		graphics!!fill_color (White(\x60)):: fill (L_T, R_B);
+
+		[[Left Top] [Right Bottom]] =
+			graphics!!map_grid_rect ([0 0], [CellW CellH], [TabWdt TabHgt],
+				L_T, R_B);
+
+		` draw cells range `
+		for_inc (Row, Top..Bottom,
+			for_inc (Col, Left..Right,
+				draw_cell (Row, Col))
+			);
+		},	` -- on_paint `
+
+	` Get current element number `
+	! current_no = table {CurRow, CurCol}.Element!!No,
+
+	` Find element with number No (if any) `
+	! find_elem (No) =
+		(No <= ElemCnt && #elems{No-1}) ? elems{No-1} : [CurCol CurRow],
+
+	` Seek left from [Col Row], return new col `
+	! seek_left (Col Row) = {
+		while (Col <> 0 && #table {Row, --Col} == 0):: ();
+		Col
+		},
+
+	` Seek right from [Col Row], return new col `
+	! seek_right (Col Row) = {
+		while (Col <> TabWdt - 1 && #table {Row, ++Col} == 0):: ();
+		Col
+		},
+
+	` Seek up from [Col Row], return new row `
+	! seek_up (Col Row) = {
+		while (Row <> 0 && #table {--Row, Col} == 0):: ();
+		Row
+		},
+
+	` Seek down from [Col Row], return new row `
+	! seek_down (Col Row) = {
+		while (Row <> TabHgt - 1 && #table {++Row, Col} == 0):: ();
+		Row
+		},
+
+	! #on_key (action key) : [new_cell] =
+		if (action > 0):: {
+
+		new_cell =
+			switch (key):: (
+				KB_Left::
+					(seek_left([CurCol CurRow]), CurRow),
+				KB_Right::
+					(seek_right([CurCol CurRow]), CurRow),
+
+				KB_Up::
+					(CurCol, seek_up([CurCol CurRow])),
+				KB_Down::
+					(CurCol, seek_down([CurCol CurRow])),
+
+				KB_PgUp::
+					find_elem (current_no() - 1),
+				KB_PgDn::
+					find_elem (current_no() + 1),
+
+				KB_Home::
+					find_elem (1),
+				KB_End::
+					find_elem (ElemCnt),
+				);
+
+		if (#new_cell):: (
+			unless (#select_cell (new_cell)):: alert_beep()
+			);
+		},	` -- on_key `
+
+	! #on_mouse_click (button action point) =
+		if (action > 0 && button == MB_Left):: {
+			point = graphics!!map_grid_point
+				([0 0], [CellW CellH], [TabWdt TabHgt], point);
+			if (#point):: select_cell (point);
+			},	` -- on_mouse_click `
+
+	! #on_close = Updater ! ()
+	};	` -- PeriodicTable `
+
+
+:[element_widget];
+
+`
+	Element info widget
+`
+!! [Widget] ElementInfo : [element]
+
+	= (Width = Height = 180)
+
+	{
+
+	! #on_paint (L_T R_B) : [color] = graphics!! {
+		#element ? element. Element!! {
+		color = Type.ElemType!!Color;
+		fill_color (color) :: fill (L_T, R_B);
+
+		font_bgcolor (color) :: {
+
+		plot_color (White \x70):: fill_disable(1)::
+			rect ([5 5], (Width-5, Height-5));
+
+		` element symbol: `
+		font_fgcolor (White \xC0)::
+			font_face 'Arial':: font_size 36:: font_weight 1::
+				text_left ([12 36], Symbol);
+
+		` element number: `
+		font_fgcolor (White \xD0)::
+			font_face 'Courier':: font_size 24:: font_weight 1::
+				text_right ([160 25], No);
+
+		font_fgcolor (White \x98)::
+			font_face 'Times New Roman':: font_size 22:: {
+
+			text_left ([12 70], Name_EN);
+			text_left ([12 90], Name_RU);
+			font_italic (1):: font_size 18::
+				text_left ([14 130], AtomWeight);
+			}
+		}
+		} :		` element not empty `
+
+		` (no element defined) `
+		fill_color (Grey (\x80)):: fill (L_T, R_B)
+		},
+
+	! select (new_element) = {
+		element = new_element;
+		if (#Parent):: with_widget (on_paint ([0 0], [Width Height]));
+		},
+
+	! #on_close = (element_widget = ())
+
+	};
+
+` Session entry point `
+
+element_widget = ElementInfo ("Current Element");
+
+WinSession (
+
+	(PeriodicTable ("Periodic table of elements", 40, 50,
+	 ! (elem) = (if (#element_widget)::(ElementInfo!!element_widget.select (elem)))),
+	   [0 0], ),
+
+	element_widget,
+	);
+

@@ -1,0 +1,346 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'WinTrace.awl':
+	|	interactive WINTER windowing interface test.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+:[total_msg_counter];
+
+` total messages processed `
+total_msg_counter = 0;
+
+:[key_names KeyNames ButtonNames];
+
+` key names hash `
+key_names = h_create ();
+
+` Key names `
+KeyNames = [
+
+	[CH_Return	'Return']
+	[CH_Tab		'Tab']
+	[CH_BS		'<-']
+	[CH_Escape	'Escape']
+
+	[KB_Left	'Left']
+	[KB_Up		'Up']
+	[KB_Right	'Right']
+	[KB_Down	'Down']
+
+	[KB_PgUp	'PageUp']
+	[KB_PgDn	'PageDown']
+	[KB_Home	'Home']
+	[KB_End		'End']
+
+	[KB_Ins		'Insert']
+	[KB_Del		'Delete']
+	[KB_Center	'Center']
+
+	[KB_F1		'F1']
+	[KB_F2		'F2']
+	[KB_F3		'F3']
+	[KB_F4		'F4']
+	[KB_F5		'F5']
+	[KB_F6		'F6']
+	[KB_F7		'F7']
+	[KB_F8		'F8']
+	[KB_F9		'F9']
+	[KB_F10		'F10']
+	[KB_F11		'F11']
+	[KB_F12		'F12']
+
+	[KB_Shift	'Shift']
+	[KB_Ctrl	'Ctrl']
+	[KB_Alt		'Alt']
+
+	[KB_CapsLk	'Caps Lock']
+	[KB_NumLk	'Num Lock']
+	[KB_ScrollLk	'Scroll Lock']
+
+	:];		` -- KeyNames `
+
+` Mouse button names `
+ButtonNames = [
+
+	[MB_Shift	'Shift']
+	[MB_Ctrl	'Ctrl']
+
+	[MB_Left	'Left']
+	[MB_Middle	'Middle']
+	[MB_Right	'Right']
+
+	:];		` -- ButtonNames `
+
+:[n];
+l_loop (n, KeyNames, (h_elem (key_names, n[0]) = n[1]));
+
+` Debugging widget (tracks all messages received) `
+
+!! [Widget] WinDebug (Color LocR) : [win_msg_counter timerID]
+
+	` WinDebug constructor `
+	= { <: ['Created "' Title '".\n']; win_msg_counter = 0 }
+
+	` WinDebug destructor `
+	~ ( <: ['Destroyed "' Title '"'
+		" (messages received: " win_msg_counter ").\n"] )
+
+	{
+
+	` --- Show Point --- `
+	! msg_point (X Y) = <: ['[' X ',' Y ']'],
+
+	` --- Show Point (optional) --- `
+	! msg_point_opt (Point) =
+		#Point ? msg_point (Point) : (<: '?'),
+
+	` --- Show extent (W, H) --- `
+	! msg_extent (W H) = msg_point (W, H),
+
+	` --- Show area ([L T], [R B]) --- `
+	! msg_rect (L_T R_B) = {
+		<: '(';
+			msg_point (L_T);
+		<: '->';
+			msg_point (R_B);
+		<: ')';
+		},
+
+	` -- Show single character (if printable) -- `
+	! msg_char (ch) = ch >= 32 ? (<: ("'", ec_b(ch), "'")) : (<: ch),
+
+	` -- Show keycode -- `
+	! msg_key (Code) : [key_name] =
+		(key_name = h_elem (key_names, Code)) ?
+			(<: ['[' key_name ']']) : (<: Code),
+
+	` -- Show keyboard event `
+	! msg_keyevent (State) =
+		<: (State >= 1 ? ('+', State <> 1 ? State : "") : '-'),
+
+	` -- Show mouse click event `
+	! msg_clickevent (State) =
+		<: (State == 2 ? '!' : State == 1 ? '+' : '-'),
+
+	` -- Show mouse button state `
+	! msg_buttons (Buttons) : [entry name bit] =
+		if (Buttons):: {
+			<: '{';
+
+			l_loop (entry, ButtonNames, {
+				[bit name] = entry;
+
+				(Buttons & bit) ? {
+					<: name;
+					(Buttons =~: bit) ? (<: '|'):
+					}: ;
+
+				});
+
+			<: '}';
+			},
+
+	` --- Debug message wrapper --- `
+	! message (Name @Args) = {
+		<: [ '- ' Name ' "' Title '": ' ];
+		^Args;
+		<: '\n';
+
+		total_msg_counter ++;
+		win_msg_counter ++;
+		},
+
+	` show help window `
+	! show_help =
+	alert_box ("WinTrace Help", "
+	[Esc]:\tClose current window,
+	[1]..[9]:\t(Re)Start current window timer (with 0.# sec delay),
+	[0]:\tStop current window timer,
+	[Enter]:\tList all open windows,
+	[<-]:\tList all active timers.
+	"),
+
+	` Output list of active widgets `
+	! msg_widget_list(Current) : [widget count] = {
+		<: "\nActive widgets list:\n";
+		count = 0;
+
+		winternal!!windows_loop (widget)::
+		    (widget.Widget!!
+			(message ('#' +$ (++ count)):: {
+				<: (widget [==] Current ? " + " : " - ");
+			    msg_extent (Width, Height);
+			    })
+			);
+		<: ("(total: ", count, ").\n\n");
+		},
+
+	` Output list of active timers `
+	! msg_timer_list : [i count] = {
+		count = winternal!!timer_info ();
+		<: ("\nActive timers list (total ", count, ")\n");
+		for_inc (i, count,
+		    <: (i, ": ", winternal!!timer_info (i), "\n"));
+		},
+
+	` Show cursor location `
+	! draw_locator (off_on At) : [AtX AtY] =
+		if (#At)::
+		  (graphics!!plot_color (off_on ? Black() : Color)::
+			{
+			[AtX AtY] = At;
+			(LocR) ? {
+				fill_disable (1)::
+					oval ((AtX - LocR, AtY - LocR), (AtX + LocR, AtY + LocR));
+
+				line ([AtX 0], (AtX, AtY - LocR));
+				line ((AtX, AtY + LocR), [AtX Height]);
+				line ([0 AtY], (AtX - LocR, AtY));
+				line ((AtX + LocR, AtY), [Width AtY]);
+				} :
+			{	line ([AtX 0], [AtX Height]);
+				line ([0 AtY], [Width AtY]);
+				}
+			}),			` -- draw_locator `
+
+	` Set timer to specified 'interval' `
+	! change_timer (interval) = {
+		interval =*: 100;
+		<: ("Timer ", Widget!!Title, " (#", timerID, " => ");
+
+		timerID = restart_timer (timerID, interval);
+
+		<: ("#", timerID, "): ",
+			interval ? ("running at freq ", interval / 1000, " sec") : "stopped", ".\n");
+		},				` -- change_timer `
+
+	` Handle special keys `
+	! keys_special (KeyCode) = {
+
+		(KeyCode == CH_Escape) ?
+			` close window `
+			close_widget () :
+
+		(KeyCode == CH_Return) ?
+			` dump widget list `
+			msg_widget_list (self (!Widget)) :
+
+		(KeyCode == CH_BS) ?
+			` dump timers list `
+			msg_timer_list () :
+
+		(KeyCode == KB_F1) ?
+			show_help () :
+
+		(inside (KeyCode, s_ord '0' .. s_ord '9' + 1)) ?
+			change_timer (KeyCode - s_ord '0') :
+		;
+
+		},		` -- keys_special `
+
+	` -- Message handlers -- `
+
+	! #on_open (Area) =
+		message "Open":: msg_extent (Area),
+
+	! #on_close (Area) =
+		message "Close":: msg_extent (Area),
+
+	! #on_resize (Area) =
+		message "Resize":: msg_extent (Area),
+
+	! #on_paint (L_T R_B) = {
+		graphics!!fill_color (Color)::
+		    fill (L_T, R_B);
+
+		message "Paint":: msg_rect (L_T, R_B);
+		},
+
+	! #on_focus (in_out) =
+		message "Focus":: (<: (in_out ? '+' : '-')),
+
+	! #on_char (Char) =
+		message "Char":: msg_char (Char),
+
+	! #on_key (KeyState KeyCode) = {
+		message "Key"::
+			{ msg_keyevent (KeyState); msg_key (KeyCode); };
+
+		if (KeyState > 0)::
+			keys_special (KeyCode);
+		},
+
+	! #on_mouse_move (Buttons From To) = {
+		with_widget ({
+			draw_locator ([0 From]);
+			draw_locator ([1 To]);
+			});
+
+		message "MouseMove":: {
+			msg_point_opt (From); <: " -> "; msg_point_opt (To);
+			if (Buttons):: {
+				<: ' :';
+				msg_buttons (MB_State (Buttons));
+				}
+			};
+		},
+
+	! #on_mouse_click (Event Buttons At) = {
+		with_widget (draw_locator ([1 At]));
+
+		message "MouseClick":: {
+			msg_clickevent (Event);
+			<: ' ';
+			msg_buttons (MB_Code (Buttons));
+			<: ':';
+			msg_buttons (MB_State (Buttons));
+			<: ' ';
+			msg_point (At);
+			}
+		},
+
+	! #on_mouse_wheel (State Wheel At) = {
+		with_widget (draw_locator ([1 At]));
+
+		message "MouseWheel":: {
+			msg_buttons (MB_State (State));
+			<: ' ';
+			<: (Wheel > 0 ? ('+', Wheel) : Wheel);
+			<: ' ';
+			msg_point (At);
+			}
+		},
+
+	! #on_timer (Timer) =
+		message "Timer":: (<: ('#', Timer))
+	};
+
+`
+	Session entry point
+`
+
+<: ["\nWINTER message processing test...\n\n"];
+
+:[internal_count];
+
+internal_count =
+    WinSession (
+
+	(WinDebug ("<Red>", Red(), 4), [0 0], [250 200]),
+	(WinDebug ("<Blue>", Blue(), 4), [250 0], [250 200]),
+	(WinDebug ("<Green>", Green(), 4), [0 200], [250 200]),
+	(WinDebug ("<Yellow>", Yellow(), 4), [250 200], [250 200]),
+
+    );
+
+<: ["\nTotal messages received: " total_msg_counter ".\n"];
+<: ["\nInternal message counter: " internal_count ".\n"];
+

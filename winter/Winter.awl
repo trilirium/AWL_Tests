@@ -1,0 +1,333 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Winter.awl':
+	|	Windowing interface
+	|	(AWL standard library)
+	|
+	|	Defines:
+	|		- 'Widget' superclass
+	|		- keyboard/mouse literal definitions
+	|		- color definition functors
+	|
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	Preload...
+`
+
+_dynamic_load ("winter.dll", "winter_entry");
+
+`
+	Generic widget superclass (abstract)
+`
+
+!! Widget (Title) : [Parent Width Height]
+
+	` Widget virtual event handlers `
+	# {
+		` On open (create) widget (with client area 'ClientExtent'):
+			on_open (ClientExtent:Rect) `
+		on_open
+
+		` On close (destroy) widget (with client area 'ClientExtent'):
+			on_close (ClientExtent:Rect) `
+		on_close
+
+		` On resize widget (to client area 'ClientExtent'):
+			on_resize (ClientExtent:Rect) `
+		on_resize
+
+		` On re(paint) widget client rectangle 'UpdateRect' :
+			on_paint (UpdateRect:Rect) `
+		on_paint
+
+		` On ASCII character 'Code' input (when widget focused):
+			on_char (Code:Int) `
+		on_char
+
+		` On key up/down (when widget focused):
+			on_key (Event:Int KeyCode:Int)
+		  'Event' < 0? key released :
+		  'Event' > 0? key pressed (or repeated 'Event' times)
+		  'KeyCode': pressed/released key code (of KB_*) `
+		on_key
+
+		` On widget focus/defocus:
+			on_focus (Flag:Bool)
+		  'Flag' ? focus in : focus out `
+		on_focus
+
+		` On mouse entering/leaving/moving through widget:
+			on_mouse_move (Buttons:Int From:Point To:Point)
+		  'Buttons': current buttons state << 16 (of MB_*)
+		  moved from point 'From' (entering widget, if undef)
+		  moved to point 'To' (leaving window, if undef) `
+		on_mouse_move
+
+		` On mouse click on widget:
+			on_mouse_click (Event:Int Buttons:Int Location:Point)
+		  'Event':
+			== -1 ? button pressed
+			== 1 ? button released
+			== 2 ? button double clicked
+		  'Buttons':
+			& \xFFFF: changed button code
+			>> 16: new buttons state
+		  'Location': mouse location `
+		on_mouse_click
+
+		` On mouse wheel turn on widget:
+			on_mouse_wheel (Buttons:Int Turn:Int Location:Point)
+			'Buttons': current buttons state << 16 (of MB_*)
+			'Location': mouse location
+			'Turn': wheel turn (forward if >0, backward if <0) `
+		on_mouse_wheel
+
+		` On timer event:
+			definition TBD `
+		on_timer
+		
+		` Get widget owner `
+		get_owner
+	}
+
+	{
+	` On open: remember parent and widget dimensions `
+	! do_open (_Parent Extent) = {
+		Parent = _Parent;
+		[Width Height] = Extent;
+		on_open (Extent)
+		},
+
+	` On resize: modify widget dimensions `
+	! do_resize (Extent) = {
+		[Width Height] = Extent;
+		on_resize (Extent)
+		},
+
+	` On close: `
+	! do_close (Extent) = 
+		on_close (Extent),
+
+	` Widget wrapper `
+	! with_widget (@Body) = winternal!!with_window (Parent, ^Body),
+
+	` Alert popup box `
+	! alert_box (title message flags=0) =
+		winternal!!alert_box ([Parent title message flags]),
+
+	` Emit alert beep `
+	! alert_beep (param=0) = winternal!!alert_beep (param),
+
+	` (Re)start timer at interval (ms.) `
+	` Return new/old timer `
+	! restart_timer (Timer Delay) = {
+		unless (#Timer):: (Timer = -1);
+		Timer = winternal!!timer_control (Parent, Timer, Delay);
+		unless (Delay):: (Timer = ());
+		Timer },
+
+	` Start timer at interval (ms.) `
+	` Return new timer `
+	! start_timer (Delay) = restart_timer ((), Delay),
+
+	` Stop timer `
+	! stop_timer (Timer) = restart_timer (Timer, 0),
+
+	` Close this widget (if top-level one) `
+	! close_widget = winternal!!destroy_window (Parent),
+
+	` Query owner `
+	!# get_owner (@_) = ((^_) = Parent)
+	};
+
+msg_list = Widget!!(
+	0,
+	!on_paint,
+	!do_open,
+	!do_close,
+	!do_resize,
+	!on_char,
+	!on_key,
+	!on_focus,
+	!on_mouse_move,
+	!on_mouse_click,
+	0,
+	!on_mouse_wheel,
+	!on_timer,
+	!get_owner,
+	0
+	);
+
+`
+	Windowing session
+`
+! WinSession (WidgetList) : [Win BT BB BL BR] =
+	Widget!! winternal!! {
+
+	` Open new window in this session `
+	` Error: win_open not in scope! `
+	! win_open (Widget Origin Extent) = {
+		#Extent ~?
+			` get win extent from widget extent `
+			(Extent = Widget.(BL + Width + BR, BT + Height + BB)) :;
+
+		Widget.create_window ((), Widget, Title, Origin, Extent, 0);
+		};
+
+	` Message processing.
+	  NOTE: WinSession returns the value of winternal!!message_loop `
+	message_loop (
+		! (message widget args) = {
+			message = msg_list[message];
+			#widget ? widget.(message ! args) : (message ! args);
+			},
+
+			{
+			[[BL BT] [BR BB]] = query_border ();
+			l_loop (Win, WidgetList, win_open (Win))
+			}
+		)
+	};
+
+`
+	Some common color definitions
+`
+
+Dark = \x40;
+Normal = \x80;
+Lite = \xC0;
+Full = \xFF;
+
+` RGB color by components `
+! RGB(R=Full G=Full B=Full) = R | G << 8 | B << 16;
+
+` get components from RGB color: `
+
+	` get R component `
+! colorR(RGB) = RGB & \xFF;
+	` get G component `
+! colorG(RGB) = (RGB >> 8) & \xFF;
+	` get B component `
+! colorB(RGB) = (RGB >> 16) & \xFF;
+
+
+`
+	Basic 8-color model:
+	color C with intensity N
+`
+! RGB8(C N=Full) = RGB (C & 1 ? N : 0, C & 2 ? N : 0, C & 4 ? N : 0);
+
+`
+	Basic 16-color model:
+	8 dim colors + 8 light colors
+`
+! RGB16(C): [N] = {
+	N = C & 8 ? \xFF : \x80;
+	RGB (C & 1 ? N : 0, C & 2 ? N : 0, C & 4 ? N : 0)
+	};
+
+! Black				= 0;
+! Red (N=Full)		= RGB8(1, N);
+! Green (N=Full)	= RGB8(2, N);
+! Yellow (N=Full)	= RGB8(3, N);
+! Blue (N=Full)		= RGB8(4, N);
+! Magenta (N=Full)	= RGB8(5, N);
+! Cyan (N=Full)		= RGB8(6, N);
+! Grey (N=\x80)		= RGB8(7, N);
+! White (N=Full)	= RGB8(7, N);
+
+
+`
+	ASCII character codes
+`
+
+	CH_BS		= \x08;				` Backspace `
+	CH_Tab		= \x09;				` Tab `
+	CH_NL		= \x0A;				` Newline `
+	CH_Clear	= \x0C;				` Clear `
+	CH_Return	= \x0D;				` Return/Enter `
+	CH_Escape	= \x1B;				` Escape `
+	CH_Space	= \x20;				` Space `
+
+
+`
+	Keyboard input codes
+`
+
+	KB_F1		= \x80;				` [F1] `
+	KB_F2		= \x81;				` [F2] `
+	KB_F3		= \x82;				` [F3] `
+	KB_F4		= \x83;				` [F4] `
+	KB_F5		= \x84;				` [F5] `
+	KB_F6		= \x85;				` [F6] `
+	KB_F7		= \x86;				` [F7] `
+	KB_F8		= \x87;				` [F8] `
+	KB_F9		= \x88;				` [F9] `
+	KB_F10		= \x89;				` [F10] `
+	KB_F11		= \x8A;				` [F11] `
+	KB_F12		= \x8B;				` [F12] `
+	KB_F13		= \x8C;				` [F13] `
+	KB_F14		= \x8D;				` [F14] `
+	KB_F15		= \x8E;				` [F15] `
+	KB_F16		= \x8F;				` [F16] `
+
+	KB_Left		= \x90;				` [Left] `
+	KB_Up		= \x91;				` [Up] `
+	KB_Right	= \x92;				` [Right] `
+	KB_Down		= \x93;				` [Down] `
+	KB_Home		= \x94;				` [Home] `
+	KB_PgUp		= \x95;				` [Page Up] `
+	KB_End		= \x96;				` [End] `
+	KB_PgDn		= \x97;				` [Page Down] `
+	KB_Ins		= \x98;				` [Insert] `
+	KB_Del		= \x99;				` [Delete] `
+	KB_Center	= \x9A;				` [ ] `
+
+	KB_Plus		= 107;
+	KB_Minus	= 109;
+	KB_Mul		= 106;
+	KB_Div		= 111;
+
+	KB_Shift	= \xA1;				` [Shift] `
+	KB_Ctrl		= \xA2;				` [Ctrl] `
+	KB_Alt		= \xA3;				` [Alt] `
+
+	KB_CapsLk	= \xA9;				` [Caps Lock] `
+	KB_NumLk	= \xAA;				` [Num Lock] `
+	KB_ScrollLk	= \xAB;				` [Scroll Lock] `
+
+	KB_Pause	= \xC0;				` [Pause] `
+	KB_Win		= \xC1;				` [Win] `
+	KB_App		= \xC2;				` [App] `
+
+`
+	Mouse buttons/states
+`
+
+	MB_Left		= 1 << 0;			` (Left button) `
+	MB_Middle	= 1 << 1;			` (Middle button) `
+	MB_Right	= 1 << 2;			` (Right button) `
+	MB_Ext1		= 1 << 3;			` (First extended button) `
+	MB_Ext2		= 1 << 4;			` (Second extended button) `
+
+	MB_Shift	= 1 << 8;			` (Shift key) `
+	MB_Ctrl		= 1 << 9;			` (Ctrl key) `
+
+` Get altered mouse button code
+  (in on_mouse_click) `
+! MB_Code (buttons) = buttons & \xFFFF;
+
+` Get mouse buttons state
+  (in on_mouse_move, on_mouse_click, on_mouse_wheel) `
+! MB_State (buttons) = buttons >> 16;
+
+`
+	Inclusion flag
+`
+
+Have_Winter = true();

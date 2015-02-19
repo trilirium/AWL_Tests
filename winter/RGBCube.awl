@@ -1,0 +1,147 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'RGBCube.awl':
+	|	RGB color cube.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+include "winter.awl";
+
+:[];
+
+` Interpolate vector: Origin@(OffsetX, OffsetY) `
+! LERP_point (grade total Origin OffsetX OffsetY) = (
+	Origin[0] + (OffsetX? (grade * OffsetX) % total : 0),
+	Origin[1] + (OffsetY? (grade * OffsetY) % total : 0)
+	);		` -- LERP_point `
+
+` Interpolate RGB color (between fromColor and toColor) `
+! LERP_color (grade total fromColor toColor) = {
+	! LERP_single(from to) =
+		from == to ? from : from + (grade * (to - from)) % total;
+
+	RGB (
+		LERP_single(colorR(fromColor), colorR(toColor)),
+		LERP_single(colorG(fromColor), colorG(toColor)),
+		LERP_single(colorB(fromColor), colorB(toColor))
+		)
+	};		` -- LERP_color `
+
+` Draw interpolated color plane:
+  parallelogram, defined by Origin and vectors (OffsetA, OffsetB)
+  `
+! Draw_PlaneAB (Origin OffsetA OffsetB countA countB
+	Color ColorA ColorB ColorAB) :
+	[indexA indexB color p_A0 p_A1 p_B00 p_B01 p_B10 p_B11 c_A0 c_A1] = {
+
+p_A0 = Origin;
+
+for_inc (indexA, countA, {
+	p_A1 = LERP_point (indexA + 1, countA, Origin, OffsetA);
+
+	c_A0 = LERP_color (indexA, countA, Color, ColorA);
+	c_A1 = LERP_color (indexA, countA, ColorB, ColorAB);
+
+	p_B00 = l_copy(p_A0);
+	p_B10 = l_copy(p_A1);
+
+	for_inc (indexB, countB, {
+		p_B01 = LERP_point (indexB + 1, countB, p_A0, OffsetB);
+		p_B11 = LERP_point (indexB + 1, countB, p_A1, OffsetB);
+
+		graphics!!fill_color (LERP_color (indexB, countB, c_A0, c_A1))::
+			polygon ([p_B00 p_B01 p_B11 p_B10 :]);
+
+		p_B00 = l_copy(p_B01);
+		p_B10 = l_copy(p_B11);
+		});
+
+	p_A0 = l_copy(p_A1);
+	});
+};		` Draw_PlaneAB `
+
+! shift (origin offset) = (origin[0] + offset[0], origin[1] + offset[1]);
+
+! Draw_SidesXYZ (Center AxisX AxisY AxisZ CountX CountY CountZ Color0 ColorX ColorY ColorZ) = graphics!!{
+plot_disable (1):: {
+	` plane: X/Y `
+	Draw_PlaneAB (Center, AxisX, AxisY, CountX, CountY,
+		Color0, ColorX, ColorY, ColorX|ColorY);
+	` plane: Y/Z `
+	Draw_PlaneAB (Center, AxisY, AxisZ, CountY, CountZ,
+		Color0, ColorY, ColorZ, ColorY|ColorZ);
+	` plane: Z/X `
+	Draw_PlaneAB (Center, AxisZ, AxisX, CountZ, CountX,
+		Color0, ColorZ, ColorX, ColorZ|ColorX);
+	};
+
+` draw convex edges `
+plot_color (White(\x80)):: {
+	line (Center, shift(Center, AxisX));
+	line (Center, shift(Center, AxisY));
+	line (Center, shift(Center, AxisZ));
+	};
+
+` draw surrounding frame `
+plot_color (White ()):: fill_disable (1)::
+	polygon (
+		shift(Center, AxisX),
+		shift(shift(Center, AxisX), AxisY),
+		shift(Center, AxisY),
+		shift(shift(Center, AxisY), AxisZ),
+		shift(Center, AxisZ),
+		shift(shift(Center, AxisZ), AxisX),
+		);
+
+};	` Draw_SidesXYZ `
+
+` Draw RGB Cube (Mode ? dimetric : isometric) `
+!! [Widget] RGBCube (R N CenterF CenterR Mode) {
+
+	! #on_paint (L_T R_B) : [Va Vb A_X A_Y A_Z] = {
+		Mode ?
+		    (Va = Vb = R / sqr(2))
+		 :  ([Va Vb] = (sqr(3)*R / 2, R / 2));
+
+		graphics!!fill_color (Black()):: fill (L_T, R_B);
+
+		` front view: `
+		[A_X A_Y A_Z] =
+			Mode ?
+				((-R, 0), (0, R), (Va, -Vb)):
+				((0, R), (Va, -Vb), (-Va, -Vb));
+
+		Draw_SidesXYZ (CenterF, A_X, A_Y, A_Z, N, N, N,
+			Black(), Red(), Green(), Blue());
+			
+		` rear view: `
+		[A_X A_Y A_Z] =
+			Mode ?
+				((R, 0), (0, -R), (-Va, Vb)):
+				((0, -R), (-Va, Vb), (Va, Vb));
+
+		Draw_SidesXYZ (CenterR, A_X, A_Y, A_Z, N, N, N,
+			White(), Red(), Green(), Blue());
+		}	` -- on_paint `
+
+	};
+
+`
+	Session entry point
+`
+
+WinSession (
+	(RGBCube ("RGB Color cube (isometric)", 160, 16, [200 200], [500 200], 0),
+		[0 0], [700 420]),
+
+	(RGBCube ("RGB Color cube (dimetric)", 160, 16, [200 200], [500 200], 1),
+		[100 100], [700 420]),
+	);
+
+<: "RGB cube done.\n";
+
