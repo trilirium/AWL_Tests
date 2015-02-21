@@ -1,0 +1,47 @@
+
+AWL mathematical tests:
+
+	* Ack:
+	Ackermann function
+
+	* BeerSong:
+	N bottles of beer on the wall...
+
+	* BinTree:
+	Simple binary tree
+
+	* BitCount:
+	Count bits (by 3 different methods)
+
+	* Complex, ComplexTest:
+	Basic complex numbers library
+
+	* Determ:
+	Determinants
+
+	* EvenOdd:
+	Check for even/odd (recursive)
+
+	* FactBinom:
+	(Factorials/binomials)
+
+	* Factorial:
+	Calculate factorial with unlimited precision
+
+	* Factorize:
+	Integers factorization
+
+	* Fib:
+	Fibonacci numbers
+
+	* Figurate:
+	Figurate numbers
+
+	* Fract:
+	Periodic fractions
+
+	* FuncTab:
+	Tabulate some functions
+
+
+

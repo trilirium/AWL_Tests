@@ -1,18 +1,84 @@
 
-AWL specific tests:
+AWL specific data tests:
 
 	* Array, Array1, Array2, Array3:
 	operations on arrays
 
 	* BitOpcode:
-	bit operations (set, clear, check, locate, count)
+	bit operations (locate, count)
+
+	* Boolean:
+	boolean operations, conditionals and iterators
+
+	* CharClass:
+	character classes
+
+	* Closure:
+	creating (and using) closures
+
+	* CodecCheck
+	character codecs
 
 	* Coerce:
 	scalar (string <-> number) coercion operations
 
+	* Compose:
+	functional composers
+
+	* Control:
+	flow control
+
+	* Currying:
+	functor currying
+
+	* EncDecTest:
+	(obsolete) value/character encoding/decoding
+
+	* Evaluate:
+	scalar/list evaluations
+
+	* EvalX:
+	(internal) evaluation modes
+
+	* Except:
+	exceptions handling
+
+	* FloatCvt:
+	floating point formats test
+
+	* FloatCvt:
+	floating point formats test
+
+	* Hash:
+	operations on hashes
+
+	* ListBin:
+	list-based binary trees
+
+	* ListCons:
+	list construction/deconstruction
+
+	* ListEval:
+	list evaluation
+
+	* ListOp:
+	operations on lists
+
+	* ListRange:
+	range lists
+
+	* ListSort:
+	lists sorting
+
 	* Object:
 	class/object operations
-	
+
+	* ParseCode:
+	runtime code parsing
+
+	* Pattern, Pattern1
+	operations on patterns
+
 	* Return:
 	return from functors
 

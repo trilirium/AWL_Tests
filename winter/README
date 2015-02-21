@@ -1,0 +1,18 @@
+
+AWL widget tests:
+
+	* AnimDemo:
+	Simple sprite animation test
+
+	* Apollonian:
+	Apollonian circles
+
+	* Clock:
+	Simple analog clock
+
+	* SortDemo:
+	Demonstration of several sorting algorithms
+
+	* WinTrace:
+	Tracing WINTER events
+
