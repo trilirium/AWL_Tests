@@ -1,6 +1,13 @@
 
 `
-	Apollonian.awl: Apollonian circles
+	+---+---+---+---+---+---+
+	|	'Apollonian.awl':
+	|	Apollonian circles.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
 `
 
 include "winter.awl";

@@ -8,7 +8,43 @@ AWL widget tests:
 	Apollonian circles
 
 	* Clock:
-	Simple analog clock
+	(Simple "analog" clock)
+	
+	* DrawDemo1:
+	Simple widget/draw demo:
+	line drawing/area filling
+
+	* DrawDemo2:
+	Simple widget/draw demo:
+	nesting plot/fill color
+
+	* DrawDemo3:
+	Simple widget/draw demo:
+	filled geometric shapes
+
+	* DrawDemo4:
+	Simple widget/draw demo:
+	rainbow filling
+
+	* DrawDemo5:
+	Simple widget/draw demo:
+	screen/image blitting test
+
+	* DrawDemo6:
+	Simple widget/draw demo:
+	screen/image blitting/stretching test
+
+	* LifeGame:
+	Game of Life
+
+	* MasterMind:
+	MasterMind ("bulls and cows")
+
+	* RGBCube:
+	RGB color cube
+
+	* Rotor:
+	Colour wheels demo
 
 	* SortDemo:
 	Demonstration of several sorting algorithms
