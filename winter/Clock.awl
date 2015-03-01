@@ -1,0 +1,98 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'Clock.awl':
+	|	Simple analog clock widget
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+
+include "winter.awl";
+
+! rotate_point (deg x y) : [rad sin cos] = {
+	rad = pi(deg/180);
+	sin = sin(rad); cos = cos(rad);
+	(x*cos - y*sin, x*sin + y*cos) };
+
+marker_4 = [
+	(-0.05, -0.9) (0.05, -0.9) (0, -0.8)
+	:];
+
+marker_12 = [
+	(-0.01, -0.95) (0.01, -0.95) (0.01, -0.85) (-0.01, -0.85)
+	:];
+
+marker_60 = [
+	(0, -0.95) (0, -0.93)
+	:];
+
+marker_Hour = [
+	(-0.01, -0.50) (0.01, -0.50) (0.01, -0.10) (-0.01, -0.10)
+	:];
+
+marker_Minute = [
+	(-0.01, -0.80) (0.01, -0.80) (0.01, -0.05) (-0.01, -0.05)
+	:];
+
+marker_Sec = [
+	(0, -0.90) (0, 0.15) (-0.03, 0.20) (0.03, 0.20) (0, 0.15)
+	:];
+
+central_radius = 0.03;
+
+`
+
+	Clock widget
+
+`
+!! [Widget] Clock (BgColor FgColor) : [Hour Min Sec] {
+
+	! #on_open () : [time] = {
+		time = local_time ();
+
+		Hour = time[3];
+		Min = time[4];
+		Sec = time[5];
+		},
+
+	! map_point (deg pt) : [rot] = { rot = rotate_point (deg, pt); (Width/2 + rot[0]*Width/2, Height/2 + rot[1]*Height/2) },
+
+	! scaled_polygon (deg point_list) : [xformed_list] = {
+		xformed_list = l_map (!(pt) = (map_point (deg, pt)), point_list);
+		graphics!!polygon (xformed_list);
+		},
+
+	! draw_clock (L_T R_B) = graphics!! {
+		` (clear widget area) `
+		fill_color (BgColor):: fill (L_T, R_B);
+
+		plot_color (FgColor):: fill_color (FgColor):: {
+		` (draw markers) `
+		for_inc (i, 60, scaled_polygon (i*6, i %% 5 ? marker_60 : i %% 15 ? marker_12 : marker_4));
+
+		scaled_polygon ((Hour * 5 + Min % 12) * 6, marker_Hour);
+		scaled_polygon (Min * 6, marker_Minute);
+		scaled_polygon (Sec * 6, marker_Sec);
+		
+		oval (map_point (0, (- central_radius, - central_radius)), map_point (0, (central_radius, central_radius)));
+		}
+		},
+
+	! #on_paint (L_T R_B) = draw_clock (L_T, R_B),
+
+	! #on_resize (L_T R_B) = with_widget^draw_clock ([0 0], [Width Height]),
+
+	! #on_close () : [] = {},
+
+	};		` -- ControlsA `
+
+WinSession (
+	(Clock ("Clock", Yellow(), Red()), [0 0], [300 300]),
+	);
+
+<: "Well done!";
+
