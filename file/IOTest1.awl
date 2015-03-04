@@ -1,0 +1,250 @@
+
+`
+
+    (Buffered) File input/output test
+
+`
+
+include "IODefs.awl";
+
+! expect_read (file expect) : [really] =
+(really = f_read (file, #$expect)) [==] expect ?
+	1	` (OK.) `
+	: {
+	<: ("Read failed (expected '", expect, "'; found '", really, "')\n");
+	0	` (Fail!) `
+	};	` expect_read `
+
+` Forced unbuffered mode `
+do_unbuffered = false();
+
+`
+	Input/output test
+`
+
+! perform_io_test (filename buf_in buf_out test_run) :
+	[r_file w_file size r_count w_count f_count] = {
+
+if (do_unbuffered):: (buf_in = buf_out = 0);
+
+<: ["I/O Test: File='" filename "' (InBuf=" buf_in ", OutBuf=" buf_out "):\n"];
+
+` File write cycle `
+
+f_chmod (filename, \o0644);
+
+w_file = f_create (filename);
+
+if (#w_file):: {
+
+f_bufmode (w_file, buf_out);
+
+test_run ! (! (string) = { ++ w_count; w_file <: string; });
+
+size = f_tell(w_file);
+
+if (f_get_length (w_file) <> size)::
+	(<: "Unexpected file offset.\n");
+
+f_close (w_file);
+} :: (<: "File not writeable!\n");
+
+` File read & verify cycle `
+
+r_file = f_open (filename, O_RDONLY|O_BINARY);
+
+if (#r_file):: {
+
+f_count = 0;
+
+if (f_get_length (r_file) <> size)::
+	(<: ("Unexpected file size: ", f_get_length (r_file), "::", size, ".\n"));
+
+f_bufmode (r_file, buf_in);
+
+test_run ! (! (string) =
+	{ ++ r_count; expect_read (r_file, string) ? [] : ++ f_count });
+
+if (f_tell (r_file) <> size)::
+	(<: "Unexpected file offset: ", f_tell (r_file), "\n");
+
+f_close (r_file);
+} :: (<: "File not readable!\n");
+
+<: ("\tdone (file size: ", size,
+    ", reads: ", r_count, ", writes: ", w_count, ", fails: ", f_count, ")\n");
+
+};    ` perform_io_test `
+
+`
+	Perform tests
+`
+
+! iotest_1 (do_io string count) = {
+	do_io ! "\n[<<< iotest #1]\n";
+
+	times (count)::(do_io ! string);
+
+	do_io ! "\n[iotest #1 >>>]\n";
+	};
+
+! iotest_2 (do_io string count) : [s_len i] = {
+	s_len = #$string;
+
+	do_io ! "\n[<<< iotest #2]\n";
+
+	for_inc (i, s_len, do_io ! (string $[0..i]));
+	do_io ! " [[[ ";
+	times (count)::(do_io ! string);
+	do_io ! " ]]] ";
+	for_inc (i, s_len, do_io ! (string $[i..s_len]));
+
+	do_io ! "\n[iotest #2 >>>]\n";
+	};
+
+! iotest_3 (do_io string count count1) : [s_len i] = {
+	s_len = #$string;
+
+	do_io ! "\n[<<< iotest #3]\n";
+
+	do_io ! "\n{{{ ";
+	for_inc (i, s_len, do_io ! (string $[0..i]));
+	do_io ! " }}}\n";
+
+	do_io ! "\n((( ";
+	for_inc (i, s_len,
+		{ do_io ! (string $[i..s_len]); do_io ! (string $[0..i]); });
+	do_io ! " )))\n";
+
+	do_io ! "\n<<< ";
+	for_inc (i, s_len,
+		do_io ! (string $[i..s_len + i]));
+	do_io ! " >>>\n";
+
+	do_io ! "\n[[[ ";
+	times (count)::(do_io ! string);
+	do_io ! " ]]]\n";
+	for_inc (i, s_len, do_io ! (string $[i..s_len]));
+
+	do_io ! "\n<<< ";
+	for_inc (i, s_len,
+		do_io ! (string $[i - s_len..i]));
+	do_io ! " >>>\n";
+
+	do_io ! "\n((( ";
+	for_dec (i, s_len,
+		{ do_io ! (string $[i..s_len]); do_io ! (string $[0..i]); });
+	do_io ! " )))\n";
+
+	do_io ! "\n{{{ ";
+	for_dec (i, s_len, do_io ! (string $[i..s_len]));
+	do_io ! " }}}\n";
+
+	do_io ! "\n[iotest #3 >>>]\n";
+	};
+
+` Repeat test: with do_io `
+! repeat_test (do_io total s_beg s_rep s_div s_end) : [i] = {
+do_io ! (s_beg);
+
+for_inc (i, total, {
+	do_io ! (string(i));
+	do_io ! '<<';
+	times(i):: (do_io ! (s_rep));
+	do_io ! (s_div);
+	});
+
+do_io ! (string(total));
+do_io ! '==';
+times(total):: (do_io ! (s_rep));
+
+for_dec (i, total, {
+	do_io ! (s_div);
+	do_io ! (string(i));
+	do_io ! '>>';
+	times(i):: (do_io ! (s_rep));
+	});
+
+do_io ! (s_end);
+};	` -- repeat_test `
+
+` Matrix test: with do_io `
+! matrix_test (do_io listA listB) : [nrow ncol elemA elemB] = {
+
+do_io ! "\n[Matrix test: ";
+do_io ! (string (#listA));
+do_io ! " * ";
+do_io ! (string (#listB));
+do_io ! "].\n\n";
+
+` Vertical loop... `
+do_io ! '\t';
+l_loop (elemB, listB, {
+	do_io ! (elemB);
+	do_io ! '\t';
+	});
+do_io ! '\n';
+
+nrow = 0;
+l_loop (elemA, listA, {
+	do_io ! (elemA);
+	do_io ! ':';
+	do_io ! (string (nrow ++));
+	do_io ! " -\t";
+
+	l_loop (elemB, listB, {
+		do_io ! (elemB);
+		do_io ! ':';
+		do_io ! (elemA);
+		do_io ! '\t';
+		});
+
+	do_io ! '\n';
+	});
+
+};	` -- matrix_test `
+
+perform_io_test ('temp/iotest_1.dat', 40, 120,
+	! (do_io) = (iotest_1 (do_io,
+		"ABCD-EFGH-IJKL-MN-OPQR-STUV-WXYZ", 100))
+	);
+
+perform_io_test ('temp/iotest_2.dat', 80, 80,
+	! (do_io) = (iotest_2 (do_io,
+		"0123456789 abcdefghijklmnopqrstuvwxyz ", 200))
+	);
+
+perform_io_test ('temp/iotest_3.dat', 120, 60,
+	! (do_io) = (iotest_3 (do_io,
+		"(0a 1b 2c 3d 4e 5f 6g 7h 8i 9j)", 100, 10))
+	);
+
+perform_io_test ('temp/iotest_4.dat', 100, 100,
+	! (do_io) = {
+		do_io ! "\n[<<< iotest #4]\n";
+		repeat_test (do_io, 10, "\n[[", "(*)", " / ", "]]\n");
+		repeat_test (do_io, 16, "\n(...", "%", "-", "...)\n");
+		repeat_test (do_io, 8, "\n(:", ":[..]:", "==", ":)\n");
+		do_io ! "\n[iotest #4 >>>]\n";
+		}
+	);
+
+perform_io_test ('temp/iotest_5.dat', 40, 30,
+	! (do_io) = {
+		do_io ! "\n[<<< iotest #5]\n";
+		matrix_test (do_io,
+			['abc' 'AABCCC' 'de' 'DEFGH' 'fghi' 'jkl' 'JKLMNOPQR' 'mno' 'pqr'],
+			['0000' '11' '222' '33333' '44' '5']
+			);
+		matrix_test (do_io,
+			['AAAA-BB' 'CCC-D-EEEEE' 'FFFF-GGG' 'HHHHHH' 'II-JJJ' 'KKKKKK-LLL' 'MM-NNN' 'OOOOOO' 'PPPP' 'QQQQQ' 'RRRRRRRRR' 'SSSS-TTTTTT'],
+			['XXXXXX' 'YYYYYYYYYY' 'ZZZZ' 'OOOOO' 'PPPPPPP' 'QQQQQQ']
+			);
+		matrix_test (do_io,
+			['111122223333333' '44445555' '6677777' '888888888' '0000000999999' '4444466666' '5555557777777777' '8889999999' '00009999' '1118888' '22227777'],
+			['aaaa' 'bbbbbb' 'cccc' 'ddddddd' 'eee' 'fffffff' 'gggggggggggggg' 'hhh']
+			);
+		do_io ! "\n[iotest #5 >>>]\n";
+		}
+	);
+

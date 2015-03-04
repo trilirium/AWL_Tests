@@ -1,0 +1,10 @@
+
+! check_stream (name stream) =
+	<: ("Stream '", name, "': ",
+		f_is_console (stream) ? "console" : "disk file",
+		" (length=", f_get_length(stream), ").",
+		"\n");
+
+check_stream ("input", f_in());
+check_stream ("output", f_out());
+check_stream ("error", f_err());

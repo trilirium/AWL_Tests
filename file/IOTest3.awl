@@ -1,0 +1,218 @@
+
+`
+	IOTest3.awl: random access I/O tests
+`
+
+` Create a random alphanumeric string of length N `
+
+! s_rand (N) =
+	s_map (! (code) = {
+		code = rand (10 + 2*26);
+
+		(code < 10) ? \c '0' + code :
+		(code =-: 10) < 26 ?
+			(\c 'A' + code) :
+			(\c 'a' + code - 26)
+		},
+		' ' *$ N);
+
+! expect_eq (left right) =
+	unless (left [==] right)::
+		(<: ("Expect fail: '", left, "' <> '", right, "'!\n"));
+
+! expect_size (exp real) =
+	if (exp <> real)::
+		(<: ("Size: expected=", exp, " real=", real, "\n"));
+
+randomize ();
+
+! IO_Matrix_3D (filename nX nY nZ lX lY lZ in_size1 in_size2 out_size) :
+	[X Y Z aX aY aZ rec_len total in out] = {
+
+total = nX*nY*nZ;
+
+` create & initialize test arrays::: `
+
+aX = array (nX);
+for_inc (X, nX, aX{X} = s_rand(lX));
+
+aY = array (nY);
+for_inc (Y, nY, aY{Y} = s_rand(lY));
+
+aZ = array (nZ);
+for_inc (Z, nZ, aZ{Z} = s_rand(lZ));
+
+` output ... `
+
+! elem (x y z) = s_join ('', '[', aX{x}, ':', aY{y}, ':', aZ{z}, ']\n');
+
+rec_len = 5 + lX + lY + lZ;
+
+<: ["Random I/O Test: '" filename "' (InBuf=" in_size1 "/" in_size2 ", OutBuf=" out_size "):\n"];
+<: ["\t(" nX "*" nY "*" nZ " = " total "; reclen = " rec_len "; size = " (total*rec_len) ")\n"];
+
+f_chmod (filename, \o0644);
+out = f_create (filename);		` buffering works only with binary mode! `
+
+f_bufmode (out, out_size);
+
+if (#out):: {
+with_output (out):: (
+for_inc (X, nX,
+    for_inc (Y, nY,
+		for_inc (Z, nZ,
+			<: elem(X, Y, Z)
+		)
+	)
+));
+
+expect_size (total*rec_len, f_tell(out));
+
+f_close (out);
+};
+
+` Seek to element (x, y, z) `
+! seek_elem (x y z) = f_seek (in, (z + y*nZ + x*nZ*nY)*rec_len);
+
+` Expect elem at (x, y, z) to match `
+! expect_elem (x y z) = expect_eq (f_read(in, rec_len), elem (x, y, z));
+
+in = f_open (filename);
+
+if (#in):: {
+
+f_bufmode (in, in_size1);
+
+expect_size (total*rec_len, f_get_length(in));
+
+for_inc (X, nX,
+    for_inc (Y, nY,
+		for_inc (Z, nZ,
+			expect_elem(X, Y, Z)
+		)
+	)
+);
+
+f_sync (in);
+f_bufmode (in, in_size2);
+
+for_inc (Z, nZ,
+    for_inc (Y, nY,
+		for_inc (X, nX, {
+			seek_elem (X, Y, Z);
+			expect_elem(X, Y, Z)
+		})
+	)
+);
+
+for_dec (Z, nZ,
+    for_dec (Y, nY,
+		for_dec (X, nX, {
+			seek_elem (X, Y, Z);
+			expect_elem(X, Y, Z)
+		})
+	)
+);
+
+times (total):: {
+	X = rand (nX);
+	Y = rand (nY);
+	Z = rand (nZ);
+
+	seek_elem (X, Y, Z);
+	expect_elem (X, Y, Z);
+	};
+
+f_close (in);
+};
+
+};		` -- IO_Matrix_3D `
+
+IO_Matrix_3D ("temp/MTX3D_1.dat", 6, 5, 8, 7, 4, 8, 22, 44, 36);
+IO_Matrix_3D ("temp/MTX3D_2.dat", 9, 12, 11, 6, 12, 9, 12, 32, 56);
+
+! write_blank (output length count) : [elem] = {
+	elem = ' ' *$ length;
+	times (count):: (output <: elem);
+	};
+
+! IO_Matrix_3Dw (filename nX nY nZ lX lY lZ in_size1 out_size) :
+	[X Y Z aX aY aZ rec_len total in out] = {
+
+total = nX*nY*nZ;
+
+` create & initialize test arrays::: `
+
+aX = array (nX);
+for_inc (X, nX, aX{X} = s_rand(lX));
+
+aY = array (nY);
+for_inc (Y, nY, aY{Y} = s_rand(lY));
+
+aZ = array (nZ);
+for_inc (Z, nZ, aZ{Z} = s_rand(lZ));
+
+` output ... `
+
+! elem (x y z) = s_join ('', '[', aX{x}, ':', aY{y}, ':', aZ{z}, ']\n');
+
+rec_len = 5 + lX + lY + lZ;
+
+<: ["Random I/O TestX: '" filename "' (InBuf=" in_size1 ", OutBuf=" out_size "):\n"];
+<: ["\t(" nX "*" nY "*" nZ " = " total "; reclen = " rec_len "; size = " (total*rec_len) ")\n"];
+
+` Seek to element (x, y, z) `
+! seek_elem (x y z) = f_seek (out, (z + y*nZ + x*nZ*nY)*rec_len);
+
+f_chmod (filename, \o0644);
+out = f_create (filename);		` buffering works only with binary mode! `
+
+write_blank (out, rec_len, total);
+
+f_bufmode (out, out_size);
+
+if (#out):: {
+with_output (out):: (
+for_inc (X, nX,
+	for_inc (Z, nZ,
+		for_inc (Y, nY, {
+			seek_elem (X, Y, Z);
+			<: elem(X, Y, Z);
+			}
+		)
+	)
+));
+
+expect_size (total*rec_len, f_tell(out));
+
+f_close (out);
+};
+
+` Expect elem at (x, y, z) to match `
+! expect_elem (x y z) = expect_eq (f_read(in, rec_len), elem (x, y, z));
+
+in = f_open (filename);
+
+if (#in):: {
+
+expect_size (total*rec_len, f_get_length(in));
+
+f_bufmode (in, in_size1);
+
+for_inc (X, nX,
+    for_inc (Y, nY,
+		for_inc (Z, nZ,
+			expect_elem(X, Y, Z)
+		)
+	)
+);
+
+
+f_close (in);
+};
+
+};	` -- IO_Matrix_3Dw `
+
+IO_Matrix_3Dw ("temp/MTX3Dw_1.dat", 12, 7, 9, 8, 12, 10, 40, 80);
+IO_Matrix_3Dw ("temp/MTX3Dw_2.dat", 10, 5, 13, 4, 15, 9, 80, 140);
+

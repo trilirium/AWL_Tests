@@ -1,0 +1,132 @@
+
+` Create a random alphanumeric string of length N `
+! s_rand (N) =
+	s_map (! (code) = {
+		code = rand (10 + 2*26);
+
+		(code < 10) ? \c '0' + code :
+		(code =-: 10) < 26 ?
+			(\c 'A' + code) :
+			(\c 'a' + code - 26)
+		},
+		' ' *$ N);
+
+randomize ();
+
+! expect_size (where exp real) =
+	if (exp <> real)::
+		(<: ("Size: (", where, ") expected=", exp, " real=", real, "\n"));
+
+! expect_ceq (where real exp) =
+    if (real <> exp) ?
+	{ <: ("Failed: (", where, ") real=", real, " exp=", exp, ".\n"); 0 } : 1;
+
+`
+	Perform random I/O test on 'filename'
+`
+
+! test_ssrand (filename in_size out_size str_len) :
+	[in out source I J K test total_checks total_length total_fails] = {
+
+f_chmod (filename, \o0644);
+out = f_create (filename);	` buffering works only with binary mode! `
+
+if (#out):: {
+f_bufmode (out, out_size);
+
+<: ["Random I/O Test: '" filename "' (InBuf=" in_size ", OutBuf=" out_size "):\n"];
+<: ["\t(str_len=" str_len "; file_size=" (str_len*str_len*str_len*4) ")\n"];
+
+source = s_rand(str_len);
+
+for_inc (I, str_len,
+    for_inc (J, str_len,
+	for_inc (K, str_len, {
+	    f_putc (out, s_ord (source, I));
+	    f_putc (out, s_ord (source, J));
+	    f_putc (out, s_ord (source, K));
+	    f_putc (out, \c ' ');
+	    })
+	)
+    );
+
+expect_size ('end write', str_len*str_len*str_len*4, f_tell(out));
+
+f_close (out);
+};
+
+in = f_open (filename);
+
+if (#in):: {
+f_bufmode (in, in_size);
+
+expect_size ('start read', str_len*str_len*str_len*4, f_get_length(in));
+
+total_checks = total_fails = total_length = 0;
+
+! check_fragment (mode start length) : [test index fails] = {
+	fails = 0;
+
+	! expect_subseq (base index) =
+		expect_ceq (mode, s_ord(test,index + 3), \c ' ')
+	&&	expect_ceq (mode, s_ord(test,index + 2),
+			s_ord(source, base %% str_len))
+	&&	expect_ceq (mode, s_ord(test,index + 1),
+			s_ord(source, ((base =%: str_len)) %% str_len))
+	&&	expect_ceq (mode, s_ord(test,index),
+			s_ord(source, (base % str_len) %% str_len));
+
+	f_seek (in, start*4);
+	test = f_read (in, length*4);
+	expect_size (mode, #$test, length*4);
+
+	for_inc (index, length, unless (expect_subseq (start+index, index*4)):: (++ fails));
+
+	++ total_checks;
+	total_length =+: length;
+	total_fails =+: fails;
+	};
+
+` [I, I, I] `
+J = str_len*(str_len + 1) + 1;
+for_inc (I, str_len, check_fragment ("[+ + +]", I*J, 1));
+
+` [I, -I, I] `
+J = str_len*(str_len - 1) + 1;
+K = (str_len - 1)*str_len;
+for_inc (I, str_len, check_fragment ("[+ - +]", K + I*J, 1));
+
+` [I, I, -I] `
+J = str_len*(str_len + 1) - 1;
+K = str_len - 1;
+for_inc (I, str_len, check_fragment ("[+ + -]", I*J + K, 1));
+
+` [I, -I, -I] `
+J = str_len*(str_len - 1) - 1;
+K = str_len*str_len - 1;
+for_inc (I, str_len, check_fragment ("[+ - -]", I*J + K, 1));
+
+K = str_len*str_len*str_len;		` (total items) `
+times (str_len):: {
+	I = rand (K);
+	J = rand (K + 1 - I);
+	check_fragment ("rand", I, J);
+	};
+
+<: ["\t(checks=" total_checks " (#" total_length ") / fails=" total_fails ")\n"];
+
+f_close (in);
+};
+
+};	` -- test_ssrand `
+
+
+`
+	Run all tests...
+`
+
+test_ssrand ('temp/SeqTest_1.dat', 32, 64, 16);
+test_ssrand ('temp/SeqTest_2.dat', 80, 60, 23);
+test_ssrand ('temp/SeqTest_3.dat', 100, 48, 13);
+test_ssrand ('temp/SeqTest_4.dat', 120, 84, 7);
+

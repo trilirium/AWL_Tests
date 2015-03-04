@@ -1,0 +1,51 @@
+
+` Borrowed from C-lib <fcntl.h> `
+
+O_RDONLY = \x0000;		` read only `
+O_WRONLY = \x0001;		` write only `
+O_RDWR	 = \x0002;		` read & write `
+
+O_APPEND = \x0008;		` append mode `
+
+O_RANDOM		= \x0010;	` random I/O `
+O_SEQUENTIAL	= \x0020;	` seq I/O `
+
+O_TEMPORARY	= \x0040;	` temporary file (unlink after close) `
+
+O_NOINHERIT	= \x0080;	` no inherit file `
+
+O_CREAT		= \x0100;	` Create the file if it does not exist `
+O_TRUNC		= \x0200;	` Truncate the file if it does exist `
+O_EXCL		= \x0400;	` Open only if the file does not exist `
+
+O_TEXT		= \x4000;	` CR-LF in file becomes LF in memory `
+O_BINARY	= \x8000;	` Input and output is not translated `
+
+`
+	For f_access
+`
+
+F_OK	= 0;			` check existence `
+X_OK	= 1;			` check executable `
+W_OK	= 2;			` check writeable `
+R_OK	= 4;			` check readable `
+
+`
+	For f_chmod
+`
+
+S_IXOTH	= 1;
+S_IWOTH = 2;
+S_IROTH = 4;
+S_I_OTH	= 7;
+
+S_IXGRP	= \o10;
+S_IWGRP	= \o20;
+S_IRGRP	= \o40;
+S_I_GRP = \o70;
+
+S_IXUSR	= \o100;
+S_IWUSR	= \o200;
+S_IRUSR	= \o400;
+S_I_USR = \o700;
+

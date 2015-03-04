@@ -1,0 +1,21 @@
+
+include "IODefs.awl";
+
+w_file = f_create ("temp/TestX.dat");
+
+f_bufmode (w_file, 100);
+
+<: '\n';
+
+w_file <: 'hello';
+
+w_file <: "0123456789" *$ 50;
+
+w_file <: 'goodbye';
+
+f_set_length (w_file, 256);
+
+x_trace ((), w_file);
+
+f_close (w_file);
+
