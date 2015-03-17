@@ -1,0 +1,171 @@
+
+`
+	+---+---+---+---+---+---+
+	|	'BGIFont.awl':
+	|	BGI vector fonts view utility.
+	|
+	|	AWL Winter libraries/tests.
+	|	Written by trilirium
+	|	Public domain.
+	+---+---+---+---+---+---+
+`
+
+`
+	BGI font description
+`
+
+!! BGIFont (FontID FontDescr FontData);
+
+` Load BGI font from file ... `
+! LoadBGIFont (file_name) : [input header content length c_len d_len c_off p FontID FontDescr FontData] =
+	if (is_stream (input = f_open (file_name))):: {
+		header = f_read (input, \x80);
+		if (header$[0..4] [==] "PK\x08\x08"):: {
+			(<: "Valid font file!\n");
+			c_len = (header$[4..] >>$ '\x1A') + 4;
+			FontDescr = header$[4 .. c_len];
+			FontID = header$[c_len+3 .. c_len+7];
+			d_len = s_ord (header, c_len+7) | s_ord (header, c_len+8) << 8;
+
+			FontData = f_read (input, d_len);
+
+			` result is: `
+			BGIFont (FontID, FontDescr, FontData) }
+		};	` -- LoadBGIFont `
+
+
+include "winter.awl";
+
+!! [Widget] BGIFontView (font) : [code XC XS YC YS]
+
+	= ()
+
+	{
+
+	! #on_open () = {
+		BGIFont!!font.{
+			<: ["Font ID: " FontID "\n"];
+			<: ["Description: " FontDescr "\n"];
+			};
+
+		code = 32;
+		},
+
+	! locate_glyph (code) : [content] = {
+		content = BGIFont!!font.FontData;
+
+		if (inside (code, range (s_ord (content, 4), s_ord (content, 1))))::
+		{
+		code =-: s_ord (content, 4);
+
+		(
+		` character address is: `
+		(s_ord (content, 5) | s_ord (content, 6) << 8)
+			+
+		(s_ord (content, 16 + code*2) | s_ord (content, 17 + code*2) << 8),
+
+		` character width is: `
+		s_ord (content, 16 + s_ord (content, 1) * 2 + code),
+		
+		` common font ascent is: `
+		s_ord (content, 8),
+
+		` common font descent is: `
+		256 - s_ord (content, 10)
+		)
+		}
+		},	` -- locate_glyph `
+
+	! rescale (Width Height) =
+		[XS YS] = ((Width - Width>>2) >> 5, (Height - Height>>2) >> 5),
+
+	` redraw glyph for 'code' `
+	! refresh_glyph : [i x y x1 y1 do_plot C width R height] = {
+		graphics!! fill_color (\x505050):: fill ([0 0], [Width Height]);
+
+		[glyph_addr glyph_width glyph_ascent glyph_descent] = locate_glyph (code);
+		x1 = y1 = 0;
+
+		graphics!!{
+			[width height] = (XS*glyph_width, YS*(glyph_ascent + glyph_descent));
+			[XC YC] = ((Width - width) >> 1, ((Height - height) >> 1) + glyph_ascent*YS);
+
+			plot_color (Cyan (\x80)):: {
+				` clear area: `
+				fill_color (Cyan (\x40)):: rect ((XC, YC - glyph_ascent*YS), (XC + width, YC + glyph_descent*YS));
+				
+				` points grid: `
+				for_inc (C, 1 .. glyph_width, {
+					C = XC + C*XS;
+					for_inc (R, 1-glyph_ascent .. glyph_descent,
+						plot (C, YC + R*YS)
+						)
+					});
+
+				` baseline: `
+				line ([XC YC], (XC + width, YC));
+				};
+			};
+
+		content = BGIFont!!font.FontData;
+		graphics!!plot_color (Yellow ())::
+		while ({
+			x = s_ord (content, glyph_addr ++);
+			y = s_ord (content, glyph_addr ++);
+			(x || y) }) ::
+			{
+			do_plot = ((x & y) & \x80);
+
+			x =&: \x7f;
+			y =&: \x7f;
+
+			if (x & \x40):: (x =-: \x80);
+			if (y & \x40):: (y =-: \x80);
+
+			if (do_plot):: line ((XC + x1*XS, YC - y1*YS), (XC + x*XS, YC - y*YS));
+
+			[x1 y1] = [x y];
+			};
+
+		<: ('#', code, ": (", glyph_width, "/", glyph_ascent, "/", glyph_descent, ")\n");
+		},
+
+	! update = with_widget^refresh_glyph (),
+
+	! #on_paint (L_T R_B) = refresh_glyph (),
+
+	! #on_resize (W H) =
+		{ rescale (W, H); update (); },
+
+	! #on_char (char) =
+		if (char < 255):: { code = char; update (); },
+
+	! #on_key (action key) =
+		if (action > 0):: {
+			switch (key):: (
+				KB_Left		::		{ -- code; update (); },
+				KB_Right	::		{ ++ code; update (); },
+
+				KB_Up		::		{ code =-: 16; update (); },
+				KB_Down		::		{ code =+: 16; update (); },
+
+				KB_Home		::		{ code = 32; update (); },
+				KB_End		::		{ code = 128; update (); },
+				)
+			}	` -- on_key `
+
+	};	` -- BGIFontView `
+
+`
+	Entry point ...
+`
+
+font = LoadBGIFont (_arguments () [0]);
+
+if (#font)::
+	WinSession (
+
+		(BGIFontView ("BGI fonts", font), [0 0], [300 300]),
+
+		);
+
